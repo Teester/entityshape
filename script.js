@@ -61,10 +61,8 @@ function entitycheck_checkbox() {
 function entitycheck_checkEntity(entity, entitySchema, language) {
 	$("#entityCheckResponse").contents().remove();
     $(".entitycheck-property").remove()
-	// var url = "https://tools.wmflabs.org/entitycheck/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
-	var url = "http://127.0.0.1:5000/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
-	console.log(url)
-	$.ajax({ 
+	var url = "https://entityshape.toolforge.org/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
+	$.ajax({
 		type: "GET",
 		dataType: "json",
 		url: url,
