@@ -43,10 +43,10 @@ $("#entityschema-entityToCheck").on("keyup", function(event){
 
 function entitycheck_update() {
 	let entitycheck_entitySchema = $("#entityschema-entityToCheck")[0].value.toUpperCase();
-	let entitycheck_entityTitle = document.location.pathname.substring(6);
+	let entitycheck_entityName = document.location.pathname.substring(6);
 	let lang = mw.config.get( 'wgUserLanguage' );
 	window.localStorage.setItem("entitycheck", entitycheck_entitySchema);
-	entitycheck_checkEntity(entitycheck_entityTitle, entitycheck_entitySchema, lang);
+	entitycheck_checkEntity(entitycheck_entityName, entitycheck_entitySchema, lang);
 }
 
 function entitycheck_checkbox() {
@@ -68,8 +68,6 @@ function entitycheck_checkEntity(entity, entitySchema, language) {
 		success: function(data){
 		console.log(data);
 			let html = "";
-			let response = "missing";
-			let properties = $(".wikibase-statementgroupview");
 
 			html += "<br/>Checking against <b><a href='https://www.wikidata.org/wiki/EntitySchema:" + data.schema + "'>" + data.schema + ":" + data.name + '</a></b>:';
 			if (data.validity.results) {
@@ -88,7 +86,7 @@ function entitycheck_checkEntity(entity, entitySchema, language) {
 			let absent_html = '<td class="entitycheck_table">';
 			if (data.properties) {
 				for (let key in data.properties) {
-					shape_html = "";
+					let shape_html = "";
 					let response1 = data.properties[key].response;
 					let response_class  = "";
 					switch (response1) {
