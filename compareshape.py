@@ -107,7 +107,7 @@ class CompareShape:
                             allowed = "allowed"
                         else:
                             allowed = qualifiers
-                if allowed == "incorrect"and  extra == "extra":
+                if allowed == "incorrect" and extra == "extra":
                     allowed = "allowed"
                 if required == "missing":
                     allowed = required
@@ -153,10 +153,10 @@ class CompareShape:
                         max_cardinality = True
                         if "min" in self._shape[claim]["cardinality"] and\
                                 number_of_statements < self._shape[claim]["cardinality"]["min"]:
-                                min_cardinality = False
+                            min_cardinality = False
                         if "max" in self._shape[claim]["cardinality"] and \
                                 number_of_statements > self._shape[claim]["cardinality"]["max"]:
-                                max_cardinality = False
+                            max_cardinality = False
                         if min_cardinality and not max_cardinality:
                             cardinality = "too many statements"
                         if max_cardinality and not min_cardinality:
