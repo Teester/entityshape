@@ -67,9 +67,8 @@ class CompareShape:
                     if "qualifiers" in self._shape[claim]:
                         allowed_qualifiers: List = []
                         for qualifier in self._shape[claim]["qualifiers"]:
-                            if "qualifiers" in statement:
-                                if qualifier not in statement["qualifiers"]:
-                                    allowed_qualifiers.append(qualifier)
+                            if "qualifiers" in statement and qualifier not in statement["qualifiers"]:
+                                allowed_qualifiers.append(qualifier)
                         if len(allowed_qualifiers) > 0:
                             qualifiers: str = "missing qualifiers: " + ", ".join(allowed_qualifiers)
                         else:
@@ -108,9 +107,8 @@ class CompareShape:
                             allowed = "allowed"
                         else:
                             allowed = qualifiers
-                if allowed == "incorrect":
-                    if extra == "extra":
-                        allowed = "allowed"
+                if allowed == "incorrect"and  extra == "extra":
+                    allowed = "allowed"
                 if required == "missing":
                     allowed = required
                 if allowed != "":
@@ -132,9 +130,8 @@ class CompareShape:
             response: str = "missing"
             required: str = "correct"
             child: Dict = {"name": self._names[claim], "necessity": "absent"}
-            if claim in self._shape:
-                if "necessity" in self._shape[claim]:
-                    child["necessity"] = self._shape[claim]["necessity"]
+            if claim in self._shape and "necessity" in self._shape[claim]:
+                child["necessity"] = self._shape[claim]["necessity"]
             if claim in self._entities["entities"][self._entity]['claims']:
                 cardinality: str = ""
                 allowed: str
@@ -154,11 +151,11 @@ class CompareShape:
                             number_of_statements = len(self._property_responses[claim])
                         min_cardinality = True
                         max_cardinality = True
-                        if "min" in self._shape[claim]["cardinality"]:
-                            if number_of_statements < self._shape[claim]["cardinality"]["min"]:
+                        if "min" in self._shape[claim]["cardinality"] and\
+                                number_of_statements < self._shape[claim]["cardinality"]["min"]:
                                 min_cardinality = False
-                        if "max" in self._shape[claim]["cardinality"]:
-                            if number_of_statements > self._shape[claim]["cardinality"]["max"]:
+                        if "max" in self._shape[claim]["cardinality"] and \
+                                number_of_statements > self._shape[claim]["cardinality"]["max"]:
                                 max_cardinality = False
                         if min_cardinality and not max_cardinality:
                             cardinality = "too many statements"
@@ -168,9 +165,8 @@ class CompareShape:
                     response = allowed
                 else:
                     response = cardinality
-                if required == "correct":
-                    if response == "allowed":
-                        response = "correct"
+                if required == "correct" and response == "allowed":
+                    response = "correct"
             if response != "":
                 child["response"] = response
             self.properties[claim] = child
