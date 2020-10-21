@@ -17,7 +17,7 @@ class Shape:
     # TODO: Process OR and NOT in shapes
     def __init__(self, schema: str, language: str):
         self.name: str = ""
-        self.shape: Dict = {}
+        self.schema_shape: Dict = {}
 
         self._shapes: Dict = {}
         self._schema_shapes: Dict = {}
@@ -66,11 +66,11 @@ class Shape:
         for key in schema_json:
             if "shape" in schema_json[key]:
                 schema_json[key] = self._translate_sub_shape(schema_json[key])
-            if "required" in schema_json[key]:
-                if "required" in schema_json[key]["required"]:
-                    schema_json[key]["required"] = schema_json[key]["required"]["required"]
+            if "required" in schema_json[key] and\
+                    "required" in schema_json[key]["required"]:
+                schema_json[key]["required"] = schema_json[key]["required"]["required"]
         print(f"shape = {schema_json}")
-        self.shape = schema_json
+        self.schema_shape = schema_json
 
     def _convert_shape_to_array(self, shape: str):
         """
@@ -177,10 +177,10 @@ class Shape:
                     sub_shape_json = self._translate_sub_shape(sub_shape[key])
                     if sub_shape[key]["status"] == "statement":
                         schema_json["required"] = sub_shape_json
-                if sub_shape[key]["status"] == "statement":
-                    if "allowed" in sub_shape[key]:
-                        value = sub_shape[key]["allowed"]
-                        schema_json["required"] = {key: value}
+                if sub_shape[key]["status"] == "statement" and\
+                        "allowed" in sub_shape[key]:
+                    value = sub_shape[key]["allowed"]
+                    schema_json["required"] = {key: value}
                 if sub_shape[key]["status"] == "qualifier":
                     qualifier_child[key] = sub_shape[key]
                 if sub_shape[key]["status"] == "reference":
@@ -200,7 +200,7 @@ class Shape:
         if "?" in schema_line:
             cardinality["max"] = 1
         elif "*" in schema_line:
-            pass
+            cardinality = {}
         elif "+" in schema_line:
             cardinality["min"] = 1
         elif re.search(r"{.+}", schema_line):

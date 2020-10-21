@@ -19,7 +19,7 @@ def data():
     try:
         valid: Dict = check_against_pyshexy(schema, entity)
         shape: Shape = Shape(schema, language)
-        comparison: CompareShape = CompareShape(shape.shape, entity, language)
+        comparison: CompareShape = CompareShape(shape.schema_shape, entity, language)
         payload: Dict = {'schema': schema, 'name': shape.name, 'validity': valid,
                          'properties': comparison.properties, 'statements': comparison.statements, 'error': ""}
         print(payload)
