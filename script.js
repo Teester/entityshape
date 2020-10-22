@@ -7,9 +7,9 @@ $(document).ready(function(){
 	if (entityID) {
 		let schema = window.localStorage.getItem("entitycheck");
 		let value = window.localStorage.getItem("entitycheck-auto");
-		let entitycheck_entityTitle = document.location.pathname.substring(6);
+		let entitycheck_entityName = document.location.pathname.substring(6);
 		if (value == "true") {
-			entitycheck_checkEntity(entitycheck_entityTitle, schema, lang);
+			entitycheck_checkEntity(entitycheck_entityName, schema, lang);
 			$("#entitycheck-checkbox").prop('checked', true);
 		} else {
 			$("#entitycheck-checkbox").prop('checked', false);
