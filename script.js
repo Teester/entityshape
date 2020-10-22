@@ -163,7 +163,12 @@ function entitycheck_parseResult(data) {
 		property = data.reason.match(/P\d+/g);
 	}
 	if (property !== null) {
-		property = property.reduce(function(a,b){if(a.indexOf(b)<0)a.push(b);return a;},[]);
+		property = property.reduce(function(a,b) {
+		        if (a.indexOf(b) < 0) {
+		            a.push(b);
+		        }
+		        return a;
+		    },[]);
 		for (let i = 0; i < property.length; i++) {
 			if (property[i].length > 100) {
 				property[i] = property[i].substr(0,100) + "…"
