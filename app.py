@@ -17,7 +17,8 @@ def data():
     entity: str = request.args.get("entity", type=str)
     language: str = request.args.get("language", type=str)
     try:
-        valid: Dict = check_against_pyshexy(schema, entity)
+        # valid: Dict = check_against_pyshexy(schema, entity)
+        valid: Dict = {}
         shape: Shape = Shape(schema, language)
         comparison: CompareShape = CompareShape(shape.schema_shape, entity, language)
         payload: Dict = {'schema': schema, 'name': shape.name, 'validity': valid,
