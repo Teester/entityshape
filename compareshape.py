@@ -1,7 +1,6 @@
 import requests
 
 from requests import Response
-from typing import Dict, List
 
 
 class CompareShape:
@@ -19,14 +18,14 @@ class CompareShape:
     # TODO: Process CLOSED comparison
     # TODO: Process OR and NOT comparison
     # TODO: Process groups in comparison
-    def __init__(self, shape: Dict, entity: str, language: str):
-        self.properties: Dict = {}
-        self.statements: Dict = {}
+    def __init__(self, shape: dict, entity: str, language: str):
+        self.properties: dict = {}
+        self.statements: dict = {}
 
         self._entity: str = entity
         self._language: str = language
-        self._shape: Dict = shape
-        self._property_responses: Dict = {}
+        self._shape: dict = shape
+        self._property_responses: dict = {}
 
         self._get_entity_json()
         self._get_props(self._entities["entities"][self._entity]['claims'])
@@ -38,12 +37,12 @@ class CompareShape:
         """
         Compares the statements in the entity to the schema
         """
-        claims: Dict = self._entities["entities"][self._entity]['claims']
+        claims: dict = self._entities["entities"][self._entity]['claims']
         for claim in claims:
-            statement_results: List = []
-            property_statement_results: List = []
+            statement_results: list = []
+            property_statement_results: list = []
             for statement in claims[claim]:
-                child: Dict = {"property": claim}
+                child: dict = {"property": claim}
                 allowed: str = "not in schema"
                 qualifiers: str = ""
                 required: str = ""
@@ -65,7 +64,7 @@ class CompareShape:
                     if "extra" in self._shape[claim]:
                         extra: str = "extra"
                     if "qualifiers" in self._shape[claim]:
-                        allowed_qualifiers: List = []
+                        allowed_qualifiers: list = []
                         for qualifier in self._shape[claim]["qualifiers"]:
                             if "qualifiers" in statement and qualifier not in statement["qualifiers"]:
                                 allowed_qualifiers.append(qualifier)
@@ -85,7 +84,7 @@ class CompareShape:
                         url: str = f"https://www.wikidata.org/w/api.php?action=wbgetclaims" \
                             f"&entity={query_entity}&property={required_property}&format=json"
                         response: Response = requests.get(url)
-                        json_text: Dict = response.json()
+                        json_text: dict = response.json()
                         if required_property in json_text["claims"]:
                             for key in json_text["claims"][required_property]:
                                 if key["mainsnak"]["datavalue"]["value"]["id"] == required_value:
@@ -129,7 +128,7 @@ class CompareShape:
         for claim in self._props:
             response: str = "missing"
             required: str = "correct"
-            child: Dict = {"name": self._names[claim], "necessity": "absent"}
+            child: dict = {"name": self._names[claim], "necessity": "absent"}
             if claim in self._shape and "necessity" in self._shape[claim]:
                 child["necessity"] = self._shape[claim]["necessity"]
             if claim in self._entities["entities"][self._entity]['claims']:
@@ -180,12 +179,12 @@ class CompareShape:
         response: Response = requests.get(url)
         self._entities = response.json()
 
-    def _get_props(self, claims: Dict):
+    def _get_props(self, claims: dict):
         """
         Gets a list of properties included in the entity
         :param claims: The claims in the entity
         """
-        self._props: List = []
+        self._props: list = []
         for claim in claims:
             if claim not in self._props:
                 self._props.append(claim)
@@ -197,15 +196,15 @@ class CompareShape:
         """
         Gets the names of properties from wikidata
         """
-        self._names: Dict = {}
-        wikidata_property_list: List = [self._props[i * 49:(i + 1) * 49]
+        self._names: dict = {}
+        wikidata_property_list: list = [self._props[i * 49:(i + 1) * 49]
                                         for i in range((len(self._props) + 48) // 48)]
         for element in wikidata_property_list:
             required_properties: str = "|".join(element)
             url: str = f"https://www.wikidata.org/w/api.php?action=wbgetentities&ids={required_properties}&" \
                        f"props=labels&languages={self._language}&format=json"
             response: Response = requests.get(url)
-            json_text: Dict = response.json()
+            json_text: dict = response.json()
             for item in element:
                 try:
                     self._names[json_text["entities"][item]["id"]] = \

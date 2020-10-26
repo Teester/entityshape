@@ -1,6 +1,6 @@
 import re
 import requests
-from typing import List, Optional, Match, Union, Pattern, Any, Dict
+from typing import Optional, Match, Union, Pattern, Any
 
 
 class Shape:
@@ -17,10 +17,10 @@ class Shape:
     # TODO: Process OR and NOT in shapes
     def __init__(self, schema: str, language: str):
         self.name: str = ""
-        self.schema_shape: Dict = {}
+        self.schema_shape: dict = {}
 
-        self._shapes: Dict = {}
-        self._schema_shapes: Dict = {}
+        self._shapes: dict = {}
+        self._schema_shapes: dict = {}
         self._language: str = language
 
         self._get_schema_json(schema)
@@ -39,7 +39,7 @@ class Shape:
                 if re.match(r".+:P\d", line):
                     snak: str = self._get_snak_type(line)
                     selected_property: str = re.search(r"P\d+", line).group(0)
-                    child: Dict = {}
+                    child: dict = {}
                     if selected_property in shape_json:
                         child = shape_json[selected_property]
                     if "@<" in line:
@@ -52,7 +52,7 @@ class Shape:
                             child["not_allowed"] = required_parameters_string[1:-1].split()
                         else:
                             child["allowed"] = required_parameters_string[1:-1].split()
-                    cardinality: Dict = self._get_cardinality(line)
+                    cardinality: dict = self._get_cardinality(line)
                     necessity: str = "optional"
                     if cardinality:
                         child["cardinality"] = cardinality
@@ -62,7 +62,7 @@ class Shape:
                     child["status"] = snak
                     shape_json[selected_property] = child
             self._schema_shapes[shape] = shape_json
-        schema_json: Dict = self._schema_shapes[self._default_shape_name]
+        schema_json: dict = self._schema_shapes[self._default_shape_name]
         for key in schema_json:
             if "shape" in schema_json[key]:
                 schema_json[key] = self._translate_sub_shape(schema_json[key])
@@ -79,9 +79,9 @@ class Shape:
         :return: an array
         """
         new_shape: str = self._shapes[shape].replace("\n", "")
-        shape_json: Dict = self._get_shape_properties(new_shape[new_shape.find(">")+1:new_shape.find("{")-1])
+        shape_json: dict = self._get_shape_properties(new_shape[new_shape.find(">")+1:new_shape.find("{")-1])
         new_shape = new_shape[new_shape.find("{")+1:new_shape.rfind("}")]
-        shape_array: List = new_shape.split(";")
+        shape_array: list = new_shape.split(";")
         return shape_array, shape_json
 
     @staticmethod
@@ -91,7 +91,7 @@ class Shape:
         :param first_line: The first line of the shape
         """
         # a closed shape
-        shape_json: Dict = {}
+        shape_json: dict = {}
         if "CLOSED" in first_line:
             shape_json = {"closed": "closed"}
         # a shape where values other than those specified are allowed for th specified properties
@@ -108,7 +108,7 @@ class Shape:
         """
         url: str = f"https://www.wikidata.org/wiki/EntitySchema:{schema}?action=raw"
         response = requests.get(url)
-        self._json_text: Dict = response.json()
+        self._json_text: dict = response.json()
 
     def _strip_schema_comments(self):
         """
@@ -146,7 +146,7 @@ class Shape:
         default_shape_name: Optional[Match[str]] = re.search(r"start = @<.*>", self._schema_text)
         default_name: str = default_shape_name.group(0).replace(" ", "")
         self._default_shape_name = default_name[8:-1]
-        shape_names: List = re.findall(r"\n<.*>", self._schema_text)
+        shape_names: list = re.findall(r"\n<.*>", self._schema_text)
         for name in shape_names:
             self._shapes[name[2:-1]] = self._get_specific_shape(name[2:-1])
 
@@ -161,16 +161,16 @@ class Shape:
         shape: Optional[Match[Union[str, Any]]] = re.search(search, self._schema_text)
         return shape.group(0)
 
-    def _translate_sub_shape(self, schema_json: Dict):
+    def _translate_sub_shape(self, schema_json: dict):
         """
         Converts a sub-shape to a json representation
         :param schema_json: The json containing the shape to be extracted
         :return: The extracted shape
         """
-        sub_shape: Dict = self._schema_shapes[schema_json["shape"]]
+        sub_shape: dict = self._schema_shapes[schema_json["shape"]]
         del schema_json["shape"]
-        qualifier_child: Dict = {}
-        reference_child: Dict = {}
+        qualifier_child: dict = {}
+        reference_child: dict = {}
         for key in sub_shape:
             if "status" in sub_shape[key]:
                 if "shape" in sub_shape[key]:
@@ -196,7 +196,7 @@ class Shape:
         :param schema_line: The line to be processed
         :return: A json representation of the cardinality in the form {min:x, max:y}
         """
-        cardinality: Dict = {}
+        cardinality: dict = {}
         if "?" in schema_line:
             cardinality["max"] = 1
         elif "*" in schema_line:
