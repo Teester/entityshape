@@ -147,25 +147,7 @@ class CompareShape:
         else:
             allowed = "present"
         if claim in self._shape:
-            if child["necessity"] != "absent":
-                cardinality = "correct"
-            if "cardinality" in self._shape[claim]:
-                if "extra" in self._shape[claim]:
-                    number_of_statements = self._property_responses[claim].count("correct")
-                else:
-                    number_of_statements = len(self._property_responses[claim])
-                min_cardinality = True
-                max_cardinality = True
-                if "min" in self._shape[claim]["cardinality"] and \
-                        number_of_statements < self._shape[claim]["cardinality"]["min"]:
-                    min_cardinality = False
-                if "max" in self._shape[claim]["cardinality"] and \
-                        number_of_statements > self._shape[claim]["cardinality"]["max"]:
-                    max_cardinality = False
-                if min_cardinality and not max_cardinality:
-                    cardinality = "too many statements"
-                if max_cardinality and not min_cardinality:
-                    cardinality = "not enough correct statements"
+            cardinality, max_cardinality, min_cardinality = self._assess_cardinality(claim, child)
         if cardinality == "correct":
             response = allowed
         else:
@@ -173,6 +155,31 @@ class CompareShape:
         if response == "allowed":
             response = "correct"
         return response
+
+    def _assess_cardinality(self, claim, child):
+        cardinality: str = ""
+        max_cardinality: bool = False
+        min_cardinality: bool = False
+        if child["necessity"] != "absent":
+            cardinality = "correct"
+        if "cardinality" in self._shape[claim]:
+            if "extra" in self._shape[claim]:
+                number_of_statements = self._property_responses[claim].count("correct")
+            else:
+                number_of_statements = len(self._property_responses[claim])
+            min_cardinality = True
+            max_cardinality = True
+            if "min" in self._shape[claim]["cardinality"] and \
+                    number_of_statements < self._shape[claim]["cardinality"]["min"]:
+                min_cardinality = False
+            if "max" in self._shape[claim]["cardinality"] and \
+                    number_of_statements > self._shape[claim]["cardinality"]["max"]:
+                max_cardinality = False
+            if min_cardinality and not max_cardinality:
+                cardinality = "too many statements"
+            if max_cardinality and not min_cardinality:
+                cardinality = "not enough correct statements"
+        return cardinality, max_cardinality, min_cardinality
 
     def _get_entity_json(self):
         """
