@@ -127,49 +127,52 @@ class CompareShape:
         """
         for claim in self._props:
             response: str = "missing"
-            required: str = "correct"
             child: dict = {"name": self._names[claim], "necessity": "absent"}
             if claim in self._shape and "necessity" in self._shape[claim]:
                 child["necessity"] = self._shape[claim]["necessity"]
             if claim in self._entities["entities"][self._entity]['claims']:
-                cardinality: str = ""
-                allowed: str
-                if "incorrect" in self._property_responses[claim]:
-                    allowed = "incorrect"
-                elif "correct" in self._property_responses[claim]:
-                    allowed = "correct"
-                else:
-                    allowed = "present"
-                if claim in self._shape:
-                    if child["necessity"] != "absent":
-                        cardinality = "correct"
-                    if "cardinality" in self._shape[claim]:
-                        if "extra" in self._shape[claim]:
-                            number_of_statements = self._property_responses[claim].count("correct")
-                        else:
-                            number_of_statements = len(self._property_responses[claim])
-                        min_cardinality = True
-                        max_cardinality = True
-                        if "min" in self._shape[claim]["cardinality"] and\
-                                number_of_statements < self._shape[claim]["cardinality"]["min"]:
-                            min_cardinality = False
-                        if "max" in self._shape[claim]["cardinality"] and \
-                                number_of_statements > self._shape[claim]["cardinality"]["max"]:
-                            max_cardinality = False
-                        if min_cardinality and not max_cardinality:
-                            cardinality = "too many statements"
-                        if max_cardinality and not min_cardinality:
-                            cardinality = "not enough correct statements"
-                if cardinality == "correct":
-                    response = allowed
-                else:
-                    response = cardinality
-                if required == "correct" and response == "allowed":
-                    response = "correct"
+                response = self._process_claim(claim, child)
             if response != "":
                 child["response"] = response
             self.properties[claim] = child
         print("properties = " + str(self.properties))
+
+    def _process_claim(self, claim, child):
+        cardinality: str = ""
+        allowed: str
+        if "incorrect" in self._property_responses[claim]:
+            allowed = "incorrect"
+        elif "correct" in self._property_responses[claim]:
+            allowed = "correct"
+        else:
+            allowed = "present"
+        if claim in self._shape:
+            if child["necessity"] != "absent":
+                cardinality = "correct"
+            if "cardinality" in self._shape[claim]:
+                if "extra" in self._shape[claim]:
+                    number_of_statements = self._property_responses[claim].count("correct")
+                else:
+                    number_of_statements = len(self._property_responses[claim])
+                min_cardinality = True
+                max_cardinality = True
+                if "min" in self._shape[claim]["cardinality"] and \
+                        number_of_statements < self._shape[claim]["cardinality"]["min"]:
+                    min_cardinality = False
+                if "max" in self._shape[claim]["cardinality"] and \
+                        number_of_statements > self._shape[claim]["cardinality"]["max"]:
+                    max_cardinality = False
+                if min_cardinality and not max_cardinality:
+                    cardinality = "too many statements"
+                if max_cardinality and not min_cardinality:
+                    cardinality = "not enough correct statements"
+        if cardinality == "correct":
+            response = allowed
+        else:
+            response = cardinality
+        if response == "allowed":
+            response = "correct"
+        return response
 
     def _get_entity_json(self):
         """
