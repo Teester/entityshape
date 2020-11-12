@@ -37,30 +37,8 @@ class Shape:
             shape_array, shape_json = self._convert_shape_to_array(shape)
             for line in shape_array:
                 if re.match(r".+:P\d", line):
-                    snak: str = self._get_snak_type(line)
                     selected_property: str = re.search(r"P\d+", line).group(0)
-                    child: dict = {}
-                    if selected_property in shape_json:
-                        child = shape_json[selected_property]
-                    if "@<" in line:
-                        sub_shape_name: str = re.search(r"<.*>", line).group(0)
-                        child["shape"] = sub_shape_name[1:-1]
-                    if re.search(r"\[.*]", line):
-                        required_parameters_string: str = re.search(r"\[.*]", line).group(0)
-                        required_parameters_string = re.sub(r"wd:", "", required_parameters_string)
-                        if "^" in line:
-                            child["not_allowed"] = required_parameters_string[1:-1].split()
-                        else:
-                            child["allowed"] = required_parameters_string[1:-1].split()
-                    cardinality: dict = self._get_cardinality(line)
-                    necessity: str = "optional"
-                    if cardinality:
-                        child["cardinality"] = cardinality
-                        if "min" in cardinality:
-                            necessity = "required"
-                    child["necessity"] = necessity
-                    child["status"] = snak
-                    shape_json[selected_property] = child
+                    shape_json[selected_property] = self._assess_property(line, shape_json, selected_property)
             self._schema_shapes[shape] = shape_json
         schema_json: dict = self._schema_shapes[self._default_shape_name]
         for key in schema_json:
@@ -71,6 +49,31 @@ class Shape:
                 schema_json[key]["required"] = schema_json[key]["required"]["required"]
         print(f"shape = {schema_json}")
         self.schema_shape = schema_json
+
+    def _assess_property(self, line: str, shape_json: dict, selected_property: str):
+        snak: str = self._get_snak_type(line)
+        child: dict = {}
+        if selected_property in shape_json:
+            child = shape_json[selected_property]
+        if "@<" in line:
+            sub_shape_name: str = re.search(r"<.*>", line).group(0)
+            child["shape"] = sub_shape_name[1:-1]
+        if re.search(r"\[.*]", line):
+            required_parameters_string: str = re.search(r"\[.*]", line).group(0)
+            required_parameters_string = re.sub(r"wd:", "", required_parameters_string)
+            if "^" in line:
+                child["not_allowed"] = required_parameters_string[1:-1].split()
+            else:
+                child["allowed"] = required_parameters_string[1:-1].split()
+        cardinality: dict = self._get_cardinality(line)
+        necessity: str = "optional"
+        if cardinality:
+            child["cardinality"] = cardinality
+            if "min" in cardinality:
+                necessity = "required"
+        child["necessity"] = necessity
+        child["status"] = snak
+        return child
 
     def _convert_shape_to_array(self, shape: str):
         """
