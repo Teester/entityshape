@@ -14,6 +14,8 @@ CORS(app)
 def data():
     schema: str = request.args.get("entityschema", type=str)
     entity: str = request.args.get("entity", type=str)
+    if "Lexeme" in entity:
+        entity = entity[7:]
     language: str = request.args.get("language", type=str)
     try:
         # valid: Dict = check_against_pyshexy(schema, entity)
@@ -46,4 +48,4 @@ def check_against_pyshexy(entityschema: str, entity: str):
 
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

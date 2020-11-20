@@ -61,6 +61,7 @@ function entitycheck_checkEntity(entity, entitySchema, language) {
 	$("#entityCheckResponse").contents().remove();
 	$(".entitycheck-property").remove();
 	let url = "https://entityshape.toolforge.org/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
+	//let url = "http://127.0.0.1:5000/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
 	$.ajax({
 		type: "GET",
 		dataType: "json",
