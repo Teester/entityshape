@@ -146,7 +146,7 @@ class Shape:
         """
         Gets the default shape to start at in the schema
         """
-        default_shape_name: Optional[Match[str]] = re.search(r"start = @<.*>", self._schema_text)
+        default_shape_name: Optional[Match[str]] = re.search(r"start.*=.*@<.*>", self._schema_text, re.IGNORECASE)
         default_name: str = default_shape_name.group(0).replace(" ", "")
         self._default_shape_name = default_name[8:-1]
         shape_names: list = re.findall(r"\n<.*>", self._schema_text)
