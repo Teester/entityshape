@@ -26,8 +26,9 @@ class Shape:
         self._get_schema_json(schema)
         self._strip_schema_comments()
         self._get_schema_name()
-        self._get_default_shape()
-        self._translate_schema()
+        if self._schema_text != "":
+            self._get_default_shape()
+            self._translate_schema()
 
     def _translate_schema(self):
         """

@@ -19,7 +19,7 @@ class MyTestCase(unittest.TestCase):
     # with the entity, but not whether it passes or not.  This will give us a list of
     # entityschemas that we have problems with.  This may be due to a bug in entityshape
     # or a problem with the entityschema itself.
-    def test_something(self):
+    def test_wikidata_entityschemas(self):
         url: str = "https://www.wikidata.org/w/api.php?" \
                    "action=query&format=json&list=allpages&aplimit=max&apnamespace=640"
         response = requests.get(url)
