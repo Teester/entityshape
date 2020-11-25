@@ -24,13 +24,12 @@ def data():
         comparison: CompareShape = CompareShape(shape.schema_shape, entity, language)
         payload: dict = {'schema': schema, 'name': shape.name, 'validity': valid,
                          'properties': comparison.properties, 'statements': comparison.statements, 'error': ""}
-        print(payload)
         status: int = 200
     except Exception as e:
         payload = {'schema': "", 'name': "", 'validity': "", 'properties': "", 'statements': "",
                    'error': "An error has occurred while translating this schema"}
         status = 500
-        print(e)
+        print(f"Schema: {schema} - Error: {e}")
     response: Response = app.response_class(response=json.dumps(payload), status=status, mimetype="application/json")
     return response
 
