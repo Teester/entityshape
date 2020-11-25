@@ -118,8 +118,8 @@ class CompareShape:
                     allowed = "incorrect"
                 property_statement_results.append(allowed)
             self._property_responses[claim] = property_statement_results
-        print("statements = " + str(self.statements))
-        print("properties responses = " + str(self._property_responses))
+        # print("statements = " + str(self.statements))
+        # print("properties responses = " + str(self._property_responses))
 
     def _compare_properties(self):
         """
@@ -135,7 +135,7 @@ class CompareShape:
             if response != "":
                 child["response"] = response
             self.properties[claim] = child
-        print("properties = " + str(self.properties))
+        # print("properties = " + str(self.properties))
 
     def _process_claim(self, claim, child):
         cardinality: str = ""

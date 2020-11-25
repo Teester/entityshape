@@ -47,7 +47,7 @@ class Shape:
             if "required" in schema_json[key] and\
                     "required" in schema_json[key]["required"]:
                 schema_json[key]["required"] = schema_json[key]["required"]["required"]
-        print(f"shape = {schema_json}")
+        # print(f"shape = {schema_json}")
         self.schema_shape = schema_json
 
     def _assess_property(self, line: str, shape_json: dict, selected_property: str):
