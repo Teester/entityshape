@@ -13,6 +13,17 @@ class MyTestCase(unittest.TestCase):
     def tearDown(self) -> None:
         pass
 
+    def test_specific_wikidata_item_against_schema(self):
+        test_pairs: dict = {"E236" : "Q1728820"}
+
+        for key in test_pairs:
+            with self.subTest(key=key):
+                value = test_pairs[key]
+                response = self.app.get(f'/api?entityschema={key}&entity={value}&language=en',
+                                        follow_redirects=True)
+                self.assertIsNotNone(response.json["statements"])
+                self.assertIsNotNone(response.json["properties"])
+
     # This test iterates through each entityschema on wikidata and checks to see that
     # each one returns a "200" code when compared with a specific entity
     # The "200" code tells us that the entityschema was successfully compared

@@ -35,12 +35,7 @@ class Shape:
         Converts the entityschema to a json representation
         """
         for shape in self._shapes:
-            shape_array, shape_json = self._convert_shape_to_array(shape)
-            for line in shape_array:
-                if re.match(r".+:P\d", line):
-                    selected_property: str = re.search(r"P\d+", line).group(0)
-                    shape_json[selected_property] = self._assess_property(line, shape_json, selected_property)
-            self._schema_shapes[shape] = shape_json
+            self._convert_shape(shape)
         schema_json: dict = self._schema_shapes[self._default_shape_name]
         for key in schema_json:
             if "shape" in schema_json[key]:
@@ -48,14 +43,37 @@ class Shape:
             if "required" in schema_json[key] and\
                     "required" in schema_json[key]["required"]:
                 schema_json[key]["required"] = schema_json[key]["required"]["required"]
-        # print(f"shape = {schema_json}")
         self.schema_shape = schema_json
 
-    def _assess_property(self, line: str, shape_json: dict, selected_property: str):
+    def _convert_shape(self, shape: str):
+        """
+        Converts a shape into its json representation
+
+        :param shape: the name of the shape to be converted
+        """
+        new_shape: str = self._shapes[shape].replace("\n", "")
+        shape_array: list = new_shape[new_shape.find("{")+1:new_shape.rfind("}")].split(";")
+        shape_json: dict = self._get_shape_properties(re.search(r"<(.*?){", new_shape).group(1))
+
+        for line in shape_array:
+            if re.match(r".+:P\d", line):
+                selected_property: str = re.search(r"P\d+", line).group(0)
+                child: dict = {}
+                if selected_property in shape_json:
+                    child = shape_json[selected_property]
+                shape_json[selected_property] = self._assess_property(line, child, selected_property)
+        self._schema_shapes[shape] = shape_json
+
+    def _assess_property(self, line: str, child: dict, selected_property: str):
+        """
+        converts a line og a schema to a json representation of itself
+
+        :param line: The line to be converted
+        :param child: the existing json shape
+        :param selected_property: the property to be assessed
+        :return: a json object to be added to the shape
+        """
         snak: str = self._get_snak_type(line)
-        child: dict = {}
-        if selected_property in shape_json:
-            child = shape_json[selected_property]
         if "@<" in line:
             sub_shape_name: str = re.search(r"<.*>", line).group(0)
             child["shape"] = sub_shape_name[1:-1]
@@ -76,29 +94,19 @@ class Shape:
         child["status"] = snak
         return child
 
-    def _convert_shape_to_array(self, shape: str):
-        """
-        converts a given shape from lines of text to an array of lines
-        :param shape: the shape to be converted
-        :return: an array
-        """
-        new_shape: str = self._shapes[shape].replace("\n", "")
-        shape_json: dict = self._get_shape_properties(new_shape[new_shape.find(">")+1:new_shape.find("{")-1])
-        new_shape = new_shape[new_shape.find("{")+1:new_shape.rfind("}")]
-        shape_array: list = new_shape.split(";")
-        return shape_array, shape_json
-
     @staticmethod
     def _get_shape_properties(first_line: str):
         """
         Get the overall properties of the shape
+
         :param first_line: The first line of the shape
+        :return: a json representation of the properties of the first line
         """
         # a closed shape
         shape_json: dict = {}
         if "CLOSED" in first_line:
             shape_json = {"closed": "closed"}
-        # a shape where values other than those specified are allowed for th specified properties
+        # a shape where values other than those specified are allowed for the specified properties
         if "EXTRA" in first_line:
             properties = re.findall(r"P\d+", first_line)
             for wikidata_property in properties:
@@ -108,6 +116,7 @@ class Shape:
     def _get_schema_json(self, schema):
         """
         Downloads the schema from wikidata
+
         :param schema: the entityschema to be downloaded
         """
         url: str = f"https://www.wikidata.org/wiki/EntitySchema:{schema}?action=raw"
@@ -157,6 +166,7 @@ class Shape:
     def _get_specific_shape(self, shape_name: str):
         """
         Extracts a specific shape from the schema
+
         :param shape_name: The name of the shape to be extracted
         :return: The extracted shape
         """
@@ -168,6 +178,7 @@ class Shape:
     def _translate_sub_shape(self, schema_json: dict):
         """
         Converts a sub-shape to a json representation
+
         :param schema_json: The json containing the shape to be extracted
         :return: The extracted shape
         """
@@ -197,6 +208,7 @@ class Shape:
     def _get_cardinality(schema_line: str):
         """
         Gets the cardinality of a line of the schema
+
         :param schema_line: The line to be processed
         :return: A json representation of the cardinality in the form {min:x, max:y}
         """
@@ -224,6 +236,7 @@ class Shape:
     def _get_snak_type(schema_line: str):
         """
         Gets the type of snak from a schema line
+
         :param schema_line: The line to be processed
         :return: statement, qualifier or reference
         """
