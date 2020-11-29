@@ -61,16 +61,15 @@ class Shape:
                 child: dict = {}
                 if selected_property in shape_json:
                     child = shape_json[selected_property]
-                shape_json[selected_property] = self._assess_property(line, child, selected_property)
+                shape_json[selected_property] = self._assess_property(line, child)
         self._schema_shapes[shape] = shape_json
 
-    def _assess_property(self, line: str, child: dict, selected_property: str):
+    def _assess_property(self, line: str, child: dict):
         """
         converts a line og a schema to a json representation of itself
 
         :param line: The line to be converted
         :param child: the existing json shape
-        :param selected_property: the property to be assessed
         :return: a json object to be added to the shape
         """
         snak: str = self._get_snak_type(line)
