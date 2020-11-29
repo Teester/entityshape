@@ -24,13 +24,25 @@ class MyTestCase(unittest.TestCase):
                 self.assertIsNotNone(response.json["statements"])
                 self.assertIsNotNone(response.json["properties"])
 
-    # This test iterates through each entityschema on wikidata and checks to see that
-    # each one returns a "200" code when compared with a specific entity
-    # The "200" code tells us that the entityschema was successfully compared
-    # with the entity, but not whether it passes or not.  This will give us a list of
-    # entityschemas that we have problems with.  This may be due to a bug in entityshape
-    # or a problem with the entityschema itself.
-    def test_wikidata_entityschemas(self):
+    def test_lexical_category(self):
+        self.skipTest("Lexical Categories not supported")
+        test_pairs: dict = {"E51": "Lexeme:L42"}
+        for key in test_pairs:
+            with self.subTest(key=key):
+                value = test_pairs[key]
+                response = self.app.get(f'/api?entityschema={key}&entity={value}&language=en',
+                                        follow_redirects=True)
+                self.assertIsNotNone(response.json["lexicalcategory"])
+
+    def test_wikidata_entityschemas(self) -> None:
+        """
+        This test iterates through each entityschema on wikidata and checks to see that
+        each one returns a "200" code when compared with a specific entity
+        The "200" code tells us that the entityschema was successfully compared
+        with the entity, but not whether it passes or not.  This will give us a list of
+        entityschemas that we have problems with.  This may be due to a bug in entityshape
+        or a problem with the entityschema itself.
+        """
         skips: list = [ "E1", "E2", "E3", "E16", "E37", "E38", "E39", "E44", "E49", "E53", "E55", "E59",  
                         "E70", "E72", "E74", "E75", "E86", "E87", "E89", "E90", "E93", "E99", "E100",
                         "E103", "E117", "E118", "E128", "E129", "E132", "E150", "E165", "E166", "E169",
