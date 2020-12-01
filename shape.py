@@ -53,7 +53,10 @@ class Shape:
         """
         new_shape: str = self._shapes[shape].replace("\n", "")
         shape_array: list = new_shape[new_shape.find("{")+1:new_shape.rfind("}")].split(";")
-        shape_json: dict = self._get_shape_properties(re.search(r"<(.*?){", new_shape).group(1))
+        try:
+            shape_json: dict = self._get_shape_properties(re.search(r"<(.*?){", new_shape).group(1))
+        except AttributeError:
+            shape_json: dict = {}
 
         for line in shape_array:
             if re.match(r".+:P\d", line):
@@ -172,7 +175,9 @@ class Shape:
         search: Union[Pattern[Union[str, Any]], Pattern] = re.compile(r"<%s>.*{.*(\n[^}]*)*}"
                                                                       % shape_name, re.MULTILINE)
         shape: Optional[Match[Union[str, Any]]] = re.search(search, self._schema_text)
-        return shape.group(0)
+        if shape is not None:
+            return shape.group(0)
+        return ""
 
     def _translate_sub_shape(self, schema_json: dict):
         """
