@@ -138,6 +138,8 @@ class Shape:
         for line in self._json_text["schemaText"].splitlines():
             head, sep, tail = line.partition('# ')
             schema_text += f"\n{head.strip()}"
+            head, sep, tail = line.partition(' #')
+            schema_text += f"\n{head.strip()}"
         # replace data types with the any value designator(.).  Since wikidata won't allow items to enter the
         # incorrect type (eg. trying to enter a LITERAL value where an IRI (i.e. a wikidata item) is required
         # will fail to save
