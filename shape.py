@@ -22,6 +22,7 @@ class Shape:
         self._shapes: dict = {}
         self._schema_shapes: dict = {}
         self._language: str = language
+        self._default_shape_name: str = ""
 
         self._get_schema_json(schema)
         self._strip_schema_comments()
@@ -36,7 +37,9 @@ class Shape:
         """
         for shape in self._shapes:
             self._convert_shape(shape)
-        schema_json: dict = self._schema_shapes[self._default_shape_name]
+        schema_json: dict = {}
+        if self._default_shape_name != "":
+            schema_json = self._schema_shapes[self._default_shape_name]
         for key in schema_json:
             if "shape" in schema_json[key]:
                 schema_json[key] = self._translate_sub_shape(schema_json[key])
@@ -159,11 +162,12 @@ class Shape:
         Gets the default shape to start at in the schema
         """
         default_shape_name: Optional[Match[str]] = re.search(r"start.*=.*@<.*>", self._schema_text, re.IGNORECASE)
-        default_name: str = default_shape_name.group(0).replace(" ", "")
-        self._default_shape_name = default_name[8:-1]
-        shape_names: list = re.findall(r"\n<.*>", self._schema_text)
-        for name in shape_names:
-            self._shapes[name[2:-1]] = self._get_specific_shape(name[2:-1])
+        if default_shape_name is not None:
+            default_name: str = default_shape_name.group(0).replace(" ", "")
+            self._default_shape_name = default_name[8:-1]
+            shape_names: list = re.findall(r"\n<.*>", self._schema_text)
+            for name in shape_names:
+                self._shapes[name[2:-1]] = self._get_specific_shape(name[2:-1])
 
     def _get_specific_shape(self, shape_name: str):
         """

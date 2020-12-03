@@ -52,11 +52,10 @@ class MyTestCase(unittest.TestCase):
         entityschemas that we have problems with.  This may be due to a bug in entityshape
         or a problem with the entityschema itself.
         """
-        skips: list = ["E1", "E2", "E16", "E39", "E49", "E53", "E55", "E59",
-                       "E70", "E72", "E74", "E87", "E89", "E90", "E93", "E99", "E100",
-                       "E103", "E117", "E118", "E128", "E129", "E132", "E165",
-                       "E194", "E245", "E246", "E247", "E251", "E258", "E259", "E261",
-                       "E262", "E263", "E265", "E266", "E999", "E12345"]
+        skips: list = ["E1", "E16", "E39", "E53", "E55", "E59",
+                       "E70", "E89", "E90", "E93", "E165",
+                       "E194", "E245", "E246", "E247", "E251", "E261",
+                       "E999", "E12345"]
         url: str = "https://www.wikidata.org/w/api.php?" \
                    "action=query&format=json&list=allpages&aplimit=max&apnamespace=640"
         response = requests.get(url)
