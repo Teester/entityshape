@@ -53,9 +53,9 @@ class MyTestCase(unittest.TestCase):
         or a problem with the entityschema itself.
         """
         skips: list = ["E1", "E16", "E39", "E53", "E55", "E59",
-                       "E70", "E89", "E90", "E93", "E165",
-                       "E194", "E245", "E246", "E247", "E251", "E261",
-                       "E999", "E12345"]
+                       "E70", "E89", "E93", "E165",
+                       "E245", "E246", "E247", "E251",
+                       "E999"]
         url: str = "https://www.wikidata.org/w/api.php?" \
                    "action=query&format=json&list=allpages&aplimit=max&apnamespace=640"
         response = requests.get(url)
