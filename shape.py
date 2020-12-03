@@ -156,7 +156,7 @@ class Shape:
         """
         Gets the name of the entityschema in the preferred language
         """
-        if self._json_text["labels"][self._language]:
+        if self._language in self._json_text["labels"]:
             self.name = self._json_text["labels"][self._language]
 
     def _get_default_shape(self):
