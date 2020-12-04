@@ -76,10 +76,12 @@ class MyTestCase(unittest.TestCase):
         This test tests a specified schema against an entity and checks that a 200 response
         is received
         """
-        schema: str = "E44"
+        schema: str = "E236"
         response = self.app.get(f'/api?entityschema={schema}&entity=Q100532807&language=en',
                                 follow_redirects=True)
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("Member of the Oireachtas", response.json["name"])
+        self.assertEqual({'name': 'occupation', 'necessity': 'required', 'response': 'missing'}, response.json["properties"]["P106"])
 
 
 if __name__ == '__main__':
