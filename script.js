@@ -60,8 +60,8 @@ function entitycheck_checkbox() {
 function entitycheck_checkEntity(entity, entitySchema, language) {
 	$("#entityCheckResponse").contents().remove();
 	$(".entitycheck-property").remove();
-	let url = "https://entityshape.toolforge.org/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
-	//let url = "http://127.0.0.1:5000/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
+	// let url = "https://entityshape.toolforge.org/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
+	let url = "http://127.0.0.1:5000/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
 	$.ajax({
 		type: "GET",
 		dataType: "json",
@@ -148,6 +148,22 @@ function entitycheck_checkEntity(entity, entitySchema, language) {
 						$("div[id='" + statement + "'] .wikibase-toolbar-button-edit").append(html);
 					}
 				}
+			}
+			if (data.general) {
+			    if (data.general.language) {
+			    	let response3 = data.general.language;
+                    if (response3 != "not in schema") {
+                        html = "<span class='entitycheck-property'/><span class='entitycheck-property entitycheck-" + response3 + "'>" + response3 + "</span>";
+                        $("span[class='language-lexical-category-widget_language']").append(html);
+                    }
+			    }
+                if (data.general.lexicalCategory) {
+                    let response4 = data.general.lexicalCategory;
+                    if (response4 != "not in schema") {
+                        html = "<span class='entitycheck-property'/><span class='entitycheck-property entitycheck-" + response4 + "'>" + response4 + "</span>";
+                        $("span[class='language-lexical-category-widget_lexical-category']").append(html);
+                    }
+                }
 			}
 		},
 		error: function(data) {
