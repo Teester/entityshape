@@ -37,12 +37,14 @@ class CompareShape:
         self._compare_properties()
 
     def _get_general(self):
-        if "lexicalCategory" in self._shape and "lexicalCategory" in self._entities["entities"][self._entity]:
-            expected: str = self._shape["lexicalCategory"]
-            actual: str = self._entities["entities"][self._entity]['lexicalCategory']
-            self.general["lexicalCategory"] = "incorrect"
-            if expected == actual:
-                self.general["lexicalCategory"] = "correct"
+        properties: list = ["lexicalCategory", "language"]
+        for item in properties:
+            if item in self._shape and item in self._entities["entities"][self._entity]:
+                expected: str = self._shape[item]
+                actual: str = self._entities["entities"][self._entity][item]
+                self.general[item] = "incorrect"
+                if expected == actual:
+                    self.general[item] = "correct"
 
     def _compare_statements(self):
         """

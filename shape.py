@@ -70,6 +70,8 @@ class Shape:
                 shape_json[selected_property] = self._assess_property(line, child)
             if "wikibase:lexicalCategory" in line:
                 shape_json["lexicalCategory"] = self._assess_property(line, {})
+            if "dct:language" in line:
+                shape_json["language"] = self._assess_property(line, {})
         self._schema_shapes[shape] = shape_json
 
     def _assess_property(self, line: str, child: dict):
