@@ -61,13 +61,15 @@ class Shape:
         except AttributeError:
             shape_json: dict = {}
 
+        child: dict = {}
         for line in shape_array:
             if re.match(r".+:P\d", line):
                 selected_property: str = re.search(r"P\d+", line).group(0)
-                child: dict = {}
                 if selected_property in shape_json:
                     child = shape_json[selected_property]
                 shape_json[selected_property] = self._assess_property(line, child)
+            if "wikibase:lexicalCategory" in line:
+                shape_json["lexicalCategory"] = self._assess_property(line, {})
         self._schema_shapes[shape] = shape_json
 
     def _assess_property(self, line: str, child: dict):

@@ -21,6 +21,7 @@ class CompareShape:
     def __init__(self, shape: dict, entity: str, language: str):
         self.properties: dict = {}
         self.statements: dict = {}
+        self.general: dict = {}
 
         self._entity: str = entity
         self._language: str = language
@@ -28,11 +29,21 @@ class CompareShape:
         self._property_responses: dict = {}
 
         self._get_entity_json()
-        self._get_props(self._entities["entities"][self._entity]['claims'])
+        if self._entities["entities"][self._entity]:
+            self._get_props(self._entities["entities"][self._entity]['claims'])
+        self._get_general()
         self._get_property_names()
         self._compare_statements()
         self._compare_properties()
-    
+
+    def _get_general(self):
+        if "lexicalCategory" in self._shape and "lexicalCategory" in self._entities["entities"][self._entity]:
+            expected: str = self._shape["lexicalCategory"]
+            actual: str = self._entities["entities"][self._entity]['lexicalCategory']
+            self.general["lexicalCategory"] = "incorrect"
+            if expected == actual:
+                self.general["lexicalCategory"] = "correct"
+
     def _compare_statements(self):
         """
         Compares the statements in the entity to the schema
@@ -196,7 +207,7 @@ class CompareShape:
             if claim not in self._props:
                 self._props.append(claim)
         for claim in self._shape:
-            if claim not in self._props:
+            if claim not in self._props and claim.startswith("P"):
                 self._props.append(claim)
 
     def _get_property_names(self):

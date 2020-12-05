@@ -34,14 +34,14 @@ class MyTestCase(unittest.TestCase):
         This test checks that a lexicalCategory response is returned when a
         lexeme is tested against a schema looking for a lexical category
         """
-        self.skipTest("Lexical Categories not supported")
-        test_pairs: dict = {"E51": "Lexeme:L42"}
+        test_pairs: dict = {"E56": "Lexeme:L42"}
         for key in test_pairs:
             with self.subTest(key=key):
                 value = test_pairs[key]
                 response = self.app.get(f'/api?entityschema={key}&entity={value}&language=en',
                                         follow_redirects=True)
-                self.assertIsNotNone(response.json["lexicalcategory"])
+                self.assertIsNotNone(response.json["general"]["lexicalCategory"])
+                self.assertIsNotNone(response.json["general"]["language"])
 
     def test_wikidata_entityschemas(self) -> None:
         """
@@ -54,7 +54,7 @@ class MyTestCase(unittest.TestCase):
         """
         skips: list = ["E1", "E16", "E39", "E53", "E55", "E59",
                        "E70", "E89", "E93", "E165",
-                       "E245", "E246", "E247", "E251",
+                       "E245", "E246", "E247", "E251", "E252",
                        "E999"]
         url: str = "https://www.wikidata.org/w/api.php?" \
                    "action=query&format=json&list=allpages&aplimit=max&apnamespace=640"

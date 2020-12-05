@@ -17,16 +17,19 @@ def data():
     if "Lexeme" in entity:
         entity = entity[7:]
     language: str = request.args.get("language", type=str)
+    shape: Shape = Shape(schema, language)
+    comparison: CompareShape = CompareShape(shape.schema_shape, entity, language)
+
     try:
         # valid: Dict = check_against_pyshexy(schema, entity)
         valid: dict = {}
         shape: Shape = Shape(schema, language)
         comparison: CompareShape = CompareShape(shape.schema_shape, entity, language)
-        payload: dict = {'schema': schema, 'name': shape.name, 'validity': valid,
+        payload: dict = {'schema': schema, 'name': shape.name, 'validity': valid, 'general': comparison.general,
                          'properties': comparison.properties, 'statements': comparison.statements, 'error': ""}
         status: int = 200
     except Exception as e:
-        payload = {'schema': "", 'name': "", 'validity': "", 'properties': "", 'statements': "",
+        payload = {'schema': "", 'name': "", 'validity': "", 'general': "", 'properties': "", 'statements': "",
                    'error': "An error has occurred while translating this schema"}
         status = 500
         print(f"Schema: {schema} - Error: {e}")
