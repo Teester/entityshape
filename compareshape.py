@@ -40,10 +40,10 @@ class CompareShape:
         properties: list = ["lexicalCategory", "language"]
         for item in properties:
             if item in self._shape and item in self._entities["entities"][self._entity]:
-                expected: str = self._shape[item]
+                expected: list = self._shape[item]["allowed"]
                 actual: str = self._entities["entities"][self._entity][item]
                 self.general[item] = "incorrect"
-                if expected == actual:
+                if actual in expected:
                     self.general[item] = "correct"
 
     def _compare_statements(self):
@@ -67,13 +67,15 @@ class CompareShape:
                         allowed = "allowed"
                     if "allowed" in self._shape[claim]:
                         allowed = "correct"
-                        value: str = statement["mainsnak"]["datavalue"]["value"]["id"]
-                        if value not in self._shape[claim]["allowed"]:
-                            allowed = "incorrect"
+                        if "id" in statement["mainsnak"]["datavalue"]["value"]:
+                            value: str = statement["mainsnak"]["datavalue"]["value"]["id"]
+                            if value not in self._shape[claim]["allowed"]:
+                                allowed = "incorrect"
                     if "not_allowed" in self._shape[claim]:
-                        value: str = statement["mainsnak"]["datavalue"]["value"]["id"]
-                        if value in self._shape[claim]["not_allowed"]:
-                            allowed = "not allowed"
+                        if "id" in statement["mainsnak"]["datavalue"]["value"]:
+                            value: str = statement["mainsnak"]["datavalue"]["value"]["id"]
+                            if value in self._shape[claim]["not_allowed"]:
+                                allowed = "not allowed"
                     if "extra" in self._shape[claim]:
                         extra: str = "extra"
                     if "qualifiers" in self._shape[claim]:
