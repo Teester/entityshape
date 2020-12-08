@@ -81,7 +81,22 @@ class MyTestCase(unittest.TestCase):
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
         self.assertEqual("Member of the Oireachtas", response.json["name"])
-        self.assertEqual({'name': 'occupation', 'necessity': 'required', 'response': 'missing'}, response.json["properties"]["P106"])
+        self.assertEqual({'name': 'occupation', 'necessity': 'required', 'response': 'missing'},
+                         response.json["properties"]["P106"])
+
+    def test_entityschema_e236(self):
+        """
+        This test tests entityschema E236 (Member of the Oireachtas) against entity
+        Q1728820 (Leo Varadkar).  All properties in the schema should pass
+        """
+        response = self.app.get(f'/api?entityschema=E236&entity=Q1728820&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+        properties: list = ["P102", "P18", "P31", "P734", "P735", "P39", "P21",
+                            "P27", "P106", "P569", "P4690"]
+        for prop in properties:
+            with self.subTest(prop=prop):
+                self.assertEqual("correct", response.json["properties"][prop]["response"])
 
 
 if __name__ == '__main__':
