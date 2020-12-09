@@ -17,9 +17,6 @@ def data():
     if "Lexeme" in entity:
         entity = entity[7:]
     language: str = request.args.get("language", type=str)
-    shape: Shape = Shape(schema, language)
-    comparison: CompareShape = CompareShape(shape.schema_shape, entity, language)
-
     try:
         # valid: Dict = check_against_pyshexy(schema, entity)
         valid: dict = {}

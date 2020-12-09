@@ -96,8 +96,7 @@ class MyTestCase(unittest.TestCase):
                             "P27", "P106", "P569", "P4690"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertEqual("correct", response.json["properties"][prop]["response"])
-
+                self.assertTrue(response.json["properties"][prop]["response"] in ["correct", "present"])
 
 if __name__ == '__main__':
     unittest.main()

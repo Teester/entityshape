@@ -61,9 +61,9 @@ class Shape:
         except AttributeError:
             shape_json: dict = {}
 
-        child: dict = {}
         for line in shape_array:
             if re.match(r".+:P\d", line):
+                child: dict = {}
                 selected_property: str = re.search(r"P\d+", line).group(0)
                 if selected_property in shape_json:
                     child = shape_json[selected_property]
