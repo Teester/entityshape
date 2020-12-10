@@ -71,11 +71,11 @@ class CompareShape:
                             value: str = statement["mainsnak"]["datavalue"]["value"]["id"]
                             if value not in self._shape[claim]["allowed"]:
                                 allowed = "incorrect"
-                    if "not_allowed" in self._shape[claim]:
-                        if "id" in statement["mainsnak"]["datavalue"]["value"]:
-                            value: str = statement["mainsnak"]["datavalue"]["value"]["id"]
-                            if value in self._shape[claim]["not_allowed"]:
-                                allowed = "not allowed"
+                    if "not_allowed" in self._shape[claim] and \
+                            "id" in statement["mainsnak"]["datavalue"]["value"]:
+                        value: str = statement["mainsnak"]["datavalue"]["value"]["id"]
+                        if value in self._shape[claim]["not_allowed"]:
+                            allowed = "not allowed"
                     if "extra" in self._shape[claim]:
                         extra: str = "extra"
                     if "qualifiers" in self._shape[claim]:
