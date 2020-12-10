@@ -175,10 +175,9 @@ class CompareShape:
         if child["necessity"] != "absent":
             cardinality = "correct"
         if "cardinality" in self._shape[claim]:
+            number_of_statements: int = len(self._property_responses[claim])
             if "extra" in self._shape[claim]:
                 number_of_statements = self._property_responses[claim].count("correct")
-            else:
-                number_of_statements = len(self._property_responses[claim])
             min_cardinality = True
             max_cardinality = True
             if "min" in self._shape[claim]["cardinality"] and \
