@@ -53,7 +53,7 @@ class MyTestCase(unittest.TestCase):
         or a problem with the entityschema itself.
         """
         skips: list = ["E1", "E16", "E39", "E53", "E55", "E59",
-                       "E70", "E89", "E93", "E165",
+                       "E70", "E89", "E93", "E123", "E165",
                        "E245", "E246", "E247", "E251", "E252",
                        "E999"]
         url: str = "https://www.wikidata.org/w/api.php?" \
