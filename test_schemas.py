@@ -108,7 +108,7 @@ class MyTestCase(unittest.TestCase):
         response = self.app.get(f'/api?entityschema=E297&entity=Q97179551&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
-        properties: list = ["P2043", "P2048", "P2067"]
+        properties: list = ["P2043", "P2067"]
         for prop in properties:
             with self.subTest(prop=prop):
                 self.assertTrue(response.json["properties"][prop]["response"] in ["correct", "present"])

@@ -96,6 +96,11 @@ class Shape:
         cardinality: dict = self._get_cardinality(line)
         necessity: str = "optional"
         if cardinality:
+            if "cardinality" in child:
+                if "min" in child["cardinality"] and "min" in cardinality:
+                    cardinality["min"] = cardinality["min"] + child["cardinality"]["min"]
+                if "max" in child["cardinality"] and "max" in cardinality:
+                    cardinality["max"] = cardinality["max"] + child["cardinality"]["max"]
             child["cardinality"] = cardinality
             if "min" in cardinality:
                 necessity = "required"
