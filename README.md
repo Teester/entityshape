@@ -4,7 +4,7 @@ An api to compare a wikidata item with an entityschema
 This api is available at http://entityshape.toolforge.org/api.  The api requires 3 parameters to return a result as follows:
 1. __language__: e.g. _en_ the language to return property names in
 2. __entity__: e.g. _Q42_ the wikidata entity to check
-3. __entityschema__: e.g. _E14_ the entityshema to check against
+3. __entityschema__: e.g. _E14_ the entityschema to check against
 
 The api returns a json object containing the following:
 1. __error__: details of any error which may have occurred

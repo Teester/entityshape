@@ -53,7 +53,7 @@ class MyTestCase(unittest.TestCase):
         or a problem with the entityschema itself.
         """
         skips: list = ["E1", "E16", "E39", "E53", "E55", "E59",
-                       "E70", "E89", "E93", "E165",
+                       "E70", "E89", "E93", "E123", "E165",
                        "E245", "E246", "E247", "E251", "E252",
                        "E999"]
         url: str = "https://www.wikidata.org/w/api.php?" \
@@ -97,6 +97,22 @@ class MyTestCase(unittest.TestCase):
         for prop in properties:
             with self.subTest(prop=prop):
                 self.assertTrue(response.json["properties"][prop]["response"] in ["correct", "present"])
+
+    def test_entityschema_e297(self):
+        """
+        This test tests entityschema E297 (sailboat class) against entity
+        Q97179551 (J/92s).  The schema has multiple statements about the same property.
+        The test checks to ensure that the correct cardinality is calculated for
+        the relevant property
+        """
+        response = self.app.get(f'/api?entityschema=E297&entity=Q97179551&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+        properties: list = ["P2043", "P2067"]
+        for prop in properties:
+            with self.subTest(prop=prop):
+                self.assertTrue(response.json["properties"][prop]["response"] in ["correct", "present"])
+
 
 if __name__ == '__main__':
     unittest.main()
