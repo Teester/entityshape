@@ -1,9 +1,22 @@
 language: python
 python:
   - "3.7"
+git:
+  depth: false
 # command to install dependencies
+before-install:
+  - nvm install stable --reinstall-packages-from=current
 install:
+  - pip install --upgrade pip
   - pip install -r requirements.txt
+  - pip install coverage
 # command to run tests
+addons:
+  sonarcloud:
+    organization: "teester"
+
 script:
-  - python -m unittest
+  - coverage run --omit=*/site-packages/* -m unittest discover
+  - coverage xml
+  - coverage report
+  - sonar-scanner -Dsonar.projectKey=Teester_entityshape -Dsonar.sources=. -Dsonar.organization=teester -Dsonar.login=${SONAR_TOKEN} -Dsonar.python.coverage.reportPaths=/coverage.xml
