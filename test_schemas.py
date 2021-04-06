@@ -113,6 +113,21 @@ class MyTestCase(unittest.TestCase):
             with self.subTest(prop=prop):
                 self.assertTrue(response.json["properties"][prop]["response"] in ["correct", "present"])
 
+    def test_entityschema_e295(self):
+        """
+        This test tests entityschema E295 (townland) against entity Q85396849 (Drumlohan).
+        The schema has a P361 (part of) with a cardinality of 0, meaning the item should
+        not contain any P361.  The test checks that the response is false for this item
+        """
+        response = self.app.get(f'/api?entityschema=E295&entity=Q85396849&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+        properties: list = ["P361"]
+        for prop in properties:
+            with self.subTest(prop=prop):
+                self.assertTrue(response.json["properties"][prop]["response"] in ["correct"])
+                self.assertTrue(response.json["properties"][prop]["necessity"] in ["absent"])
+
 
 if __name__ == '__main__':
     unittest.main()
