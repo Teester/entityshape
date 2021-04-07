@@ -55,7 +55,7 @@ class Shape:
         :param shape: the name of the shape to be converted
         """
         new_shape: str = self._shapes[shape].replace("\n", "")
-        shape_array: list = new_shape[new_shape.find("{")+1:new_shape.rfind("}")].split(";")
+        shape_array: list = new_shape.split(";")
         try:
             shape_json: dict = self._get_shape_properties(re.search(r"<(.*?){", new_shape).group(1))
         except AttributeError:
@@ -104,6 +104,9 @@ class Shape:
             child["cardinality"] = cardinality
             if "min" in cardinality:
                 necessity = "required"
+            if "max" in cardinality and "min" in cardinality:
+                if cardinality["max"] == 0 and cardinality["min"] == 0:
+                    necessity = "absent"
         child["necessity"] = necessity
         child["status"] = snak
         return child
@@ -185,12 +188,34 @@ class Shape:
         :param shape_name: The name of the shape to be extracted
         :return: The extracted shape
         """
-        search: Union[Pattern[Union[str, Any]], Pattern] = re.compile(r"<%s>.*{.*(\n[^}]*)*}"
-                                                                      % shape_name, re.MULTILINE)
-        shape: Optional[Match[Union[str, Any]]] = re.search(search, self._schema_text)
-        if shape is not None:
-            return shape.group(0)
+        search: Union[Pattern[Union[str, Any]], Pattern] = re.compile(r"<%s>.*{" % shape_name)
+        parentheses = self._find_parentheses(self._schema_text)
+        shape_index: int = re.search(search, self._schema_text).start()
+        closest = None
+        for character in parentheses:
+            if (character >= shape_index) and (closest is None or character < closest):
+                closest = character
+        if closest:
+            shape_start: int = closest
+            shape_end: int = parentheses[closest]
+            shape: str = self._schema_text[shape_start+1:shape_end].strip()
+            return shape
         return ""
+
+    @staticmethod
+    def _find_parentheses(shape):
+        index_list = {}
+        pop_stack = []
+        for index, character in enumerate(shape):
+            if character == '{':
+                pop_stack.append(index)
+            elif character == '}':
+                if len(pop_stack) == 0:
+                    raise IndexError('No')
+                index_list[pop_stack.pop()] = index
+        if len(pop_stack) > 0:
+            raise IndexError('Non')
+        return index_list
 
     def _translate_sub_shape(self, schema_json: dict):
         """
@@ -236,6 +261,9 @@ class Shape:
             cardinality = {}
         elif "+" in schema_line:
             cardinality["min"] = 1
+        elif "{0}" in schema_line:
+            cardinality["max"] = 0
+            cardinality["min"] = 0
         elif re.search(r"{.+}", schema_line):
             match = re.search(r"{.+}", schema_line).group()
             cardinalities = match[1:-1].split(",")
