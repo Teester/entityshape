@@ -55,9 +55,10 @@ class Shape:
         :param shape: the name of the shape to be converted
         """
         new_shape: str = self._shapes[shape].replace("\n", "")
-        shape_array: list = new_shape.split(";")
+        first_line = new_shape.split("{", 1)[0]
+        shape_array: list = new_shape.split("{", 1)[1].split(";")
         try:
-            shape_json: dict = self._get_shape_properties(re.search(r"<(.*?){", new_shape).group(1))
+            shape_json: dict = self._get_shape_properties(first_line)
         except AttributeError:
             shape_json: dict = {}
 
@@ -196,9 +197,9 @@ class Shape:
             if (character >= shape_index) and (closest is None or character < closest):
                 closest = character
         if closest:
-            shape_start: int = closest
+            shape_start: int = shape_index
             shape_end: int = parentheses[closest]
-            shape: str = self._schema_text[shape_start+1:shape_end].strip()
+            shape: str = self._schema_text[shape_start:shape_end]
             return shape
         return ""
 
