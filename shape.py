@@ -199,7 +199,10 @@ class Shape:
         """
         search: Union[Pattern[Union[str, Any]], Pattern] = re.compile(r"<%s>.*\n?([{\[])" % shape_name)
         parentheses = self._find_parentheses(self._schema_text)
-        shape_index: int = re.search(search, self._schema_text).start()
+        try:
+            shape_index: int = re.search(search, self._schema_text).start()
+        except:
+            shape_index = re.search("<%s>" % shape_name, self._schema_text).start()
         closest = None
         for character in parentheses:
             if (character >= shape_index) and (closest is None or character < closest):
@@ -278,11 +281,11 @@ class Shape:
             if hasattr(match, "group"):
                 match = match.group()
                 cardinalities = match[1:-1].split(",")
-                cardinality["min"] = cardinalities[0]
+                cardinality["min"] = int(cardinalities[0])
                 if len(cardinalities) == 1:
-                    cardinality["max"] = cardinalities[0]
+                    cardinality["max"] = int(cardinalities[0])
                 else:
-                    cardinality["max"] = cardinalities[1]
+                    cardinality["max"] = int(cardinalities[1])
         else:
             cardinality["min"] = 1
             cardinality["max"] = 1
