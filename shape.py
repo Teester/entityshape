@@ -236,8 +236,12 @@ class Shape:
         :param schema_json: The json containing the shape to be extracted
         :return: The extracted shape
         """
-        sub_shape: dict = self._schema_shapes[schema_json["shape"]]
-        del schema_json["shape"]
+        try:
+            sub_shape: dict = self._schema_shapes[schema_json["shape"]]
+            del schema_json["shape"]
+        except:
+            del schema_json["shape"]
+            return schema_json
         qualifier_child: dict = {}
         reference_child: dict = {}
         for key in sub_shape:
