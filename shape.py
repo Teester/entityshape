@@ -1,3 +1,4 @@
+import os
 import re
 import requests
 from typing import Optional, Match, Union, Pattern, Any
@@ -55,8 +56,13 @@ class Shape:
         :param shape: the name of the shape to be converted
         """
         new_shape: str = self._shapes[shape].replace("\n", "")
-        first_line = new_shape.split("{", 1)[0]
-        shape_array: list = new_shape.split("{", 1)[1].split(";")
+        new_shape = new_shape.replace("\r", "")
+        if "{" in new_shape:
+            first_line = new_shape.split("{", 1)[0]
+            shape_array: list = new_shape.split("{", 1)[1].split(";")
+        else:
+            first_line = new_shape.split("[", 1)[0]
+            shape_array: list = new_shape.split("[", 1)[1].split(";")
         try:
             shape_json: dict = self._get_shape_properties(first_line)
         except AttributeError:
@@ -162,6 +168,7 @@ class Shape:
         schema_text = schema_text.replace("xsd:decimal", ".")
         schema_text = schema_text.replace("[ <http://commons.wikimedia.org/wiki/Special:FilePath>~ ]", ".")
         schema_text = schema_text.replace("[ <http://www.wikidata.org/entity>~ ]", ".")
+        schema_text = os.linesep.join([s for s in schema_text.splitlines() if s])
         self._schema_text = schema_text
 
     def _get_schema_name(self):
@@ -190,7 +197,7 @@ class Shape:
         :param shape_name: The name of the shape to be extracted
         :return: The extracted shape
         """
-        search: Union[Pattern[Union[str, Any]], Pattern] = re.compile(r"<%s>.*{" % shape_name)
+        search: Union[Pattern[Union[str, Any]], Pattern] = re.compile(r"<%s>.*\n?([{\[])" % shape_name)
         parentheses = self._find_parentheses(self._schema_text)
         shape_index: int = re.search(search, self._schema_text).start()
         closest = None
@@ -209,9 +216,9 @@ class Shape:
         index_list = {}
         pop_stack = []
         for index, character in enumerate(shape):
-            if character == '{':
+            if character in ['{', '[']:
                 pop_stack.append(index)
-            elif character == '}':
+            elif character in ['}', ']']:
                 if len(pop_stack) == 0:
                     raise IndexError('Too many } for {')
                 index_list[pop_stack.pop()] = index
@@ -270,7 +277,6 @@ class Shape:
             match = re.search(r"{((\d+)|(\d+,\d+))}", schema_line)
             if hasattr(match, "group"):
                 match = match.group()
-                print(f"match = {match}")
                 cardinalities = match[1:-1].split(",")
                 cardinality["min"] = cardinalities[0]
                 if len(cardinalities) == 1:
