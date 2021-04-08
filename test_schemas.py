@@ -125,7 +125,7 @@ class MyTestCase(unittest.TestCase):
         properties: list = ["P361"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertTrue(response.json["properties"][prop]["response"] in ["correct"])
+                self.assertTrue(response.json["properties"][prop]["response"] in ["too many statements"])
                 self.assertTrue(response.json["properties"][prop]["necessity"] in ["absent"])
 
 
