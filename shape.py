@@ -25,12 +25,10 @@ class Shape:
         self._default_shape_name: str = ""
 
         self._get_schema_json(schema)
-        print(self._get_schema_json(schema))
         self._strip_schema_comments()
         self._get_schema_name()
         if self._schema_text != "":
             self._get_default_shape()
-            print(self._default_shape_name)
             self._translate_schema()
 
     def _translate_schema(self):
@@ -63,7 +61,6 @@ class Shape:
             shape_json: dict = self._get_shape_properties(first_line)
         except AttributeError:
             shape_json: dict = {}
-
         for line in shape_array:
             if re.match(r".+:P\d", line):
                 child: dict = {}
@@ -216,10 +213,10 @@ class Shape:
                 pop_stack.append(index)
             elif character == '}':
                 if len(pop_stack) == 0:
-                    raise IndexError('No')
+                    raise IndexError('Too many } for {')
                 index_list[pop_stack.pop()] = index
         if len(pop_stack) > 0:
-            raise IndexError('Non')
+            raise IndexError('No matching } for {')
         return index_list
 
     def _translate_sub_shape(self, schema_json: dict):
@@ -270,13 +267,16 @@ class Shape:
             cardinality["max"] = 0
             cardinality["min"] = 0
         elif re.search(r"{.+}", schema_line):
-            match = re.search(r"{.+}", schema_line).group()
-            cardinalities = match[1:-1].split(",")
-            cardinality["min"] = cardinalities[0]
-            if len(cardinalities) == 1:
-                cardinality["max"] = cardinalities[0]
-            else:
-                cardinality["max"] = cardinalities[1]
+            match = re.search(r"{((\d+)|(\d+,\d+))}", schema_line)
+            if hasattr(match, "group"):
+                match = match.group()
+                print(f"match = {match}")
+                cardinalities = match[1:-1].split(",")
+                cardinality["min"] = cardinalities[0]
+                if len(cardinalities) == 1:
+                    cardinality["max"] = cardinalities[0]
+                else:
+                    cardinality["max"] = cardinalities[1]
         else:
             cardinality["min"] = 1
             cardinality["max"] = 1
