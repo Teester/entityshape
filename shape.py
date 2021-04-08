@@ -25,10 +25,12 @@ class Shape:
         self._default_shape_name: str = ""
 
         self._get_schema_json(schema)
+        print(self._get_schema_json(schema))
         self._strip_schema_comments()
         self._get_schema_name()
         if self._schema_text != "":
             self._get_default_shape()
+            print(self._default_shape_name)
             self._translate_schema()
 
     def _translate_schema(self):
@@ -150,6 +152,8 @@ class Shape:
         # remove comments from the schema
         for line in self._json_text["schemaText"].splitlines():
             head, sep, tail = line.partition('# ')
+            if line.startswith("#"):
+                head = ""
             schema_text += f"\n{head.strip()}"
         # replace data types with the any value designator(.).  Since wikidata won't allow items to enter the
         # incorrect type (eg. trying to enter a LITERAL value where an IRI (i.e. a wikidata item) is required
