@@ -1,3 +1,4 @@
+import os
 import re
 import requests
 from typing import Optional, Match, Union, Pattern, Any
@@ -13,6 +14,7 @@ class Shape:
     :return name: the name of the entityschema
     :return shape: a json representation of the entityschema
     """
+
     # TODO: Process groups in shapes
     # TODO: Process OR and NOT in shapes
     def __init__(self, schema: str, language: str):
@@ -43,7 +45,7 @@ class Shape:
         for key in schema_json:
             if "shape" in schema_json[key]:
                 schema_json[key] = self._translate_sub_shape(schema_json[key])
-            if "required" in schema_json[key] and\
+            if "required" in schema_json[key] and \
                     "required" in schema_json[key]["required"]:
                 schema_json[key]["required"] = schema_json[key]["required"]["required"]
         self.schema_shape = schema_json
@@ -55,12 +57,17 @@ class Shape:
         :param shape: the name of the shape to be converted
         """
         new_shape: str = self._shapes[shape].replace("\n", "")
-        shape_array: list = new_shape[new_shape.find("{")+1:new_shape.rfind("}")].split(";")
+        new_shape = new_shape.replace("\r", "")
+        if "{" in new_shape:
+            first_line = new_shape.split("{", 1)[0]
+            shape_array: list = new_shape.split("{", 1)[1].split(";")
+        else:
+            first_line = new_shape.split("[", 1)[0]
+            shape_array: list = new_shape.split("[", 1)[1].split(";")
         try:
-            shape_json: dict = self._get_shape_properties(re.search(r"<(.*?){", new_shape).group(1))
+            shape_json: dict = self._get_shape_properties(first_line)
         except AttributeError:
             shape_json: dict = {}
-
         for line in shape_array:
             if re.match(r".+:P\d", line):
                 child: dict = {}
@@ -104,6 +111,9 @@ class Shape:
             child["cardinality"] = cardinality
             if "min" in cardinality:
                 necessity = "required"
+            if "max" in cardinality and "min" in cardinality \
+                    and cardinality["max"] == 0 and cardinality["min"] == 0:
+                necessity = "absent"
         child["necessity"] = necessity
         child["status"] = snak
         return child
@@ -146,6 +156,8 @@ class Shape:
         # remove comments from the schema
         for line in self._json_text["schemaText"].splitlines():
             head, sep, tail = line.partition('# ')
+            if line.startswith("#"):
+                head = ""
             schema_text += f"\n{head.strip()}"
         # replace data types with the any value designator(.).  Since wikidata won't allow items to enter the
         # incorrect type (eg. trying to enter a LITERAL value where an IRI (i.e. a wikidata item) is required
@@ -157,6 +169,7 @@ class Shape:
         schema_text = schema_text.replace("xsd:decimal", ".")
         schema_text = schema_text.replace("[ <http://commons.wikimedia.org/wiki/Special:FilePath>~ ]", ".")
         schema_text = schema_text.replace("[ <http://www.wikidata.org/entity>~ ]", ".")
+        schema_text = os.linesep.join([s for s in schema_text.splitlines() if s])
         self._schema_text = schema_text
 
     def _get_schema_name(self):
@@ -185,12 +198,37 @@ class Shape:
         :param shape_name: The name of the shape to be extracted
         :return: The extracted shape
         """
-        search: Union[Pattern[Union[str, Any]], Pattern] = re.compile(r"<%s>.*{.*(\n[^}]*)*}"
-                                                                      % shape_name, re.MULTILINE)
-        shape: Optional[Match[Union[str, Any]]] = re.search(search, self._schema_text)
-        if shape is not None:
-            return shape.group(0)
+        search: Union[Pattern[Union[str, Any]], Pattern] = re.compile(r"<%s>.*\n?([{\[])" % shape_name)
+        parentheses = self._find_parentheses(self._schema_text)
+        try:
+            shape_index: int = re.search(search, self._schema_text).start()
+        except AttributeError:
+            shape_index = re.search("<%s>" % shape_name, self._schema_text).start()
+        closest = None
+        for character in parentheses:
+            if (character >= shape_index) and (closest is None or character < closest):
+                closest = character
+        if closest:
+            shape_start: int = shape_index
+            shape_end: int = parentheses[closest]
+            shape: str = self._schema_text[shape_start:shape_end]
+            return shape
         return ""
+
+    @staticmethod
+    def _find_parentheses(shape):
+        index_list = {}
+        pop_stack = []
+        for index, character in enumerate(shape):
+            if character in ['{', '[']:
+                pop_stack.append(index)
+            elif character in ['}', ']']:
+                if len(pop_stack) == 0:
+                    raise IndexError('Too many } for {')
+                index_list[pop_stack.pop()] = index
+        if len(pop_stack) > 0:
+            raise IndexError('No matching } for {')
+        return index_list
 
     def _translate_sub_shape(self, schema_json: dict):
         """
@@ -199,8 +237,12 @@ class Shape:
         :param schema_json: The json containing the shape to be extracted
         :return: The extracted shape
         """
-        sub_shape: dict = self._schema_shapes[schema_json["shape"]]
-        del schema_json["shape"]
+        try:
+            sub_shape: dict = self._schema_shapes[schema_json["shape"]]
+            del schema_json["shape"]
+        except KeyError:
+            del schema_json["shape"]
+            return schema_json
         qualifier_child: dict = {}
         reference_child: dict = {}
         for key in sub_shape:
@@ -209,7 +251,7 @@ class Shape:
                     sub_shape_json = self._translate_sub_shape(sub_shape[key])
                     if sub_shape[key]["status"] == "statement":
                         schema_json["required"] = sub_shape_json
-                if sub_shape[key]["status"] == "statement" and\
+                if sub_shape[key]["status"] == "statement" and \
                         "allowed" in sub_shape[key]:
                     value = sub_shape[key]["allowed"]
                     schema_json["required"] = {key: value}
@@ -236,14 +278,19 @@ class Shape:
             cardinality = {}
         elif "+" in schema_line:
             cardinality["min"] = 1
+        elif "{0}" in schema_line:
+            cardinality["max"] = 0
+            cardinality["min"] = 0
         elif re.search(r"{.+}", schema_line):
-            match = re.search(r"{.+}", schema_line).group()
-            cardinalities = match[1:-1].split(",")
-            cardinality["min"] = cardinalities[0]
-            if len(cardinalities) == 1:
-                cardinality["max"] = cardinalities[0]
-            else:
-                cardinality["max"] = cardinalities[1]
+            match = re.search(r"{((\d+)|(\d+,\d+))}", schema_line)
+            if hasattr(match, "group"):
+                match = match.group()
+                cardinalities = match[1:-1].split(",")
+                cardinality["min"] = int(cardinalities[0])
+                if len(cardinalities) == 1:
+                    cardinality["max"] = int(cardinalities[0])
+                else:
+                    cardinality["max"] = int(cardinalities[1])
         else:
             cardinality["min"] = 1
             cardinality["max"] = 1
