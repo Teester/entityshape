@@ -14,6 +14,7 @@ class Shape:
     :return name: the name of the entityschema
     :return shape: a json representation of the entityschema
     """
+
     # TODO: Process groups in shapes
     # TODO: Process OR and NOT in shapes
     def __init__(self, schema: str, language: str):
@@ -44,7 +45,7 @@ class Shape:
         for key in schema_json:
             if "shape" in schema_json[key]:
                 schema_json[key] = self._translate_sub_shape(schema_json[key])
-            if "required" in schema_json[key] and\
+            if "required" in schema_json[key] and \
                     "required" in schema_json[key]["required"]:
                 schema_json[key]["required"] = schema_json[key]["required"]["required"]
         self.schema_shape = schema_json
@@ -110,9 +111,9 @@ class Shape:
             child["cardinality"] = cardinality
             if "min" in cardinality:
                 necessity = "required"
-            if "max" in cardinality and "min" in cardinality:
-                if cardinality["max"] == 0 and cardinality["min"] == 0:
-                    necessity = "absent"
+            if "max" in cardinality and "min" in cardinality \
+                    and cardinality["max"] == 0 and cardinality["min"] == 0:
+                necessity = "absent"
         child["necessity"] = necessity
         child["status"] = snak
         return child
@@ -201,7 +202,7 @@ class Shape:
         parentheses = self._find_parentheses(self._schema_text)
         try:
             shape_index: int = re.search(search, self._schema_text).start()
-        except:
+        except AttributeError:
             shape_index = re.search("<%s>" % shape_name, self._schema_text).start()
         closest = None
         for character in parentheses:
@@ -239,7 +240,7 @@ class Shape:
         try:
             sub_shape: dict = self._schema_shapes[schema_json["shape"]]
             del schema_json["shape"]
-        except:
+        except KeyError:
             del schema_json["shape"]
             return schema_json
         qualifier_child: dict = {}
@@ -250,7 +251,7 @@ class Shape:
                     sub_shape_json = self._translate_sub_shape(sub_shape[key])
                     if sub_shape[key]["status"] == "statement":
                         schema_json["required"] = sub_shape_json
-                if sub_shape[key]["status"] == "statement" and\
+                if sub_shape[key]["status"] == "statement" and \
                         "allowed" in sub_shape[key]:
                     value = sub_shape[key]["allowed"]
                     schema_json["required"] = {key: value}
