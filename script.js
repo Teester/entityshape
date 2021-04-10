@@ -60,8 +60,8 @@ function entitycheck_checkbox() {
 function entitycheck_checkEntity(entity, entitySchema, language) {
 	$("#entityCheckResponse").contents().remove();
 	$(".entitycheck-property").remove();
-	// let url = "https://entityshape.toolforge.org/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
-	let url = "http://127.0.0.1:5000/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
+	let url = "https://entityshape.toolforge.org/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
+	// let url = "https://127.0.0.1:5000/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
 	$.ajax({
 		type: "GET",
 		dataType: "json",
@@ -78,18 +78,20 @@ function entitycheck_checkEntity(entity, entitySchema, language) {
 					html += entitycheck_parseResult(data.validity.results[0]);
 				}
 			}
-			html += '<div style="overflow-y: scroll; max-height:200px;"><table style="width:100%;"><th class="entitycheck_table">Required properties</th>';
-			html += '<th class="entitycheck_table">Optional properties</th>';
-			html += '<th class="entitycheck_table">Properties not in schema</th><tr>';
+			html += '<div style="overflow-y: scroll; max-height:200px;"><table style="width:100%;">'
+			html += '<th class="entitycheck_table" title="Properties in this item which must be present">Required properties</th>';
+			html += '<th class="entitycheck_table" title="Properties in this item which can be present but do not have to be">Optional properties</th>';
+			html += '<th class="entitycheck_table" title="Properties in this item which are not allowed to be present or not mentioned in the entityschema">Other properties</th><tr>';
 
-			let required_html = '<td class="entitycheck_table">';
-			let optional_html = '<td class="entitycheck_table">';
-			let absent_html = '<td class="entitycheck_table">';
+			let required_html = '<td class="entitycheck_table required">';
+			let optional_html = '<td class="entitycheck_table optional">';
+			let absent_html = '<td class="entitycheck_table absent">';
 			if (data.properties) {
 				for (let key in data.properties) {
 					let shape_html = "";
 					let response1 = data.properties[key].response;
 					let response_class  = "";
+					console.log(data.properties[key])
 					switch (response1) {
 						case "present":
 							response_class = "present";
@@ -104,12 +106,21 @@ function entitycheck_checkEntity(entity, entitySchema, language) {
 							response_class = "wrong";
 							break;
 					}
+					if (data.properties[key].necessity == "absent") {
+					    if (response1 == "too many statements") {
+					        response1 = "not allowed";
+					    }
+					}
+					if (!response1) {
+						response1 = "Not in schema";
+						response_class = "notinschema";
+					}
 					if (response1 == null) {
 						response1 = "";
 						shape_html += '<a href="https://www.wikidata.org/wiki/Property:' + key;
 						shape_html +='">'+ key + " - <small>" + data.properties[key].name + '</small></a><br/>';
 					} else {
-						shape_html += '<span class=entitycheck-' + response_class + '>' + response1 + '</span><a href="https://www.wikidata.org/wiki/Property:' + key;
+						shape_html += '<span class="entitycheck-span entitycheck-' + response_class + '">' + response1 + '</span><a href="https://www.wikidata.org/wiki/Property:' + key;
 						shape_html +='" class="is_entitycheck-'+ response_class+'">'+ key + " - <small>" + data.properties[key].name + '</small></a><br/>';
 					}
 					switch (data.properties[key].necessity){
@@ -123,12 +134,8 @@ function entitycheck_checkEntity(entity, entitySchema, language) {
 							absent_html += shape_html;
 							break;
 					}
-					if (!response1) {
-						response1 = "Not in schema";
-						response_class = "missing";
-					}
 					if ($("#" + key)[0]) {
-						$("#" + key + " .wikibase-statementgroupview-property-label").append("<br class='entitycheck-property'/><div style='display:inline-block;' class='entitycheck-property entitycheck-" + response_class + "' title='" + data.schema + ": " + data.name + "'>" + data.schema + ": " + response1 + "</div>");
+						$("#" + key + " .wikibase-statementgroupview-property-label").append("<br class='entitycheck-property'/><div style='display:inline-block;' class='entitycheck-span entitycheck-property entitycheck-" + response_class + "' title='" + data.schema + ": " + data.name + "'>" + data.schema + ": " + response1 + "</div>");
 					}
 				}
 			}
@@ -144,7 +151,7 @@ function entitycheck_checkEntity(entity, entitySchema, language) {
 				for (var statement in data.statements) {
 					let response2 = data.statements[statement].response;
 					if (response2 != "not in schema") {
-						html = "<br class='entitycheck-property'/><span class='entitycheck-property entitycheck-" + response2 + "'>" + response2 + "</span>";
+						html = "<br class='entitycheck-property'/><span class='entitycheck-span entitycheck-property entitycheck-" + response2 + "'>" + response2 + "</span>";
 						$("div[id='" + statement + "'] .wikibase-toolbar-button-edit").append(html);
 					}
 				}
@@ -153,14 +160,14 @@ function entitycheck_checkEntity(entity, entitySchema, language) {
 			    if (data.general.language) {
 			    	let response3 = data.general.language;
                     if (response3 != "not in schema") {
-                        html = "<span class='entitycheck-property'/><span class='entitycheck-property entitycheck-" + response3 + "'>" + response3 + "</span>";
+                        html = "<span class='entitycheck-property'/><span class='entitycheck-span entitycheck-property entitycheck-" + response3 + "'>" + response3 + "</span>";
                         $("span[class='language-lexical-category-widget_language']").append(html);
                     }
 			    }
                 if (data.general.lexicalCategory) {
                     let response4 = data.general.lexicalCategory;
                     if (response4 != "not in schema") {
-                        html = "<span class='entitycheck-property'/><span class='entitycheck-property entitycheck-" + response4 + "'>" + response4 + "</span>";
+                        html = "<span class='entitycheck-property'/><span class='entitycheck-span entitycheck-property entitycheck-" + response4 + "'>" + response4 + "</span>";
                         $("span[class='language-lexical-category-widget_lexical-category']").append(html);
                     }
                 }
@@ -204,19 +211,26 @@ function entitycheck_getStylesheet() {
 	stylesheet += "a.is_entitycheck-present { color: #008800; }";
 	stylesheet += "a.is_entitycheck-allowed { color: #008800; }";
 	stylesheet += "a.is_entitycheck-correct { color: #00CC00; }";
-	stylesheet += "a.is_entitycheck-missing { color: #FF8C00; }";
+	stylesheet += "a.is_entitycheck-missing { color: #FF5500; }";
+	stylesheet += "a.is_entitycheck-notinschema { color: #FF5500; }";
 	stylesheet += "a.is_entitycheck-wrong { color: #CC0000; }";
 	stylesheet += "a.is_entitycheck-wrong_amount { color: #CC0000; }";
 	stylesheet += "a.is_entitycheck-incorrect { color: #CC0000; }";
 	stylesheet += ".entitycheck_table {vertical-align: top; width: 33%;} ";
-	stylesheet += ".entitycheck-missing { background-color: #FF8C00; color: #ffffff; padding:2px; margin: 2px; font-size:75%; border-radius:2px;}";
-	stylesheet += ".entitycheck-wrong { background-color: #CC0000; color: #ffffff; padding:2px; margin: 2px; font-size:75%; border-radius:2px;}";
-	stylesheet += ".entitycheck-incorrect { background-color: #CC0000; color: #ffffff; padding:2px; margin: 2px; font-size:75%; border-radius:2px;}";
-	stylesheet += ".entitycheck-wrong_amount { background-color: #CC0000; color: #ffffff; padding:2px; margin: 2px; font-size:75%; border-radius:2px;}";
-	stylesheet += ".entitycheck-excess { background-color: #CC0000; color: #ffffff; padding:2px; margin: 2px; font-size:75%; border-radius:2px;}";
-	stylesheet += ".entitycheck-deficit { background-color: #CC0000; color: #ffffff; padding:2px; margin: 2px; font-size:75%; border-radius:2px;}";
-	stylesheet += ".entitycheck-present { background-color: #008800; color: #ffffff; padding:2px; margin: 2px; font-size:75%; border-radius:2px;}";
-	stylesheet += ".entitycheck-allowed { background-color: #008800; color: #ffffff; padding:2px; margin: 2px; font-size:75%; border-radius:2px;}";
-	stylesheet += ".entitycheck-correct { background-color: #00CC00; color: #ffffff; padding:2px; margin: 2px; font-size:75%; border-radius:2px;}";
+	stylesheet += ".entitycheck-missing { background-color: #FF8C00; }";
+	stylesheet += ".entitycheck-notinschema { background-color: #FF8C00; }";
+	stylesheet += ".entitycheck-wrong { background-color: #CC0000; }";
+	stylesheet += ".entitycheck-incorrect { background-color: #CC0000; }";
+	stylesheet += ".entitycheck-wrong_amount { background-color: #CC0000; }";
+	stylesheet += ".entitycheck-excess { background-color: #CC0000; }";
+	stylesheet += ".entitycheck-deficit { background-color: #CC0000; }";
+	stylesheet += ".entitycheck-present { background-color: #008800; }";
+	stylesheet += ".entitycheck-allowed { background-color: #008800; }";
+	stylesheet += ".entitycheck-correct { background-color: #00CC00; }";
+	stylesheet += ".required .entitycheck-missing { background-color: #FF0000;}";
+	stylesheet += ".required a.is_entitycheck-missing { color: #FF0000;}";
+	stylesheet += ".absent .entitycheck-missing { display: none;}";
+	stylesheet += ".absent a.is_entitycheck-missing { display: none;}";
+	stylesheet += ".entitycheck-span { color: #ffffff; padding:2px; margin: 2px; font-size:75%; border-radius:2px; }";
 	return stylesheet;
 }
