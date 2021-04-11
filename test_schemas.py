@@ -1,3 +1,6 @@
+"""
+Testcases for the api
+"""
 import unittest
 
 import requests
@@ -5,7 +8,11 @@ import requests
 from app import app
 
 
-class MyTestCase(unittest.TestCase):
+class WikidataTestCase(unittest.TestCase):
+    """
+    These are tests which test a given entityschema (from Wikidata)
+    against a given item.
+    """
     def setUp(self) -> None:
         app.config["TESTING"] = True
         self.app = app.test_client()
@@ -92,14 +99,15 @@ class MyTestCase(unittest.TestCase):
         This test tests entityschema E236 (Member of the Oireachtas) against entity
         Q1728820 (Leo Varadkar).  All properties in the schema should pass
         """
-        response = self.app.get(f'/api?entityschema=E236&entity=Q1728820&language=en',
+        response = self.app.get('/api?entityschema=E236&entity=Q1728820&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
         properties: list = ["P102", "P18", "P31", "P734", "P735", "P39", "P21",
                             "P27", "P106", "P569", "P4690"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertTrue(response.json["properties"][prop]["response"] in ["correct", "present"])
+                self.assertTrue(response.json["properties"][prop]["response"] in
+                                ["correct", "present"])
 
     def test_entityschema_e297(self):
         """
@@ -110,13 +118,14 @@ class MyTestCase(unittest.TestCase):
         The test checks to ensure that the correct cardinality is calculated for
         the relevant property
         """
-        response = self.app.get(f'/api?entityschema=E297&entity=Q97179551&language=en',
+        response = self.app.get('/api?entityschema=E297&entity=Q97179551&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
         properties: list = ["P2043", "P2067"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertTrue(response.json["properties"][prop]["response"] in ["correct", "present"])
+                self.assertTrue(response.json["properties"][prop]["response"] in
+                                ["correct", "present"])
 
     def test_entityschema_e295(self):
         """
@@ -126,13 +135,14 @@ class MyTestCase(unittest.TestCase):
         The schema has a P361 (part of) with a cardinality of 0, meaning the item should
         not contain any P361.  The test checks that the response is false for this item
         """
-        response = self.app.get(f'/api?entityschema=E295&entity=Q85396849&language=en',
+        response = self.app.get('/api?entityschema=E295&entity=Q85396849&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
         properties: list = ["P361"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertTrue(response.json["properties"][prop]["response"] in ["too many statements"])
+                self.assertTrue(response.json["properties"][prop]["response"] in
+                                ["too many statements"])
                 self.assertTrue(response.json["properties"][prop]["necessity"] in ["absent"])
 
     def test_entityschema_e126(self):
@@ -143,7 +153,7 @@ class MyTestCase(unittest.TestCase):
         The schema has a comment line that starts with #{ rather than # {.
         The test checks that we get a 200 response
         """
-        response = self.app.get(f'/api?entityschema=E126&entity=Q85396849&language=en',
+        response = self.app.get('/api?entityschema=E126&entity=Q85396849&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
@@ -156,7 +166,7 @@ class MyTestCase(unittest.TestCase):
         sure that we get a 200 and that the contents of the {} aren't
         evaluated as a cardinality
         """
-        response = self.app.get(f'/api?entityschema=E278&entity=Q85396849&language=en',
+        response = self.app.get('/api?entityschema=E278&entity=Q85396849&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
@@ -168,7 +178,7 @@ class MyTestCase(unittest.TestCase):
         The schema has a shape <wikimedia_projects> [ ].  The test makes sure
         that the schema returns a 200 response, indicating that it evaluates []
         """
-        response = self.app.get(f'/api?entityschema=E3&entity=Q85396849&language=en',
+        response = self.app.get('/api?entityschema=E3&entity=Q85396849&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
@@ -180,7 +190,7 @@ class MyTestCase(unittest.TestCase):
         The schema contains a shape where the name and { are on different lines.
         The test checks that this evaluates correctly
         """
-        response = self.app.get(f'/api?entityschema=E176&entity=Q85396849&language=en',
+        response = self.app.get('/api?entityschema=E176&entity=Q85396849&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
@@ -192,7 +202,7 @@ class MyTestCase(unittest.TestCase):
         The schema has a shape of the form <shape> geo:Literal.  The test
         makes sure that this evaluates
         """
-        response = self.app.get(f'/api?entityschema=E187&entity=Q85396849&language=en',
+        response = self.app.get('/api?entityschema=E187&entity=Q85396849&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
@@ -204,7 +214,7 @@ class MyTestCase(unittest.TestCase):
         The schema imports another schema and references it. The test makes sure
         that this still returns a 200 response
         """
-        response = self.app.get(f'/api?entityschema=E275&entity=Q85396849&language=en',
+        response = self.app.get('/api?entityschema=E275&entity=Q85396849&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
