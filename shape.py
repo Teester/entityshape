@@ -249,7 +249,8 @@ class Shape:
         for key in sub_shape:
             if "status" in sub_shape[key]:
                 qualifier_child, reference_child, schema_json = \
-                    self._assess_sub_shape_key(sub_shape[key],
+                    self._assess_sub_shape_key(sub_shape,
+                                               key,
                                                schema_json,
                                                qualifier_child,
                                                reference_child)
@@ -319,16 +320,16 @@ class Shape:
             necessity = "absent"
         return necessity, child
 
-    def _assess_sub_shape_key(self, key, schema_json, qualifier_child, reference_child):
+    def _assess_sub_shape_key(self, sub_shape, key, schema_json, qualifier_child, reference_child):
         if "shape" in key:
             sub_shape_json = self._translate_sub_shape(key)
             if key["status"] == "statement":
                 schema_json["required"] = sub_shape_json
-        if key["status"] == "statement" and "allowed" in key:
-            value = key["allowed"]
+        if sub_shape[key]["status"] == "statement" and "allowed" in sub_shape[key]:
+            value = sub_shape[key]["allowed"]
             schema_json["required"] = {key: value}
-        if key["status"] == "qualifier":
-            qualifier_child[key] = key
-        if key["status"] == "reference":
-            reference_child[key] = key
+        if sub_shape[key]["status"] == "qualifier":
+            qualifier_child[key] = sub_shape[key]
+        if sub_shape[key]["status"] == "reference":
+            reference_child[key] = sub_shape[key]
         return qualifier_child, reference_child, schema_json
