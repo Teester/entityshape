@@ -18,24 +18,15 @@ class CompareShape:
     :returns properties: a json representation of the conformity of each property in the entity
     :returns statements: a json representation of the conformity of each statement in the entity
     """
-    # TODO: Process CLOSED comparison
-    # TODO: Process OR and NOT comparison
-    # TODO: Process groups in comparison
     def __init__(self, shape: dict, entity: str, language: str):
-        self._properties: dict = {}
-        self._statements: dict = {}
-        self._general: dict = {}
-
         self._entity: str = entity
-        self._language: str = language
         self._shape: dict = shape
         self._property_responses: dict = {}
 
         self._get_entity_json()
         if self._entities["entities"][self._entity]:
             self._get_props(self._entities["entities"][self._entity]['claims'])
-        self._get_general()
-        self._get_property_names()
+        self._get_property_names(language)
         self._compare_statements()
         self._compare_properties()
 
@@ -44,36 +35,36 @@ class CompareShape:
         Gets the result of comparison for each property with the schema
         :return: json for comparison of properties
         """
-        return self._properties
+        return self._compare_properties()
 
     def get_statements(self) -> dict:
         """
         Gets the result of comparison of each statement with the schema
         :return: json for comparison of statements
         """
-        return self._statements
+        return self._compare_statements()
 
     def get_general(self) -> dict:
         """
         Gets general properties of the comparison
         :return: json for general properties of the comparison
         """
-        return self._general
-
-    def _get_general(self):
+        general: dict = {}
         properties: list = ["lexicalCategory", "language"]
         for item in properties:
             if item in self._shape and item in self._entities["entities"][self._entity]:
                 expected: list = self._shape[item]["allowed"]
                 actual: str = self._entities["entities"][self._entity][item]
-                self._general[item] = "incorrect"
+                general[item] = "incorrect"
                 if actual in expected:
-                    self._general[item] = "correct"
+                    general[item] = "correct"
+        return general
 
     def _compare_statements(self):
         """
         Compares the statements in the entity to the schema
         """
+        statements: dict = {}
         claims: dict = self._entities["entities"][self._entity]['claims']
         for claim in claims:
             statement_results: list = []
@@ -87,17 +78,19 @@ class CompareShape:
                     allowed = self._process_allowed(allowed, required, qualifiers, extra)
                 if allowed != "":
                     child["response"] = allowed
-                self._statements[statement["id"]] = child
+                statements[statement["id"]] = child
                 statement_results.append(allowed)
                 if allowed.startswith("missing"):
                     allowed = "incorrect"
                 property_statement_results.append(allowed)
             self._property_responses[claim] = property_statement_results
+        return statements
 
     def _compare_properties(self):
         """
         Compares the properties in the entity to the schema
         """
+        properties: dict = {}
         for claim in self._props:
             response: str = "missing"
             child: dict = {"name": self._names[claim], "necessity": "absent"}
@@ -107,7 +100,8 @@ class CompareShape:
                 response = self._process_claim(claim, child)
             if response != "":
                 child["response"] = response
-            self._properties[claim] = child
+            properties[claim] = child
+        return properties
 
     def _process_claim(self, claim, child):
         cardinality: str = ""
@@ -130,23 +124,25 @@ class CompareShape:
 
     def _assess_cardinality(self, claim, child):
         cardinality: str = ""
+        number_of_statements: int = len(self._property_responses[claim])
+        min_cardinality = False
+        max_cardinality = False
         if child["necessity"] != "absent":
             cardinality = "correct"
         if "cardinality" in self._shape[claim]:
             claim_cardinality = self._shape[claim]["cardinality"]
-            number_of_statements: int = len(self._property_responses[claim])
-            if "extra" in self._shape[claim]:
-                number_of_statements = self._property_responses[claim].count("correct")
             min_cardinality = True
             max_cardinality = True
+            if "extra" in self._shape[claim]:
+                number_of_statements = self._property_responses[claim].count("correct")
             if "min" in claim_cardinality and number_of_statements < claim_cardinality["min"]:
                 min_cardinality = False
             if "max" in claim_cardinality and number_of_statements > claim_cardinality["max"]:
                 max_cardinality = False
-            if min_cardinality and not max_cardinality:
-                cardinality = "too many statements"
-            if max_cardinality and not min_cardinality:
-                cardinality = "not enough correct statements"
+        if min_cardinality and not max_cardinality:
+            cardinality = "too many statements"
+        if max_cardinality and not min_cardinality:
+            cardinality = "not enough correct statements"
         return cardinality
 
     def _get_entity_json(self):
@@ -170,7 +166,7 @@ class CompareShape:
             if claim not in self._props and claim.startswith("P"):
                 self._props.append(claim)
 
-    def _get_property_names(self):
+    def _get_property_names(self, language: str):
         """
         Gets the names of properties from wikidata
         """
@@ -180,13 +176,13 @@ class CompareShape:
         for element in wikidata_property_list:
             required_properties: str = "|".join(element)
             url: str = f"https://www.wikidata.org/w/api.php?action=wbgetentities&ids=" \
-                       f"{required_properties}&props=labels&languages={self._language}&format=json"
+                       f"{required_properties}&props=labels&languages={language}&format=json"
             response: Response = requests.get(url)
             json_text: dict = response.json()
             for item in element:
                 try:
                     self._names[json_text["entities"][item]["id"]] = \
-                        json_text["entities"][item]["labels"][self._language]["value"]
+                        json_text["entities"][item]["labels"][language]["value"]
                 except KeyError:
                     self._names[json_text["entities"][item]["id"]] = ""
 
