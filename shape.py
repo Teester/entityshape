@@ -1,7 +1,10 @@
+"""
+Converts entityschema to json suitable for comparing with a wikidata item
+"""
 import os
 import re
-import requests
 from typing import Optional, Match, Union, Pattern, Any
+import requests
 
 
 class Shape:
@@ -14,11 +17,8 @@ class Shape:
     :return name: the name of the entityschema
     :return shape: a json representation of the entityschema
     """
-
-    # TODO: Process groups in shapes
-    # TODO: Process OR and NOT in shapes
     def __init__(self, schema: str, language: str):
-        self.name: str = ""
+        # self.name: str = ""
         self.schema_shape: dict = {}
 
         self._shapes: dict = {}
@@ -28,10 +28,25 @@ class Shape:
 
         self._get_schema_json(schema)
         self._strip_schema_comments()
-        self._get_schema_name()
         if self._schema_text != "":
             self._get_default_shape()
             self._translate_schema()
+
+    def get_schema_shape(self):
+        """
+        Gets the json representation of the schema
+        :return: the json representation of the schema
+        """
+        return self.schema_shape
+
+    def get_name(self):
+        """
+        Gets the name of the schema
+        :return: the name of the schema
+        """
+        if self._language in self._json_text["labels"]:
+            return self._json_text["labels"][self._language]
+        return ""
 
     def _translate_schema(self):
         """
@@ -72,7 +87,7 @@ class Shape:
             if re.match(r".+:P\d", line):
                 child: dict = {}
                 selected_property: str = re.search(r"P\d+", line).group(0)
-                if selected_property in shape_json:
+                if shape_json.get(selected_property):
                     child = shape_json[selected_property]
                 shape_json[selected_property] = self._assess_property(line, child)
             if "wikibase:lexicalCategory" in line:
@@ -103,17 +118,7 @@ class Shape:
         cardinality: dict = self._get_cardinality(line)
         necessity: str = "optional"
         if cardinality:
-            if "cardinality" in child:
-                if "min" in child["cardinality"] and "min" in cardinality:
-                    cardinality["min"] = cardinality["min"] + child["cardinality"]["min"]
-                if "max" in child["cardinality"] and "max" in cardinality:
-                    cardinality["max"] = cardinality["max"] + child["cardinality"]["max"]
-            child["cardinality"] = cardinality
-            if "min" in cardinality:
-                necessity = "required"
-            if "max" in cardinality and "min" in cardinality \
-                    and cardinality["max"] == 0 and cardinality["min"] == 0:
-                necessity = "absent"
+            necessity, child = self._assess_cardinality(necessity, child, cardinality)
         child["necessity"] = necessity
         child["status"] = snak
         return child
@@ -149,41 +154,36 @@ class Shape:
 
     def _strip_schema_comments(self):
         """
-        Strips the comments out of the schema and converts parts we don't care about because they're enforced by
-        wikidata
+        Strips the comments out of the schema and converts parts we don't care about
+        because they're enforced by wikidata
         """
         schema_text: str = ""
         # remove comments from the schema
         for line in self._json_text["schemaText"].splitlines():
-            head, sep, tail = line.partition('# ')
+            head, _, _ = line.partition('# ')
             if line.startswith("#"):
                 head = ""
             schema_text += f"\n{head.strip()}"
-        # replace data types with the any value designator(.).  Since wikidata won't allow items to enter the
-        # incorrect type (eg. trying to enter a LITERAL value where an IRI (i.e. a wikidata item) is required
-        # will fail to save
+        # replace data types with the any value designator(.).  Since wikidata won't allow items
+        # to enter the incorrect type (eg. trying to enter a LITERAL value where an IRI (i.e. a
+        # wikidata item) is required will fail to save
         schema_text = schema_text.replace("IRI", ".")
         schema_text = schema_text.replace("LITERAL", ".")
         schema_text = schema_text.replace("xsd:dateTime", ".")
         schema_text = schema_text.replace("xsd:string", ".")
         schema_text = schema_text.replace("xsd:decimal", ".")
-        schema_text = schema_text.replace("[ <http://commons.wikimedia.org/wiki/Special:FilePath>~ ]", ".")
+        schema_text = schema_text.replace(
+            "[ <http://commons.wikimedia.org/wiki/Special:FilePath>~ ]", ".")
         schema_text = schema_text.replace("[ <http://www.wikidata.org/entity>~ ]", ".")
         schema_text = os.linesep.join([s for s in schema_text.splitlines() if s])
         self._schema_text = schema_text
-
-    def _get_schema_name(self):
-        """
-        Gets the name of the entityschema in the preferred language
-        """
-        if self._language in self._json_text["labels"]:
-            self.name = self._json_text["labels"][self._language]
 
     def _get_default_shape(self):
         """
         Gets the default shape to start at in the schema
         """
-        default_shape_name: Optional[Match[str]] = re.search(r"start.*=.*@<.*>", self._schema_text, re.IGNORECASE)
+        default_shape_name: Optional[Match[str]] = re.search(r"start.*=.*@<.*>",
+                                                             self._schema_text, re.IGNORECASE)
         if default_shape_name is not None:
             default_name: str = default_shape_name.group(0).replace(" ", "")
             self._default_shape_name = default_name[8:-1]
@@ -198,7 +198,8 @@ class Shape:
         :param shape_name: The name of the shape to be extracted
         :return: The extracted shape
         """
-        search: Union[Pattern[Union[str, Any]], Pattern] = re.compile(r"<%s>.*\n?([{\[])" % shape_name)
+        search: Union[Pattern[Union[str, Any]], Pattern] = re.compile(r"<%s>.*\n?([{\[])"
+                                                                      % shape_name)
         parentheses = self._find_parentheses(self._schema_text)
         try:
             shape_index: int = re.search(search, self._schema_text).start()
@@ -247,18 +248,11 @@ class Shape:
         reference_child: dict = {}
         for key in sub_shape:
             if "status" in sub_shape[key]:
-                if "shape" in sub_shape[key]:
-                    sub_shape_json = self._translate_sub_shape(sub_shape[key])
-                    if sub_shape[key]["status"] == "statement":
-                        schema_json["required"] = sub_shape_json
-                if sub_shape[key]["status"] == "statement" and \
-                        "allowed" in sub_shape[key]:
-                    value = sub_shape[key]["allowed"]
-                    schema_json["required"] = {key: value}
-                if sub_shape[key]["status"] == "qualifier":
-                    qualifier_child[key] = sub_shape[key]
-                if sub_shape[key]["status"] == "reference":
-                    reference_child[key] = sub_shape[key]
+                qualifier_child, reference_child, schema_json = \
+                    self._assess_sub_shape_key(sub_shape[key],
+                                               schema_json,
+                                               qualifier_child,
+                                               reference_child)
         schema_json["qualifiers"] = qualifier_child
         schema_json["references"] = reference_child
         return schema_json
@@ -306,7 +300,35 @@ class Shape:
         """
         if any(prop in schema_line for prop in ["wdt:", "ps:", "p:"]):
             return "statement"
-        elif "pq:" in schema_line:
+        if "pq:" in schema_line:
             return "qualifier"
-        else:
-            return "reference"
+        return "reference"
+
+    @staticmethod
+    def _assess_cardinality(necessity: str, child: dict, cardinality: dict):
+        if "cardinality" in child:
+            if "min" in child["cardinality"] and "min" in cardinality:
+                cardinality["min"] = cardinality["min"] + child["cardinality"]["min"]
+            if "max" in child["cardinality"] and "max" in cardinality:
+                cardinality["max"] = cardinality["max"] + child["cardinality"]["max"]
+        child["cardinality"] = cardinality
+        if "min" in cardinality:
+            necessity = "required"
+        if "max" in cardinality and "min" in cardinality \
+                and cardinality["max"] == 0 and cardinality["min"] == 0:
+            necessity = "absent"
+        return necessity, child
+
+    def _assess_sub_shape_key(self, key, schema_json, qualifier_child, reference_child):
+        if "shape" in key:
+            sub_shape_json = self._translate_sub_shape(key)
+            if key["status"] == "statement":
+                schema_json["required"] = sub_shape_json
+        if key["status"] == "statement" and "allowed" in key:
+            value = key["allowed"]
+            schema_json["required"] = {key: value}
+        if key["status"] == "qualifier":
+            qualifier_child[key] = key
+        if key["status"] == "reference":
+            reference_child[key] = key
+        return qualifier_child, reference_child, schema_json
