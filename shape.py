@@ -268,6 +268,7 @@ class Shape:
         """
         cardinality: dict = {}
         if "?" in schema_line:
+            cardinality["min"] = 0
             cardinality["max"] = 1
         elif "*" in schema_line:
             cardinality = {}
@@ -313,7 +314,7 @@ class Shape:
             if "max" in child["cardinality"] and "max" in cardinality:
                 cardinality["max"] = cardinality["max"] + child["cardinality"]["max"]
         child["cardinality"] = cardinality
-        if "min" in cardinality:
+        if "min" in cardinality and cardinality["min"] > 0:
             necessity = "required"
         if "max" in cardinality and "min" in cardinality \
                 and cardinality["max"] == 0 and cardinality["min"] == 0:
