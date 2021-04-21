@@ -1,5 +1,5 @@
 """
-Testcases for the api
+Tests to test wikidata entityschemas against wikidata items
 """
 import unittest
 
@@ -8,10 +8,9 @@ import requests
 from app import app
 
 
-class WikidataTestCase(unittest.TestCase):
+class MyTestCase(unittest.TestCase):
     """
-    These are tests which test a given entityschema (from Wikidata)
-    against a given item.
+    Testcases to test wikidata entityschemas against wikidata items
     """
     def setUp(self) -> None:
         app.config["TESTING"] = True
@@ -106,8 +105,8 @@ class WikidataTestCase(unittest.TestCase):
                             "P27", "P106", "P569", "P4690"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertTrue(response.json["properties"][prop]["response"] in
-                                ["correct", "present"])
+                self.assertTrue(response.json["properties"][prop]["response"]
+                                in ["correct", "present"])
 
     def test_entityschema_e297(self):
         """
@@ -143,7 +142,25 @@ class WikidataTestCase(unittest.TestCase):
             with self.subTest(prop=prop):
                 self.assertTrue(response.json["properties"][prop]["response"] in
                                 ["too many statements"])
-                self.assertTrue(response.json["properties"][prop]["necessity"] in ["absent"])
+                self.assertTrue(response.json["properties"][prop]["necessity"] in
+                                ["absent"])
+
+    def test_entityschema_e300(self):
+        """
+        Tests item with optional qualifiers is evaluated correctly
+
+        This test tests entityschema E300 (auto racing series) against entity Q92821370
+        (2022 FIA Formula One Season).  The schema has a P3450 (Sports league of competition)
+        with optional qualifiers.  The test checks that the response is correct for this item
+        """
+        response = self.app.get('/api?entityschema=E300&entity=Q92821370&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+        properties: list = ["P3450"]
+        for prop in properties:
+            with self.subTest(prop=prop):
+                self.assertTrue(response.json["properties"][prop]["response"] in ["present"])
+                self.assertTrue(response.json["properties"][prop]["necessity"] in ["required"])
 
     def test_entityschema_e126(self):
         """
