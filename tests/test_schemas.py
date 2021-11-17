@@ -5,7 +5,7 @@ import unittest
 
 import requests
 
-from app import app
+from src.app import app
 
 
 class MyTestCase(unittest.TestCase):
