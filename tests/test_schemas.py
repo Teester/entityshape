@@ -235,6 +235,18 @@ class MyTestCase(unittest.TestCase):
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
+    def test_entityschema_e228(self):
+        """
+        Tests that schemas importing other schemas don't fail
+
+        This test tests entityschema E275 against entity Q85396849 (Drumlohan).
+        The schema imports another schema and references it. The test makes sure
+        that this still returns a 200 response
+        """
+        response = self.app.get('/api?entityschema=E228&entity=Q85396849&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+
 
 if __name__ == '__main__':
     unittest.main()

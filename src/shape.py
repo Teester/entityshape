@@ -4,6 +4,9 @@ Converts entityschema to json suitable for comparing with a wikidata item
 import os
 import re
 from typing import Optional, Match, Union, Pattern, Any
+
+from jsonasobj import as_json
+from pyshexc.parser_impl.generate_shexj import parse
 import requests
 
 
@@ -47,6 +50,12 @@ class Shape:
         if self._language in self._json_text["labels"]:
             return self._json_text["labels"][self._language]
         return ""
+
+    def get_json_ld(self):
+        """
+        Gets the JSON_LD form of the Schema
+        """
+        return as_json(parse(self._json_text["schemaText"]))
 
     def _translate_schema(self):
         """
