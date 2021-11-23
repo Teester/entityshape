@@ -1,6 +1,7 @@
 """
 Converts entityschema to json suitable for comparing with a wikidata item
 """
+import json
 import os
 import re
 from typing import Optional, Match, Union, Pattern, Any
@@ -55,7 +56,7 @@ class Shape:
         """
         Gets the JSON_LD form of the Schema
         """
-        return as_json(parse(self._json_text["schemaText"]))
+        return json.loads(as_json(parse(self._json_text["schemaText"])))
 
     def _translate_schema(self):
         """
