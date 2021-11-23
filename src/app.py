@@ -33,9 +33,9 @@ def data():
         valid: dict = {}
         shape: Shape = Shape(schema, language)
         comparison: CompareShape = CompareShape(shape.get_schema_shape(), entity, language)
-        # print(comparison.get_properties())
+        # print(comparison.get_statements())
         comparison: CompareJSONLD = CompareJSONLD(shape.get_json_ld(), entity, language)
-        # print(comparison.get_properties())
+        # print(comparison.get_statements())
         payload: dict = {'schema': schema,
                          'name': shape.get_name(),
                          'validity': valid,
@@ -54,6 +54,7 @@ def data():
                          'error': "An error has occurred while translating this schema"}
         status = 500
         print(f"Schema: {schema} - {type(exception).__name__}: {exception}")
+    # print(json.dumps(payload))
     response: Response = app.response_class(response=json.dumps(payload),
                                             status=status,
                                             mimetype="application/json")

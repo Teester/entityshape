@@ -98,4 +98,34 @@ class CompareJSONLD:
         return {}
 
     def _compare_statements(self):
-        return {}
+        start_shape = self._get_start_shape()
+        statements: dict = {}
+        claims: dict = self._entities["entities"][self._entity]['claims']
+        expressions = start_shape["expression"]["expressions"]
+        for claim in claims:
+            statement_results: list = []
+            property_statement_results: list = []
+            for statement in claims[claim]:
+                child: dict = {"property": claim}
+                allowed = "not in schema"
+                prop = statement["mainsnak"]["property"]
+                for expression in expressions:
+                    if expression["predicate"].endswith(prop):
+                        allowed = "present"
+                if allowed != "":
+                    child["response"] = allowed
+                statements[statement["id"]] = child
+                statement_results.append(allowed)
+                if allowed.startswith("missing"):
+                    allowed = "incorrect"
+                property_statement_results.append(allowed)
+            self._property_responses[claim] = property_statement_results
+        return statements
+
+    def _get_start_shape(self):
+        start = self._shape['start']
+        start_shape = {}
+        for shape in self._shape['shapes']:
+            if shape["id"] == start:
+                start_shape = shape
+        return start_shape
