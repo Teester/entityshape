@@ -54,7 +54,7 @@ def data():
                          'error': "An error has occurred while translating this schema"}
         status = 500
         print(f"Schema: {schema} - {type(exception).__name__}: {exception}")
-    # print(json.dumps(payload))
+    print(json.dumps(payload))
     response: Response = app.response_class(response=json.dumps(payload),
                                             status=status,
                                             mimetype="application/json")
