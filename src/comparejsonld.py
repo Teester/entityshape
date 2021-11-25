@@ -122,6 +122,10 @@ class CompareJSONLD:
             child: dict = {"name": self._names[prop], "necessity": "absent"}
             if prop in self._shape and "necessity" in self._shape[prop]:
                 child["necessity"] = self._shape[prop]["necessity"]
+            response = self._process_cardinalities_for_properties(self._entities["entities"]
+                                                                  [self._entity]
+                                                                  ["claims"]
+                                                                  [prop])
             # if prop in self._entities["entities"][self._entity]['claims']:
             #    response = self._process_claim(prop, child)
             if response != "":
@@ -189,7 +193,7 @@ class CompareJSONLD:
         """
         if expression["predicate"].endswith(statement["property"]):
             allowed = "present"
-        self._process_cardinalities(expression)
+        self._process_cardinalities(expression, statement)
         if "valueExpr" in expression:
             if expression["valueExpr"]["type"] == "NodeConstraint":
                 child, allowed = self._process_node_constraint(statement, expression["valueExpr"], child, allowed)
@@ -230,22 +234,29 @@ class CompareJSONLD:
         pass
 
     @staticmethod
-    def _process_cardinalities(expression):
+    def _process_cardinalities(expression, claim):
         """
        Processes cardinalities in expressions
 
        :return:
        """
-        cardinality: str = ""
+        cardinality: str = "correct"
         min_cardinality: bool = False
         max_cardinality: bool = False
-
-        if "max" in expression:
+        if "max" in expression and expression['max'] < len(claim):
             max_cardinality = False
-        if "min" in expression:
+        if "min" in expression and expression['min'] > len(claim):
             min_cardinality = False
         if min_cardinality and not max_cardinality:
             cardinality = "too many statements"
         if max_cardinality and not min_cardinality:
             cardinality = "not enough correct statements"
+        return cardinality
+
+    def _process_cardinalities_for_properties(self, claims):
+        cardinality = ""
+        start_shape: dict = self._get_start_shape()
+        for expression in start_shape["expression"]["expressions"]:
+            if expression["predicate"].endswith(claims[0]["mainsnak"]["property"]):
+                cardinality = self._process_cardinalities(expression, claims)
         return cardinality
