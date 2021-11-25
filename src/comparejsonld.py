@@ -1,3 +1,6 @@
+"""
+A class to compare a wikidata entity with a JSON-LD representation of an entityschema
+"""
 import json
 import re
 from typing import Tuple, Any
@@ -7,6 +10,9 @@ from requests import Response
 
 
 class CompareJSONLD:
+    """
+    A class to compare a wikidata entity with a JSON-LD representation of an entityschema
+    """
     def __init__(self, shape: dict, entity: str, language: str):
         """
         Compares json from a wikidata entity with the json-ld representation of an entityschema
@@ -17,8 +23,6 @@ class CompareJSONLD:
         """
         self._entity: str = entity
         self._shape: dict = shape
-        # print(self._shape)
-        print(json.dumps(self._shape, indent=2, sort_keys=True))
 
         self._property_responses: dict = {}
 
@@ -114,11 +118,7 @@ class CompareJSONLD:
         :return:
         """
         properties: dict = {}
-        print(self._entities["entities"][self._entity]["claims"]["P21"])
-        for prop in self._entities["entities"][self._entity]["claims"]:
-            print(f"{prop}: {len(prop)}")
         for prop in self._props:
-            response: str = "missing"
             child: dict = {"name": self._names[prop], "necessity": "absent"}
             if prop in self._shape and "necessity" in self._shape[prop]:
                 child["necessity"] = self._shape[prop]["necessity"]
@@ -126,12 +126,9 @@ class CompareJSONLD:
                                                                   [self._entity]
                                                                   ["claims"]
                                                                   [prop])
-            # if prop in self._entities["entities"][self._entity]['claims']:
-            #    response = self._process_claim(prop, child)
             if response != "":
                 child["response"] = response
             properties[prop] = child
-        print(properties)
         return properties
 
     def _compare_statements(self):
@@ -176,7 +173,10 @@ class CompareJSONLD:
         allowed: str = "not in schema"
         for expression in expressions:
             if expression["type"] == "TripleConstraint":
-                child, allowed = self._process_triple_constraint(statement, expression, child, allowed)
+                child, allowed = self._process_triple_constraint(statement,
+                                                                 expression,
+                                                                 child,
+                                                                 allowed)
         if allowed != "":
             child["response"] = allowed
         return child, allowed
@@ -194,9 +194,12 @@ class CompareJSONLD:
         if expression["predicate"].endswith(statement["property"]):
             allowed = "present"
         self._process_cardinalities(expression, statement)
-        if "valueExpr" in expression:
-            if expression["valueExpr"]["type"] == "NodeConstraint":
-                child, allowed = self._process_node_constraint(statement, expression["valueExpr"], child, allowed)
+        if "valueExpr" in expression and \
+                expression["valueExpr"]["type"] == "NodeConstraint":
+            child, allowed = self._process_node_constraint(statement,
+                                                           expression["valueExpr"],
+                                                           child,
+                                                           allowed)
         return child, allowed
 
     @staticmethod
@@ -210,11 +213,11 @@ class CompareJSONLD:
         :param allowed: Whether the statement is allowed by the expression or not currently
         :return: child and allowed
         """
-        if statement["snaktype"] == "value":
-            if statement["datavalue"]["type"] == "wikibase-entityid":
-                obj = f'http://www.wikidata.org/entity/{statement["datavalue"]["value"]["id"]}'
-                if obj in expression["values"]:
-                    allowed = "correct"
+        if statement["snaktype"] == "value" and \
+                statement["datavalue"]["type"] == "wikibase-entityid":
+            obj = f'http://www.wikidata.org/entity/{statement["datavalue"]["value"]["id"]}'
+            if obj in expression["values"]:
+                allowed = "correct"
         return child, allowed
 
     def _process_one_of(self):

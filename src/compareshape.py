@@ -101,7 +101,6 @@ class CompareShape:
             if response != "":
                 child["response"] = response
             properties[claim] = child
-        print(properties)
         return properties
 
     def _process_claim(self, claim, child):

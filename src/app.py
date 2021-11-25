@@ -10,7 +10,6 @@ from flask_cors import CORS
 from requests import Response
 
 from comparejsonld import CompareJSONLD
-from compareshape import CompareShape
 from shape import Shape
 
 app = Flask(__name__)
@@ -32,10 +31,7 @@ def data():
         # valid: dict = check_against_pyshexy(schema, entity)
         valid: dict = {}
         shape: Shape = Shape(schema, language)
-        comparison: CompareShape = CompareShape(shape.get_schema_shape(), entity, language)
-        # print(comparison.get_statements())
         comparison: CompareJSONLD = CompareJSONLD(shape.get_json_ld(), entity, language)
-        # print(comparison.get_statements())
         payload: dict = {'schema': schema,
                          'name': shape.get_name(),
                          'validity': valid,
@@ -54,7 +50,6 @@ def data():
                          'error': "An error has occurred while translating this schema"}
         status = 500
         print(f"Schema: {schema} - {type(exception).__name__}: {exception}")
-    print(json.dumps(payload))
     response: Response = app.response_class(response=json.dumps(payload),
                                             status=status,
                                             mimetype="application/json")
