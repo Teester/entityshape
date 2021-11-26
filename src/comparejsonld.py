@@ -120,13 +120,17 @@ class CompareJSONLD:
         claims = self._entities["entities"][self._entity]["claims"]
         properties: dict = {}
         response = "missing"
-        allowed = "not allowed"
         for prop in self._props:
             child: dict = {"name": self._names[prop],
                            "necessity": self._calculate_necessity(prop, self._get_start_shape())}
             if prop in claims:
                 cardinality = self._process_cardinalities_for_properties(claims[prop],
                                                                          self._get_start_shape())
+                allowed = "allowed"
+                for expression in self._get_start_shape()["expression"]["expressions"]:
+                    allowed = self._process_triple_constraint_for_property(claims[prop][0]["mainsnak"],
+                                                                           expression,
+                                                                           allowed)
                 if cardinality == "correct":
                     response = allowed
                 else:
@@ -144,6 +148,9 @@ class CompareJSONLD:
             property_statement_results: list = []
             for statement in claims[claim]:
                 child: dict = {"property": claim}
+                necessity = self._calculate_necessity(statement["mainsnak"]["property"], start_shape)
+                if necessity != "absent":
+                    child["necessity"] = necessity
                 child, allowed = self._process_shape(statement["mainsnak"], start_shape, child)
                 statements[statement["id"]] = child
                 if allowed.startswith("missing"):
@@ -197,7 +204,7 @@ class CompareJSONLD:
         :return: child and allowed
         """
         if expression["predicate"].endswith(statement["property"]):
-            allowed = "present"
+            allowed = "allowed"
         self._process_cardinalities(expression, statement)
         if "valueExpr" in expression and \
                 expression["valueExpr"]["type"] == "NodeConstraint":
@@ -206,6 +213,23 @@ class CompareJSONLD:
                                                            child,
                                                            allowed)
         return child, allowed
+
+    def _process_triple_constraint_for_property(self, statement, expression, allowed):
+        """
+        Processes triple constraint expression types in the shape
+
+        :param statement: The entity's statement to be assessed
+        :param expression: The expression from the shape to be assessed against
+        :param allowed: Whether the statement is allowed by the expression or not currently
+        :return: child and allowed
+        """
+        if expression["predicate"].endswith(statement["property"]):
+            allowed = "present"
+        if "valueExpr" in expression and expression["valueExpr"]["type"] == "NodeConstraint":
+            allowed = self._process_node_constraint_for_property(statement,
+                                                                 expression["valueExpr"],
+                                                                 allowed)
+        return allowed
 
     @staticmethod
     def _process_node_constraint(statement, expression, child, allowed):
@@ -224,6 +248,23 @@ class CompareJSONLD:
             if obj in expression["values"]:
                 allowed = "correct"
         return child, allowed
+
+    @staticmethod
+    def _process_node_constraint_for_property(statement, expression, allowed):
+        """
+        Processes node constraint expression types in the shape
+
+        :param statement: The entity's statement to be assessed
+        :param expression: The expression from the shape to be assessed against
+        :param allowed: Whether the statement is allowed by the expression or not currently
+        :return: child and allowed
+        """
+        if statement["snaktype"] == "value" and \
+                statement["datavalue"]["type"] == "wikibase-entityid":
+            obj = f'http://www.wikidata.org/entity/{statement["datavalue"]["value"]["id"]}'
+            if obj in expression["values"]:
+                allowed = "correct"
+        return allowed
 
     def _process_one_of(self):
         """
