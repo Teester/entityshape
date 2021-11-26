@@ -117,15 +117,20 @@ class CompareJSONLD:
 
         :return:
         """
+        claims = self._entities["entities"][self._entity]["claims"]
         properties: dict = {}
+        response = "missing"
+        allowed = "not allowed"
         for prop in self._props:
-            child: dict = {"name": self._names[prop], "necessity": "absent"}
-            if prop in self._shape and "necessity" in self._shape[prop]:
-                child["necessity"] = self._shape[prop]["necessity"]
-            response = self._process_cardinalities_for_properties(self._entities["entities"]
-                                                                  [self._entity]
-                                                                  ["claims"]
-                                                                  [prop])
+            child: dict = {"name": self._names[prop],
+                           "necessity": self._calculate_necessity(prop, self._get_start_shape())}
+            if prop in claims:
+                cardinality = self._process_cardinalities_for_properties(claims[prop],
+                                                                         self._get_start_shape())
+                if cardinality == "correct":
+                    response = allowed
+                else:
+                    response = cardinality
             if response != "":
                 child["response"] = response
             properties[prop] = child
@@ -256,10 +261,28 @@ class CompareJSONLD:
             cardinality = "not enough correct statements"
         return cardinality
 
-    def _process_cardinalities_for_properties(self, claims):
+    def _process_cardinalities_for_properties(self, claims, shape):
         cardinality = ""
-        start_shape: dict = self._get_start_shape()
-        for expression in start_shape["expression"]["expressions"]:
+        for expression in shape["expression"]["expressions"]:
             if expression["predicate"].endswith(claims[0]["mainsnak"]["property"]):
                 cardinality = self._process_cardinalities(expression, claims)
         return cardinality
+
+    @staticmethod
+    def _calculate_necessity(prop, shape):
+        """
+        Check if a property is required, optional or absent from a shape
+
+        :param prop: the property to be checked
+        :param shape: the shape to check against
+        :return: necessity
+        """
+        necessity = "absent"
+        for expression in shape["expression"]["expressions"]:
+            if expression["predicate"].endswith(prop):
+                necessity = "optional"
+                if "min" in expression and expression["min"] > 0:
+                    necessity = "required"
+                if "min" not in expression and "max" not in expression:
+                    necessity = "required"
+        return necessity
