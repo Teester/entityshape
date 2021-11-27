@@ -185,21 +185,19 @@ class CompareJSONLD:
         allowed: str = "not in schema"
         for expression in expressions:
             if expression["type"] == "TripleConstraint":
-                child, allowed = self._process_triple_constraint(statement,
-                                                                 expression,
-                                                                 child,
-                                                                 allowed)
+                allowed = self._process_triple_constraint(statement,
+                                                          expression,
+                                                          allowed)
         if allowed != "":
             child["response"] = allowed
         return child, allowed
 
-    def _process_triple_constraint(self, statement, expression, child, allowed):
+    def _process_triple_constraint(self, statement, expression, allowed):
         """
         Processes triple constraint expression types in the shape
 
         :param statement: The entity's statement to be assessed
         :param expression: The expression from the shape to be assessed against
-        :param child: The current response from the assessment
         :param allowed: Whether the statement is allowed by the expression or not currently
         :return: child and allowed
         """
@@ -208,11 +206,10 @@ class CompareJSONLD:
         self._process_cardinalities(expression, statement)
         if "valueExpr" in expression and \
                 expression["valueExpr"]["type"] == "NodeConstraint":
-            child, allowed = self._process_node_constraint(statement,
-                                                           expression["valueExpr"],
-                                                           child,
-                                                           allowed)
-        return child, allowed
+            allowed = self._process_node_constraint(statement,
+                                                    expression["valueExpr"],
+                                                    allowed)
+        return allowed
 
     def _process_triple_constraint_for_property(self, statement, expression, allowed):
         """
@@ -225,32 +222,15 @@ class CompareJSONLD:
         """
         if expression["predicate"].endswith(statement["property"]):
             allowed = "present"
-        if "valueExpr" in expression and expression["valueExpr"]["type"] == "NodeConstraint":
-            allowed = self._process_node_constraint_for_property(statement,
-                                                                 expression["valueExpr"],
-                                                                 allowed)
+        if "valueExpr" in expression and \
+                expression["valueExpr"]["type"] == "NodeConstraint":
+            allowed = self._process_node_constraint(statement,
+                                                    expression["valueExpr"],
+                                                    allowed)
         return allowed
 
     @staticmethod
-    def _process_node_constraint(statement, expression, child, allowed):
-        """
-        Processes node constraint expression types in the shape
-
-        :param statement: The entity's statement to be assessed
-        :param expression: The expression from the shape to be assessed against
-        :param child: The current response from the assessment
-        :param allowed: Whether the statement is allowed by the expression or not currently
-        :return: child and allowed
-        """
-        if statement["snaktype"] == "value" and \
-                statement["datavalue"]["type"] == "wikibase-entityid":
-            obj = f'http://www.wikidata.org/entity/{statement["datavalue"]["value"]["id"]}'
-            if obj in expression["values"]:
-                allowed = "correct"
-        return child, allowed
-
-    @staticmethod
-    def _process_node_constraint_for_property(statement, expression, allowed):
+    def _process_node_constraint(statement, expression, allowed):
         """
         Processes node constraint expression types in the shape
 
