@@ -19,6 +19,8 @@ jobs:
     - name: Set up Python 3.10
       uses: actions/setup-python@v2
       with:
+        # Disabling shallow clone is recommended for improving relevancy of reporting
+        fetch-depth: 0
         python-version: "3.10"
     - name: Install dependencies
       run: |
@@ -36,3 +38,8 @@ jobs:
         coverage run --omit=*/site-packages/* -m unittest discover
         coverage xml
         coverage report
+    - name: SonarCloud Scan
+      uses: sonarsource/sonarcloud-github-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
