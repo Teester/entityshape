@@ -30,8 +30,6 @@ class CompareJSONLD:
         if self._entities["entities"][self._entity]:
             self._get_props(self._entities["entities"][self._entity]['claims'])
         self._get_property_names(language)
-        self._compare_statements()
-        self._compare_properties()
 
     def get_properties(self) -> dict:
         """
@@ -119,7 +117,6 @@ class CompareJSONLD:
         """
         claims = self._entities["entities"][self._entity]["claims"]
         properties: dict = {}
-        response = "missing"
         for prop in self._props:
             child: dict = {"name": self._names[prop],
                            "necessity": self._calculate_necessity(prop, self._get_start_shape())}
@@ -135,6 +132,8 @@ class CompareJSONLD:
                     response = allowed
                 else:
                     response = cardinality
+            else:
+                response = "missing"
             if response != "":
                 child["response"] = response
             properties[prop] = child
@@ -165,12 +164,15 @@ class CompareJSONLD:
 
         :return: the start shape
         """
-        start = self._shape['start']
-        start_shape = {}
-        for shape in self._shape['shapes']:
-            if shape["id"] == start:
-                start_shape = shape
-        return start_shape
+        if "start" in self._shape:
+            start = self._shape['start']
+            start_shape = {}
+            for shape in self._shape['shapes']:
+                if shape["id"] == start:
+                    start_shape = shape
+            return start_shape
+        else:
+            return ""
 
     def _process_shape(self, statement, shape, child) -> Tuple[Any, str]:
         """
@@ -204,11 +206,13 @@ class CompareJSONLD:
         if expression["predicate"].endswith(statement["property"]):
             allowed = "allowed"
         self._process_cardinalities(expression, statement)
-        if "valueExpr" in expression and \
-                expression["valueExpr"]["type"] == "NodeConstraint":
-            allowed = self._process_node_constraint(statement,
-                                                    expression["valueExpr"],
-                                                    allowed)
+        try:
+            if expression["valueExpr"]["type"] == "NodeConstraint":
+                allowed = self._process_node_constraint(statement,
+                                                        expression["valueExpr"],
+                                                        allowed)
+        except (KeyError, TypeError):
+            pass
         return allowed
 
     def _process_triple_constraint_for_property(self, statement, expression, allowed):
@@ -222,11 +226,13 @@ class CompareJSONLD:
         """
         if expression["predicate"].endswith(statement["property"]):
             allowed = "present"
-        if "valueExpr" in expression and \
-                expression["valueExpr"]["type"] == "NodeConstraint":
-            allowed = self._process_node_constraint(statement,
-                                                    expression["valueExpr"],
-                                                    allowed)
+        try:
+            if expression["valueExpr"]["type"] == "NodeConstraint":
+                allowed = self._process_node_constraint(statement,
+                                                        expression["valueExpr"],
+                                                        allowed)
+        except (KeyError, TypeError):
+            pass
         return allowed
 
     @staticmethod
@@ -242,7 +248,7 @@ class CompareJSONLD:
         if statement["snaktype"] == "value" and \
                 statement["datavalue"]["type"] == "wikibase-entityid":
             obj = f'http://www.wikidata.org/entity/{statement["datavalue"]["value"]["id"]}'
-            if obj in expression["values"]:
+            if "values" in expression and obj in expression["values"]:
                 allowed = "correct"
         return allowed
 
