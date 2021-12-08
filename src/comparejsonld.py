@@ -172,7 +172,7 @@ class CompareJSONLD:
                     start_shape = shape
             return start_shape
         else:
-            return ""
+            return {}
 
     def _process_shape(self, statement, shape, child) -> Tuple[Any, str]:
         """
@@ -203,7 +203,8 @@ class CompareJSONLD:
         :param allowed: Whether the statement is allowed by the expression or not currently
         :return: child and allowed
         """
-        if expression["predicate"].endswith(statement["property"]):
+        if "predicate" in expression and \
+                expression["predicate"].endswith(statement["property"]):
             allowed = "allowed"
         self._process_cardinalities(expression, statement)
         try:
@@ -224,7 +225,8 @@ class CompareJSONLD:
         :param allowed: Whether the statement is allowed by the expression or not currently
         :return: child and allowed
         """
-        if expression["predicate"].endswith(statement["property"]):
+        if "predicate" in expression and \
+                expression["predicate"].endswith(statement["property"]):
             allowed = "present"
         try:
             if expression["valueExpr"]["type"] == "NodeConstraint":
@@ -291,7 +293,8 @@ class CompareJSONLD:
     def _process_cardinalities_for_properties(self, claims, shape):
         cardinality = ""
         for expression in shape["expression"]["expressions"]:
-            if expression["predicate"].endswith(claims[0]["mainsnak"]["property"]):
+            if "predicate" in expression and \
+                    expression["predicate"].endswith(claims[0]["mainsnak"]["property"]):
                 cardinality = self._process_cardinalities(expression, claims)
         return cardinality
 
@@ -306,7 +309,8 @@ class CompareJSONLD:
         """
         necessity = "absent"
         for expression in shape["expression"]["expressions"]:
-            if expression["predicate"].endswith(prop):
+            if "predicate" in expression and \
+                    expression["predicate"].endswith(prop):
                 necessity = "optional"
                 if "min" in expression and expression["min"] > 0:
                     necessity = "required"
