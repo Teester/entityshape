@@ -206,7 +206,7 @@ class CompareJSONLD:
         if "predicate" in expression and \
                 expression["predicate"].endswith(statement["property"]):
             allowed = "allowed"
-        self._process_cardinalities(expression, statement)
+        self._process_cardinalities(expression, {"mainsnak":statement})
         try:
             if expression["valueExpr"]["type"] == "NodeConstraint":
                 allowed = self._process_node_constraint(statement,
@@ -278,8 +278,8 @@ class CompareJSONLD:
        :return:
        """
         cardinality: str = "correct"
-        min_cardinality: bool = False
-        max_cardinality: bool = False
+        min_cardinality: bool = True
+        max_cardinality: bool = True
         if "max" in expression and expression['max'] < len(claim):
             max_cardinality = False
         if "min" in expression and expression['min'] > len(claim):
@@ -316,4 +316,7 @@ class CompareJSONLD:
                     necessity = "required"
                 if "min" not in expression and "max" not in expression:
                     necessity = "required"
+                if "min" in expression and "max" in expression and \
+                        expression["min"] == 0 and expression["max"] == 0:
+                    necessity = "absent"
         return necessity
