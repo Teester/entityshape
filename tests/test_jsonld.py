@@ -61,6 +61,15 @@ class JSONLDCase(unittest.TestCase):
         self.assertEqual(self.comparison.get_properties()["P21"],
                          self.comparison2.get_properties()["P21"])
 
+    def test_compare_property_p734(self) -> None:
+        """
+        tests to see that the P734 property is assessed the same in both cases
+
+        :return: Nothing
+        """
+        self.assertEqual(self.comparison.get_properties()["P734"],
+                         self.comparison2.get_properties()["P734"])
+
     def test_compare_properties(self) -> None:
         """
         tests to see that the properties are assessed the same in both cases

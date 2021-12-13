@@ -280,7 +280,7 @@ class CompareJSONLD:
         cardinality: str = "correct"
         min_cardinality: bool = True
         max_cardinality: bool = True
-        if "max" in expression and expression['max'] < len(claim):
+        if "max" in expression and expression["max"] >= 0 and expression['max'] < len(claim):
             max_cardinality = False
         if "min" in expression and expression['min'] > len(claim):
             min_cardinality = False
