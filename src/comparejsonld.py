@@ -82,11 +82,12 @@ class CompareJSONLD:
             if claim not in self._props:
                 self._props.append(claim)
         # Get properties from the shape
-        for shape in self._shape["shapes"]:
-            properties = re.findall(r'P\d+', json.dumps(shape))
-            for prop in properties:
-                if prop not in self._props and prop.startswith("P") and len(prop) > 1:
-                    self._props.append(prop)
+        if "shapes" in self._shape:
+            for shape in self._shape["shapes"]:
+                properties = re.findall(r'P\d+', json.dumps(shape))
+                for prop in properties:
+                    if prop not in self._props and prop.startswith("P") and len(prop) > 1:
+                        self._props.append(prop)
 
     def _get_property_names(self, language: str):
         """
@@ -117,45 +118,48 @@ class CompareJSONLD:
         """
         claims = self._entities["entities"][self._entity]["claims"]
         properties: dict = {}
-        for prop in self._props:
-            child: dict = {"name": self._names[prop],
-                           "necessity": self._calculate_necessity(prop, self._get_start_shape())}
-            if prop in claims:
-                cardinality = self._process_cardinalities_for_properties(claims[prop],
-                                                                         self._get_start_shape())
-                allowed = "allowed"
-                for expression in self._get_start_shape()["expression"]["expressions"]:
-                    allowed = self._process_triple_constraint_for_property(claims[prop][0]["mainsnak"],
-                                                                           expression,
-                                                                           allowed)
-                if cardinality == "correct":
-                    response = allowed
+        start_shape = self._get_start_shape()
+        if start_shape:
+            for prop in self._props:
+                child: dict = {"name": self._names[prop],
+                               "necessity": self._calculate_necessity(prop, start_shape)}
+                if prop in claims:
+                    cardinality = self._process_cardinalities_for_properties(claims[prop],
+                                                                             start_shape)
+                    allowed = "allowed"
+                    for expression in self._get_start_shape()["expression"]["expressions"]:
+                        allowed = self._process_triple_constraint_for_property(claims[prop][0]["mainsnak"],
+                                                                               expression,
+                                                                               allowed)
+                    if cardinality == "correct":
+                        response = allowed
+                    else:
+                        response = cardinality
                 else:
-                    response = cardinality
-            else:
-                response = "missing"
-            if response != "":
-                child["response"] = response
-            properties[prop] = child
+                    response = "missing"
+                if response != "":
+                    child["response"] = response
+                properties[prop] = child
         return properties
 
     def _compare_statements(self):
         start_shape = self._get_start_shape()
         statements: dict = {}
         claims: dict = self._entities["entities"][self._entity]['claims']
-        for claim in claims:
-            property_statement_results: list = []
-            for statement in claims[claim]:
-                child: dict = {"property": claim}
-                necessity = self._calculate_necessity(statement["mainsnak"]["property"], start_shape)
-                if necessity != "absent":
-                    child["necessity"] = necessity
-                child, allowed = self._process_shape(statement["mainsnak"], start_shape, child)
-                statements[statement["id"]] = child
-                if allowed.startswith("missing"):
-                    allowed = "incorrect"
-                property_statement_results.append(allowed)
-            self._property_responses[claim] = property_statement_results
+        if start_shape:
+            for claim in claims:
+                property_statement_results: list = []
+                for statement in claims[claim]:
+                    child: dict = {"property": claim}
+                    necessity = self._calculate_necessity(statement["mainsnak"]["property"], start_shape)
+                    if necessity != "absent":
+                        child["necessity"] = necessity
+                    child, allowed = self._process_shape(statement["mainsnak"], start_shape, child)
+                    statements[statement["id"]] = child
+                    if allowed.startswith("missing"):
+                        allowed = "incorrect"
+                    property_statement_results.append(allowed)
+                self._property_responses[claim] = property_statement_results
         return statements
 
     def _get_start_shape(self):

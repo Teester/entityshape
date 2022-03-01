@@ -60,7 +60,7 @@ class MyTestCase(unittest.TestCase):
         entityschemas that we have problems with.  This may be due to a bug in entityshape
         or a problem with the entityschema itself.
         """
-        skips: list = ["E59", "E70", "E93", "E123", "E165",
+        skips: list = ["E59", "E70", "E93", "E123", "E1234", "E12345", "E165",
                        "E245", "E246", "E247", "E251", "E999"]
         url: str = "https://www.wikidata.org/w/api.php?" \
                    "action=query&format=json&list=allpages&aplimit=max&apnamespace=640"
@@ -73,7 +73,7 @@ class MyTestCase(unittest.TestCase):
             with self.subTest(schema=schema):
                 if schema in skips:
                     self.skipTest(f"Schema {schema} not supported")
-                print(schema)
+                # print(schema)
                 response = self.app.get(f'/api?entityschema={schema}&entity=Q100532807&language=en',
                                         follow_redirects=True)
                 self.assertEqual(response.status_code, 200)
@@ -244,6 +244,18 @@ class MyTestCase(unittest.TestCase):
         that this still returns a 200 response
         """
         response = self.app.get('/api?entityschema=E228&entity=Q85396849&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+
+    def test_entityschema_e182(self):
+        """
+        Tests that schemas importing other schemas don't fail
+
+        This test tests entityschema E275 against entity Q85396849 (Drumlohan).
+        The schema imports another schema and references it. The test makes sure
+        that this still returns a 200 response
+        """
+        response = self.app.get('/api?entityschema=E182&entity=Q85396849&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
