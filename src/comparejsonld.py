@@ -127,9 +127,14 @@ class CompareJSONLD:
                     cardinality = self._process_cardinalities_for_properties(claims[prop],
                                                                              start_shape)
                     allowed = "allowed"
-                    for expression in self._get_start_shape()["expression"]["expressions"]:
+                    if "expressions" in start_shape["expression"]:
+                        for expression in start_shape["expression"]["expressions"]:
+                            allowed = self._process_triple_constraint_for_property(claims[prop][0]["mainsnak"],
+                                                                                   expression,
+                                                                                   allowed)
+                    else:
                         allowed = self._process_triple_constraint_for_property(claims[prop][0]["mainsnak"],
-                                                                               expression,
+                                                                               start_shape["expression"],
                                                                                allowed)
                     if cardinality == "correct":
                         response = allowed
@@ -187,16 +192,24 @@ class CompareJSONLD:
         :param child: The current response from the assessment
         :return: child and allowed
         """
-        expressions: dict = shape["expression"]["expressions"]
+        try:
+            expressions: dict = shape["expression"]
+        except KeyError:
+            expressions = {}
         allowed: str = "not in schema"
-        for expression in expressions:
-            if expression["type"] == "TripleConstraint":
-                allowed = self._process_triple_constraint(statement,
-                                                          expression,
-                                                          allowed)
-        if allowed != "":
-            child["response"] = allowed
+        if "expressions" in expressions:
+            for expression in expressions["expressions"]:
+                allowed = self._process_expression(statement, expression, allowed)
+            if allowed != "":
+                child["response"] = allowed
         return child, allowed
+
+    def _process_expression(self, statement, expression, allowed):
+        if expression["type"] == "TripleConstraint":
+            allowed = self._process_triple_constraint(statement,
+                                                      expression,
+                                                      allowed)
+        return allowed
 
     def _process_triple_constraint(self, statement, expression, allowed):
         """
@@ -210,7 +223,7 @@ class CompareJSONLD:
         if "predicate" in expression and \
                 expression["predicate"].endswith(statement["property"]):
             allowed = "allowed"
-        self._process_cardinalities(expression, {"mainsnak":statement})
+        self._process_cardinalities(expression, {"mainsnak": statement})
         try:
             if expression["valueExpr"]["type"] == "NodeConstraint":
                 allowed = self._process_node_constraint(statement,
@@ -296,10 +309,11 @@ class CompareJSONLD:
 
     def _process_cardinalities_for_properties(self, claims, shape):
         cardinality = ""
-        for expression in shape["expression"]["expressions"]:
-            if "predicate" in expression and \
-                    expression["predicate"].endswith(claims[0]["mainsnak"]["property"]):
-                cardinality = self._process_cardinalities(expression, claims)
+        if "expressions" in shape["expression"]:
+            for expression in shape["expression"]["expressions"]:
+                if "predicate" in expression and \
+                        expression["predicate"].endswith(claims[0]["mainsnak"]["property"]):
+                    cardinality = self._process_cardinalities(expression, claims)
         return cardinality
 
     @staticmethod
@@ -312,15 +326,16 @@ class CompareJSONLD:
         :return: necessity
         """
         necessity = "absent"
-        for expression in shape["expression"]["expressions"]:
-            if "predicate" in expression and \
-                    expression["predicate"].endswith(prop):
-                necessity = "optional"
-                if "min" in expression and expression["min"] > 0:
-                    necessity = "required"
-                if "min" not in expression and "max" not in expression:
-                    necessity = "required"
-                if "min" in expression and "max" in expression and \
-                        expression["min"] == 0 and expression["max"] == 0:
-                    necessity = "absent"
+        if "expressions" in shape["expression"]:
+            for expression in shape["expression"]["expressions"]:
+                if "predicate" in expression and \
+                        expression["predicate"].endswith(prop):
+                    necessity = "optional"
+                    if "min" in expression and expression["min"] > 0:
+                        necessity = "required"
+                    if "min" not in expression and "max" not in expression:
+                        necessity = "required"
+                    if "min" in expression and "max" in expression and \
+                            expression["min"] == 0 and expression["max"] == 0:
+                        necessity = "absent"
         return necessity
