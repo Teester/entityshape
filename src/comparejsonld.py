@@ -73,7 +73,7 @@ class CompareJSONLD:
                         if shape["predicate"].endswith(item):
                             print("!")
                             x = 1
-
+                    x = 1
         return general
 
     def _get_entity_json(self) -> None:
