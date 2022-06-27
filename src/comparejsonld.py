@@ -57,10 +57,8 @@ class CompareJSONLD:
         """
         general: dict = {}
         properties: list = ["lexicalCategory", "language"]
-        # print(json.dumps(self._shape, indent=2))
         for item in properties:
             for shape in self._shape["shapes"]:
-                print(shape)
                 x = 0
                 while x == 0:
                     if shape["type"] == "Shape" and "expression" in shape:
