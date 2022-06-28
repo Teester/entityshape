@@ -247,6 +247,17 @@ class MyTestCase(unittest.TestCase):
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
+    def test_entityschema_e121(self):
+        """
+        Tests that blank schemas doesn't fail
+
+        This test tests entityschema E121 against entity Q85396849 (Drumlohan).
+        The schema is blank. The test makes sure that this still returns a 200 response
+        """
+        response = self.app.get('/api?entityschema=E121&entity=Q85396849&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+
 
 if __name__ == '__main__':
     unittest.main()

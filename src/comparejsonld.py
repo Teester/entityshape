@@ -58,20 +58,21 @@ class CompareJSONLD:
         general: dict = {}
         properties: list = ["lexicalCategory", "language"]
         for item in properties:
-            for shape in self._shape["shapes"]:
-                x = 0
-                while x == 0:
-                    if shape["type"] == "Shape" and "expression" in shape:
-                        shape = shape["expression"]
-                    elif shape["type"] == "ShapeAnd" or shape["type"] == "ShapeOr":
-                        for expr in shape["shapeExprs"]:
-                            shape = expr
-                    elif shape["type"] == "TripleConstraint":
-                        print(shape["predicate"])
-                        if shape["predicate"].endswith(item):
-                            print("!")
-                            x = 1
-                    x = 1
+            if "shapes" in self._shape:
+                for shape in self._shape["shapes"]:
+                    x = 0
+                    while x == 0:
+                        if shape["type"] == "Shape" and "expression" in shape:
+                            shape = shape["expression"]
+                        elif shape["type"] == "ShapeAnd" or shape["type"] == "ShapeOr":
+                            for expr in shape["shapeExprs"]:
+                                shape = expr
+                        elif shape["type"] == "TripleConstraint":
+                            print(shape["predicate"])
+                            if shape["predicate"].endswith(item):
+                                print("!")
+                                x = 1
+                        x = 1
         return general
 
     def _get_entity_json(self) -> None:
@@ -94,11 +95,12 @@ class CompareJSONLD:
             if claim not in self._props:
                 self._props.append(claim)
         # Get properties from the shape
-        for shape in self._shape["shapes"]:
-            properties = re.findall(r'P\d+', json.dumps(shape))
-            for prop in properties:
-                if prop not in self._props and prop.startswith("P") and len(prop) > 1:
-                    self._props.append(prop)
+        if "shapes" in self._shape:
+            for shape in self._shape["shapes"]:
+                properties = re.findall(r'P\d+', json.dumps(shape))
+                for prop in properties:
+                    if prop not in self._props and prop.startswith("P") and len(prop) > 1:
+                        self._props.append(prop)
 
     def _get_property_names(self, language: str) -> None:
         """
@@ -132,9 +134,10 @@ class CompareJSONLD:
         if "start" in self._shape:
             start: dict = self._shape['start']
             start_shape = {}
-            for shape in self._shape['shapes']:
-                if shape["id"] == start:
-                    start_shape = shape
+            if "shape" in self._shape:
+                for shape in self._shape['shapes']:
+                    if shape["id"] == start:
+                        start_shape = shape
             return start_shape
         else:
             return {}
@@ -172,16 +175,19 @@ class CompareProperties:
         """
         claims: dict = self._entities["entities"][self._entity]["claims"]
         properties: dict = {}
+        if self._start_shape is None:
+            return properties
         for prop in self._props:
             child: dict = {"name": self._names[prop],
                            "necessity": Utilities.calculate_necessity(prop, self._start_shape)}
             if prop in claims:
                 cardinality: str = self._process_cardinalities(claims[prop], self._start_shape)
                 allowed: str = "allowed"
-                for expression in self._start_shape["expression"]["expressions"]:
-                    allowed = self._process_triple_constraint(claims[prop][0]["mainsnak"],
-                                                              expression,
-                                                              allowed)
+                if "expression" in self._start_shape:
+                    for expression in self._start_shape["expression"]["expressions"]:
+                        allowed = self._process_triple_constraint(claims[prop][0]["mainsnak"],
+                                                                  expression,
+                                                                  allowed)
                 if cardinality == "correct":
                     response = allowed
                 else:
@@ -196,10 +202,11 @@ class CompareProperties:
     @staticmethod
     def _process_cardinalities(claims: dict, shape: dict):
         cardinality = ""
-        for expression in shape["expression"]["expressions"]:
-            if "predicate" in expression and \
-                    expression["predicate"].endswith(claims[0]["mainsnak"]["property"]):
-                cardinality = Utilities.process_cardinalities(expression, claims)
+        if "expression" in shape:
+            for expression in shape["expression"]["expressions"]:
+                if "predicate" in expression and \
+                        expression["predicate"].endswith(claims[0]["mainsnak"]["property"]):
+                    cardinality = Utilities.process_cardinalities(expression, claims)
         return cardinality
 
     @staticmethod
@@ -264,7 +271,9 @@ class CompareStatements:
         :param child: The current response from the assessment
         :return: child and allowed
         """
-        expressions: dict = shape["expression"]["expressions"]
+        expressions: dict = {}
+        if "expression" in shape:
+            expressions = shape["expression"]["expressions"]
         allowed: str = "not in schema"
         for expression in expressions:
             if expression["type"] == "TripleConstraint":
@@ -311,16 +320,17 @@ class Utilities:
         :return: necessity
         """
         necessity: str = "absent"
-        for expression in shape["expression"]["expressions"]:
-            if "predicate" in expression and \
-                    expression["predicate"].endswith(prop):
-                necessity = "optional"
-                if ("min" in expression and expression["min"] > 0) or \
-                        ("min" not in expression and "max" not in expression):
-                    necessity = "required"
-                if "min" in expression and "max" in expression and \
-                        expression["min"] == 0 and expression["max"] == 0:
-                    necessity = "absent"
+        if "expression" in shape:
+            for expression in shape["expression"]["expressions"]:
+                if "predicate" in expression and \
+                        expression["predicate"].endswith(prop):
+                    necessity = "optional"
+                    if ("min" in expression and expression["min"] > 0) or \
+                            ("min" not in expression and "max" not in expression):
+                        necessity = "required"
+                    if "min" in expression and "max" in expression and \
+                            expression["min"] == 0 and expression["max"] == 0:
+                        necessity = "absent"
         return necessity
 
     @staticmethod
