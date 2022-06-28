@@ -56,7 +56,10 @@ class Shape:
         """
         Gets the JSON_LD form of the Schema
         """
-        return json.loads(as_json(parse(self._json_text["schemaText"])))
+        try:
+            return json.loads(as_json(parse(self._json_text["schemaText"])))
+        except (KeyError, IndexError, AttributeError, ValueError):
+            return {}
 
     def _translate_schema(self):
         """
