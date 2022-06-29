@@ -59,20 +59,10 @@ class CompareJSONLD:
         properties: list = ["lexicalCategory", "language"]
         for item in properties:
             if "shapes" in self._shape:
-                for shape in self._shape["shapes"]:
-                    x = 0
-                    while x == 0:
-                        if shape["type"] == "Shape" and "expression" in shape:
-                            shape = shape["expression"]
-                        elif shape["type"] == "ShapeAnd" or shape["type"] == "ShapeOr":
-                            for expr in shape["shapeExprs"]:
-                                shape = expr
-                        elif shape["type"] == "TripleConstraint":
-                            print(shape["predicate"])
-                            if shape["predicate"].endswith(item):
-                                print("!")
-                                x = 1
-                        x = 1
+                general[item] = "incorrect"
+                data_string = json.dumps(self._shape["shapes"])
+                if item in data_string and item in self._entities["entities"][self._entity]:
+                    general[item] = "correct"
         return general
 
     def _get_entity_json(self) -> None:
@@ -134,7 +124,7 @@ class CompareJSONLD:
         if "start" in self._shape:
             start: dict = self._shape['start']
             start_shape = {}
-            if "shape" in self._shape:
+            if "shapes" in self._shape:
                 for shape in self._shape['shapes']:
                     if shape["id"] == start:
                         start_shape = shape
