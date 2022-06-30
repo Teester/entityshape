@@ -37,7 +37,7 @@ jobs:
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
     - name: Test with unittest
       run: |
-        python -m unittest discover
+        python -m unittest discover -s ./tests
         #coverage run --omit=*/site-packages/* -m unittest discover
         #coverage xml
         #coverage report
