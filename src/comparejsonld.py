@@ -59,10 +59,13 @@ class CompareJSONLD:
         properties: list = ["lexicalCategory", "language"]
         for item in properties:
             if "shapes" in self._shape:
-                general[item] = "incorrect"
                 data_string = json.dumps(self._shape["shapes"])
                 if item in data_string and item in self._entities["entities"][self._entity]:
-                    general[item] = "correct"
+                    general[item] = "incorrect"
+                    expected: list = self._shape["shapes"]
+                    actual: str = self._entities["entities"][self._entity][item]
+                    if actual in expected:
+                        general[item] = "correct"
         return general
 
     def _get_entity_json(self) -> None:
