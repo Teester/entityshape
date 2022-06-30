@@ -29,12 +29,14 @@ class Shape:
         self._schema_shapes: dict = {}
         self._language: str = language
         self._default_shape_name: str = ""
-
         self._get_schema_json(schema)
         self._strip_schema_comments()
         if self._schema_text != "":
-            self._get_default_shape()
-            self._translate_schema()
+            try:
+                self._get_default_shape()
+                self._translate_schema()
+            except (re.error, IndexError, KeyError):
+                print("error")
 
     def get_schema_shape(self):
         """
@@ -58,7 +60,7 @@ class Shape:
         """
         try:
             return json.loads(as_json(parse(self._json_text["schemaText"])))
-        except (KeyError, IndexError, AttributeError, ValueError):
+        except (KeyError, IndexError, AttributeError, ValueError) as error:
             return {}
 
     def _translate_schema(self):

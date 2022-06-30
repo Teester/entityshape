@@ -176,7 +176,7 @@ class CompareProperties:
             if prop in claims:
                 cardinality: str = self._process_cardinalities(claims[prop], self._start_shape)
                 allowed: str = "allowed"
-                if "expression" in self._start_shape:
+                if "expression" in self._start_shape and "expressions" in self._start_shape["expression"]:
                     for expression in self._start_shape["expression"]["expressions"]:
                         allowed = self._process_triple_constraint(claims[prop][0]["mainsnak"],
                                                                   expression,
@@ -195,7 +195,7 @@ class CompareProperties:
     @staticmethod
     def _process_cardinalities(claims: dict, shape: dict):
         cardinality = ""
-        if "expression" in shape:
+        if "expression" in shape and "expressions" in shape["expression"]:
             for expression in shape["expression"]["expressions"]:
                 if "predicate" in expression and \
                         expression["predicate"].endswith(claims[0]["mainsnak"]["property"]):
@@ -265,7 +265,7 @@ class CompareStatements:
         :return: child and allowed
         """
         expressions: dict = {}
-        if "expression" in shape:
+        if "expression" in shape and "expressions" in shape["expression"]:
             expressions = shape["expression"]["expressions"]
         allowed: str = "not in schema"
         for expression in expressions:
@@ -313,7 +313,7 @@ class Utilities:
         :return: necessity
         """
         necessity: str = "absent"
-        if "expression" in shape:
+        if "expression" in shape and "expressions" in shape["expression"]:
             for expression in shape["expression"]["expressions"]:
                 if "predicate" in expression and \
                         expression["predicate"].endswith(prop):

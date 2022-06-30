@@ -258,6 +258,50 @@ class MyTestCase(unittest.TestCase):
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
+    def test_entityschema_e135(self):
+        """
+        Tests that blank schemas doesn't fail
+
+        This test tests entityschema E135 against entity Q85396849 (Drumlohan).
+        The schema is blank. The test makes sure that this still returns a 200 response
+        """
+        response = self.app.get('/api?entityschema=E135&entity=Q85396849&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+
+    def test_entityschema_e239(self):
+        """
+        Tests that blank schemas doesn't fail
+
+        This test tests entityschema E135 against entity Q85396849 (Drumlohan).
+        The schema is blank. The test makes sure that this still returns a 200 response
+        """
+        response = self.app.get('/api?entityschema=E239&entity=Q85396849&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+
+    def test_entityschema_e340(self):
+        """
+        Tests that blank schemas doesn't fail
+
+        This test tests entityschema E135 against entity Q85396849 (Drumlohan).
+        The schema is blank. The test makes sure that this still returns a 200 response
+        """
+        response = self.app.get('/api?entityschema=E340&entity=Q85396849&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+
+    def test_entityschema_e349(self):
+        """
+        Tests that blank schemas doesn't fail
+
+        This test tests entityschema E135 against entity Q85396849 (Drumlohan).
+        The schema is blank. The test makes sure that this still returns a 200 response
+        """
+        response = self.app.get('/api?entityschema=E349&entity=Q85396849&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+
 
 if __name__ == '__main__':
     unittest.main()
