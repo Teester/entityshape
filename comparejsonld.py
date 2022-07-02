@@ -336,9 +336,15 @@ class Utilities:
         cardinality: str = "correct"
         min_cardinality: bool = True
         max_cardinality: bool = True
-        if "max" in expression and expression["max"] >= 0 and expression['max'] < len(claim):
+        max_card: int = 1
+        min_card: int = 1
+        if "max" in expression:
+            max_card = expression["max"]
+        if "min" in expression:
+            min_card = expression["max"]
+        if max_card < len(claim) or max_card == -1:
             max_cardinality = False
-        if "min" in expression and expression['min'] > len(claim):
+        if min_card > len(claim) or min_card == -1:
             min_cardinality = False
         if min_cardinality and not max_cardinality:
             cardinality = "too many statements"
