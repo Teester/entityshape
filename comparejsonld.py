@@ -194,15 +194,22 @@ class CompareProperties:
 
     @staticmethod
     def _process_cardinalities(claims: dict, shape: dict):
-        cardinality = ""
+        """
+        Processes cardinalities of claims to see if the number of claims on a property match
+        the requirements of the shape
+
+        :param claims: The claims to be checked
+        :param shape: The shape to be checked against
+        :return: the status of the cardinality
+        """
+        cardinality: str = ""
         if "expression" in shape and "expressions" in shape["expression"]:
             for expression in shape["expression"]["expressions"]:
-                predicate = "http://www.wikidata.org/prop/direct/" + claims[0]["mainsnak"]["property"]
+                predicate: str = f'http://www.wikidata.org/prop/direct/{claims[0]["mainsnak"]["property"]}'
                 if "predicate" in expression and predicate in expression["predicate"]:
                     cardinality = Utilities.process_cardinalities(expression, claims)
-                    if "extra" in shape:
-                        if predicate in shape["extra"] and cardinality == "too many statements":
-                            cardinality = "correct"
+                    if "extra" in shape and predicate in shape["extra"] and cardinality == "too many statements":
+                        cardinality = "correct"
         return cardinality
 
     @staticmethod
