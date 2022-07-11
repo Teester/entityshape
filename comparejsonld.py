@@ -352,7 +352,7 @@ class Utilities:
         if "max" in expression:
             max_card = expression["max"]
         if "min" in expression:
-            min_card = expression["max"]
+            min_card = expression["min"]
         if max_card < len(claim):
             max_cardinality = False
         if min_card > len(claim):
