@@ -60,8 +60,7 @@ class MyTestCase(unittest.TestCase):
         entityschemas that we have problems with.  This may be due to a bug in entityshape
         or a problem with the entityschema itself.
         """
-        skips: list = ["E59", "E70", "E93", "E123", "E165",
-                       "E245", "E246", "E247", "E251", "E999"]
+        skips: list = []
         url: str = "https://www.wikidata.org/w/api.php?" \
                    "action=query&format=json&list=allpages&aplimit=max&apnamespace=640"
         response = requests.get(url)
@@ -91,76 +90,28 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual({'name': 'occupation', 'necessity': 'required', 'response': 'missing'},
                          response.json["properties"]["P106"])
 
-    def test_entityschema_e236(self):
+    def test_entityschema_e3(self):
         """
-        Tests all properties of Q1728820 pass E236
+        Tests that shapes with [] are evaluated
 
-        This test tests entityschema E236 (Member of the Oireachtas) against entity
-        Q1728820 (Leo Varadkar).  All properties in the schema should pass
+        This test tests entityschema E3 against entity Q85396849 (Drumlohan).
+        The schema has a shape <wikimedia_projects> [ ].  The test makes sure
+        that the schema returns a 200 response, indicating that it evaluates []
         """
-        response = self.app.get('/api?entityschema=E236&entity=Q1728820&language=en',
+        response = self.app.get('/api?entityschema=E3&entity=Q85396849&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
-        properties: list = ["P102", "P18", "P31", "P734", "P735", "P39", "P21",
-                            "P27", "P106", "P569", "P4690"]
-        for prop in properties:
-            with self.subTest(prop=prop):
-                self.assertTrue(response.json["properties"][prop]["response"]
-                                in ["correct", "present"])
 
-    def test_entityschema_e297(self):
+    def test_entityschema_e121(self):
         """
-        Tests item with repeated properties works correctly
+        Tests that blank schemas doesn't fail
 
-        This test tests entityschema E297 (sailboat class) against entity
-        Q97179551 (J/92s).  The schema has multiple statements about the same property.
-        The test checks to ensure that the correct cardinality is calculated for
-        the relevant property
+        This test tests entityschema E121 against entity Q85396849 (Drumlohan).
+        The schema is blank. The test makes sure that this still returns a 200 response
         """
-        response = self.app.get('/api?entityschema=E297&entity=Q97179551&language=en',
+        response = self.app.get('/api?entityschema=E121&entity=Q85396849&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
-        properties: list = ["P2043", "P2067"]
-        for prop in properties:
-            with self.subTest(prop=prop):
-                self.assertTrue(response.json["properties"][prop]["response"] in
-                                ["correct", "present"])
-
-    def test_entityschema_e295(self):
-        """
-        Tests item with cardinality of 0 evaluates correctly
-
-        This test tests entityschema E295 (townland) against entity Q85396849 (Drumlohan).
-        The schema has a P361 (part of) with a cardinality of 0, meaning the item should
-        not contain any P361.  The test checks that the response is false for this item
-        """
-        response = self.app.get('/api?entityschema=E295&entity=Q85396849&language=en',
-                                follow_redirects=True)
-        self.assertEqual(200, response.status_code)
-        properties: list = ["P361"]
-        for prop in properties:
-            with self.subTest(prop=prop):
-                self.assertTrue(response.json["properties"][prop]["response"] in
-                                ["too many statements"])
-                self.assertTrue(response.json["properties"][prop]["necessity"] in
-                                ["absent"])
-
-    def test_entityschema_e300(self):
-        """
-        Tests item with optional qualifiers is evaluated correctly
-
-        This test tests entityschema E300 (auto racing series) against entity Q92821370
-        (2022 FIA Formula One Season).  The schema has a P3450 (Sports league of competition)
-        with optional qualifiers.  The test checks that the response is correct for this item
-        """
-        response = self.app.get('/api?entityschema=E300&entity=Q92821370&language=en',
-                                follow_redirects=True)
-        self.assertEqual(200, response.status_code)
-        properties: list = ["P3450"]
-        for prop in properties:
-            with self.subTest(prop=prop):
-                self.assertTrue(response.json["properties"][prop]["response"] in ["present"])
-                self.assertTrue(response.json["properties"][prop]["necessity"] in ["required"])
 
     def test_entityschema_e126(self):
         """
@@ -174,28 +125,14 @@ class MyTestCase(unittest.TestCase):
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
-    def test_entityschema_e278(self):
+    def test_entityschema_e135(self):
         """
-        Tests that {} containing non cardinalities arent evaluated as cardinalities
+        Tests that blank schemas doesn't fail
 
-        This test tests entityschema E278 against entity Q85396849 (Drumlohan).
-        The schema contains a line ps:P279 { wdt:P31 wd:Q67101749 }.  The test makes
-        sure that we get a 200 and that the contents of the {} aren't
-        evaluated as a cardinality
+        This test tests entityschema E135 against entity Q85396849 (Drumlohan).
+        The schema is blank. The test makes sure that this still returns a 200 response
         """
-        response = self.app.get('/api?entityschema=E278&entity=Q85396849&language=en',
-                                follow_redirects=True)
-        self.assertEqual(200, response.status_code)
-
-    def test_entityschema_e3(self):
-        """
-        Tests that shapes with [] are evaluated
-
-        This test tests entityschema E3 against entity Q85396849 (Drumlohan).
-        The schema has a shape <wikimedia_projects> [ ].  The test makes sure
-        that the schema returns a 200 response, indicating that it evaluates []
-        """
-        response = self.app.get('/api?entityschema=E3&entity=Q85396849&language=en',
+        response = self.app.get('/api?entityschema=E135&entity=Q85396849&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
@@ -223,18 +160,6 @@ class MyTestCase(unittest.TestCase):
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
-    def test_entityschema_e275(self):
-        """
-        Tests that schemas importing other schemas don't fail
-
-        This test tests entityschema E275 against entity Q85396849 (Drumlohan).
-        The schema imports another schema and references it. The test makes sure
-        that this still returns a 200 response
-        """
-        response = self.app.get('/api?entityschema=E275&entity=Q85396849&language=en',
-                                follow_redirects=True)
-        self.assertEqual(200, response.status_code)
-
     def test_entityschema_e228(self):
         """
         Tests that schemas importing other schemas don't fail
@@ -247,27 +172,22 @@ class MyTestCase(unittest.TestCase):
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
-    def test_entityschema_e121(self):
+    def test_entityschema_e236(self):
         """
-        Tests that blank schemas doesn't fail
+        Tests all properties of Q1728820 pass E236
 
-        This test tests entityschema E121 against entity Q85396849 (Drumlohan).
-        The schema is blank. The test makes sure that this still returns a 200 response
+        This test tests entityschema E236 (Member of the Oireachtas) against entity
+        Q1728820 (Leo Varadkar).  All properties in the schema should pass
         """
-        response = self.app.get('/api?entityschema=E121&entity=Q85396849&language=en',
+        response = self.app.get('/api?entityschema=E236&entity=Q1728820&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
-
-    def test_entityschema_e135(self):
-        """
-        Tests that blank schemas doesn't fail
-
-        This test tests entityschema E135 against entity Q85396849 (Drumlohan).
-        The schema is blank. The test makes sure that this still returns a 200 response
-        """
-        response = self.app.get('/api?entityschema=E135&entity=Q85396849&language=en',
-                                follow_redirects=True)
-        self.assertEqual(200, response.status_code)
+        properties: list = ["P102", "P18", "P31", "P734", "P735", "P39", "P21",
+                            "P27", "P106", "P569", "P4690"]
+        for prop in properties:
+            with self.subTest(prop=prop):
+                self.assertTrue(response.json["properties"][prop]["response"]
+                                in ["correct", "present"])
 
     def test_entityschema_e239(self):
         """
@@ -279,6 +199,96 @@ class MyTestCase(unittest.TestCase):
         response = self.app.get('/api?entityschema=E239&entity=Q85396849&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
+
+    def test_entityschema_e247(self):
+        """
+        Tests that blank schemas doesn't fail
+
+        This test tests entityschema E247 against entity Q85396849 (Drumlohan).
+        The schema is blank. The test makes sure that this still returns a 200 response
+        """
+        response = self.app.get('/api?entityschema=E247&entity=Q85396849&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+
+    def test_entityschema_e275(self):
+        """
+        Tests that schemas importing other schemas don't fail
+
+        This test tests entityschema E275 against entity Q85396849 (Drumlohan).
+        The schema imports another schema and references it. The test makes sure
+        that this still returns a 200 response
+        """
+        response = self.app.get('/api?entityschema=E275&entity=Q85396849&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+
+    def test_entityschema_e278(self):
+        """
+        Tests that {} containing non cardinalities arent evaluated as cardinalities
+
+        This test tests entityschema E278 against entity Q85396849 (Drumlohan).
+        The schema contains a line ps:P279 { wdt:P31 wd:Q67101749 }.  The test makes
+        sure that we get a 200 and that the contents of the {} aren't
+        evaluated as a cardinality
+        """
+        response = self.app.get('/api?entityschema=E278&entity=Q85396849&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+
+    def test_entityschema_e295(self):
+        """
+        Tests item with cardinality of 0 evaluates correctly
+
+        This test tests entityschema E295 (townland) against entity Q85396849 (Drumlohan).
+        The schema has a P361 (part of) with a cardinality of 0, meaning the item should
+        not contain any P361.  The test checks that the response is false for this item
+        """
+        response = self.app.get('/api?entityschema=E295&entity=Q85396849&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+        properties: list = ["P361"]
+        for prop in properties:
+            with self.subTest(prop=prop):
+                self.assertTrue(response.json["properties"][prop]["response"] in
+                                ["too many statements"])
+                self.assertTrue(response.json["properties"][prop]["necessity"] in
+                                ["absent"])
+
+    def test_entityschema_e297(self):
+        """
+        Tests item with repeated properties works correctly
+
+        This test tests entityschema E297 (sailboat class) against entity
+        Q97179551 (J/92s).  The schema has multiple statements about the same property.
+        The test checks to ensure that the correct cardinality is calculated for
+        the relevant property
+        """
+        response = self.app.get('/api?entityschema=E297&entity=Q97179551&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+        properties: list = ["P2043", "P2067"]
+        for prop in properties:
+            with self.subTest(prop=prop):
+                self.assertTrue(response.json["properties"][prop]["response"] in
+                                ["correct", "present"])
+
+    def test_entityschema_e300(self):
+        """
+        Tests item with optional qualifiers is evaluated correctly
+
+        This test tests entityschema E300 (auto racing series) against entity Q92821370
+        (2022 FIA Formula One Season).  The schema has a P3450 (Sports league of competition)
+        with optional qualifiers.  The test checks that the response is correct for this item
+        """
+        response = self.app.get('/api?entityschema=E300&entity=Q92821370&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+        properties: list = ["P3450"]
+        for prop in properties:
+            with self.subTest(prop=prop):
+                self.assertTrue(response.json["properties"][prop]["response"] in ["present"])
+                self.assertTrue(response.json["properties"][prop]["necessity"] in ["required"])
 
     def test_entityschema_e340(self):
         """
