@@ -213,6 +213,8 @@ class Shape:
         :param shape_name: The name of the shape to be extracted
         :return: The extracted shape
         """
+        if ">" in shape_name:
+            shape_name = shape_name[0:shape_name.index(">")]
         search: Union[Pattern[Union[str, Any]], Pattern] = re.compile(r"<%s>.*\n?([{\[])"
                                                                       % shape_name)
         parentheses = self._find_parentheses(self._schema_text)
