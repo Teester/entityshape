@@ -3,7 +3,8 @@ Converts entityschema to json suitable for comparing with a wikidata item
 """
 import os
 import re
-from typing import Optional, Match, Union, Pattern, Any
+from typing import Any, Match, Optional, Pattern, Union
+
 import requests
 
 
@@ -17,7 +18,7 @@ class Shape:
     :return name: the name of the entityschema
     :return shape: a json representation of the entityschema
     """
-    def __init__(self, schema: str, language: str):
+    def __init__(self, schema: str, language: str, domain: str):
         # self.name: str = ""
         self.schema_shape: dict = {}
 
@@ -26,8 +27,8 @@ class Shape:
         self._language: str = language
         self._default_shape_name: str = ""
 
-        self._get_schema_json(schema)
-        self._strip_schema_comments()
+        self._get_schema_json(schema, domain)
+        self._strip_schema_comments(domain)
         if self._schema_text != "":
             self._get_default_shape()
             self._translate_schema()
@@ -142,17 +143,17 @@ class Shape:
                 shape_json[wikidata_property] = {"extra": "allowed"}
         return shape_json
 
-    def _get_schema_json(self, schema):
+    def _get_schema_json(self, schema, domain):
         """
         Downloads the schema from wikidata
 
         :param schema: the entityschema to be downloaded
         """
-        url: str = f"https://www.wikidata.org/wiki/EntitySchema:{schema}?action=raw"
+        url: str = f"https://{domain}/wiki/EntitySchema:{schema}?action=raw"
         response = requests.get(url)
         self._json_text: dict = response.json()
 
-    def _strip_schema_comments(self):
+    def _strip_schema_comments(self, domain):
         """
         Strips the comments out of the schema and converts parts we don't care about
         because they're enforced by wikidata
@@ -174,7 +175,7 @@ class Shape:
         schema_text = schema_text.replace("xsd:decimal", ".")
         schema_text = schema_text.replace(
             "[ <http://commons.wikimedia.org/wiki/Special:FilePath>~ ]", ".")
-        schema_text = schema_text.replace("[ <http://www.wikidata.org/entity>~ ]", ".")
+        schema_text = schema_text.replace(f"[ <http://{domain}/entity>~ ]", ".")
         schema_text = os.linesep.join([s for s in schema_text.splitlines() if s])
         self._schema_text = schema_text
 

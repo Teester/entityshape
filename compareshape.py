@@ -2,7 +2,6 @@
 Compares a json shape from shape.py with wikidata json
 """
 import requests
-
 from requests import Response
 
 
@@ -18,12 +17,12 @@ class CompareShape:
     :returns properties: a json representation of the conformity of each property in the entity
     :returns statements: a json representation of the conformity of each statement in the entity
     """
-    def __init__(self, shape: dict, entity: str, language: str):
+    def __init__(self, shape: dict, entity: str, language: str, domain: str):
         self._entity: str = entity
         self._shape: dict = shape
         self._property_responses: dict = {}
 
-        self._get_entity_json()
+        self._get_entity_json(domain)
         if self._entities["entities"][self._entity]:
             self._get_props(self._entities["entities"][self._entity]['claims'])
         self._get_property_names(language)
@@ -145,11 +144,11 @@ class CompareShape:
             cardinality = "not enough correct statements"
         return cardinality
 
-    def _get_entity_json(self):
+    def _get_entity_json(self, domain: str):
         """
         Downloads the entity from wikidata
         """
-        url: str = f"https://www.wikidata.org/wiki/Special:EntityData/{self._entity}.json"
+        url: str = f"https://{domain}/wiki/Special:EntityData/{self._entity}.json"
         response: Response = requests.get(url)
         self._entities = response.json()
 

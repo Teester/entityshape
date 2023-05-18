@@ -1,13 +1,14 @@
 """
 A Flask app to compare entityschema with wikidata items without using SPARQL
 """
+import os
 from json import JSONDecodeError
 
 import requests
-
-from flask import Flask, request, json
+from flask import Flask, json, request
 from flask_cors import CORS
 from requests import Response
+
 from compareshape import CompareShape
 from shape import Shape
 
@@ -23,14 +24,16 @@ def data():
     """
     schema: str = request.args.get("entityschema", type=str)
     entity: str = request.args.get("entity", type=str)
+    domain: str = request.args.get("domain", type=str)
+    # endpoint: str = request.args.get("endpoint", type=str)
     if "Lexeme" in entity:
         entity = entity[7:]
     language: str = request.args.get("language", type=str)
     try:
-        # valid: dict = check_against_pyshexy(schema, entity)
+        # valid: dict = check_against_pyshexy(schema, entity, endpoint)
         valid: dict = {}
-        shape: Shape = Shape(schema, language)
-        comparison: CompareShape = CompareShape(shape.get_schema_shape(), entity, language)
+        shape: Shape = Shape(schema, language, domain)
+        comparison: CompareShape = CompareShape(shape.get_schema_shape(), entity, language, domain)
         payload: dict = {'schema': schema,
                          'name': shape.get_name(),
                          'validity': valid,
@@ -55,7 +58,7 @@ def data():
     return response
 
 
-def check_against_pyshexy(entityschema: str, entity: str):
+def check_against_pyshexy(entityschema: str, entity: str, endpoint: str):
     """
     Checks the entityschema and item against the pyshexy api
     :param entityschema: the entityschema E number to be checked
@@ -63,7 +66,7 @@ def check_against_pyshexy(entityschema: str, entity: str):
     :return: the response from pyshexy
     """
     json_text: dict
-    url: str = f"https://tools.wmflabs.org/pyshexy/api?entityschema={entityschema}&entity={entity}"
+    url: str = f"https://tools.wmflabs.org/pyshexy/api?entityschema={entityschema}&entity={entity}&endpoint={endpoint}"
     try:
         response: Response = requests.get(url)
         json_text = response.json()
@@ -73,5 +76,5 @@ def check_against_pyshexy(entityschema: str, entity: str):
     return json_text
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run()
