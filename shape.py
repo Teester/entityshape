@@ -143,13 +143,13 @@ class Shape:
                 shape_json[wikidata_property] = {"extra": "allowed"}
         return shape_json
 
-    def _get_schema_json(self, schema, domain):
+    def _get_schema_json(self, schema, wiki_url):
         """
         Downloads the schema from wikidata
 
         :param schema: the entityschema to be downloaded
         """
-        url: str = f"https://{domain}/wiki/EntitySchema:{schema}?action=raw"
+        url: str = f"{wiki_url}/wiki/EntitySchema:{schema}?action=raw"
         response = requests.get(url)
         self._json_text: dict = response.json()
 
