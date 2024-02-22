@@ -26,7 +26,6 @@ if (entityschema_conditions.some(el => document.location.pathname.includes(el)))
 	entityschema_entity_html += '<input type="submit" id="entityschema-schemaSearchButton" class="searchButton" name="check" value="Check">';
 	entityschema_entity_html += '</span></span><input type="checkbox" id="entityschema-checkbox">';
 	entityschema_entity_html += '<label for="entityschema-checkbox"><small>Automatically check schema</small></label><span id="entityschemaResponse"></span></div>';
-	var entityschema_entityTitle = $(".wikibase-title-id" )[0].innerText;
 	$(".mw-body-subheader" ).append( entityschema_entity_html );
 	$("#entityschema-schemaSearchButton").click(function(){ entityschema_update() });
 	$("#entityschema-checkbox").click(function() { entityschema_checkbox() })
@@ -59,8 +58,8 @@ function entityschema_checkbox() {
 function entityschema_checkEntity(entity, entitySchema, language) {
 	$("#entityschemaResponse").contents().remove();
 	$(".entityschema-property").remove();
-	//let url = "https://entityshape.toolforge.org/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
-	let url = "http://127.0.0.1:5000/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
+	let url = "https://entityshape.toolforge.org/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
+	//let url = "http://127.0.0.1:5000/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
 	$.ajax({
 		type: "GET",
 		dataType: "json",
