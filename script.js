@@ -26,7 +26,7 @@ if (entityschema_conditions.some(el => document.location.pathname.includes(el)))
 	entityschema_entity_html += '<input type="submit" id="entityschema-schemaSearchButton" class="searchButton" name="check" value="Check">';
 	entityschema_entity_html += '</span></span><input type="checkbox" id="entityschema-checkbox">';
 	entityschema_entity_html += '<label for="entityschema-checkbox"><small>Automatically check schema</small></label><span id="entityschemaResponse"></span></div>';
-	$(".mw-body-subheader" ).append( entityschema_entity_html );
+	$(entityschema_entity_html).insertAfter("#siteSub");
 	$("#entityschema-schemaSearchButton").click(function(){ entityschema_update() });
 	$("#entityschema-checkbox").click(function() { entityschema_checkbox() })
 }
