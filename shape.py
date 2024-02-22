@@ -60,7 +60,7 @@ class Shape:
         """
         try:
             return json.loads(as_json(parse(self._json_text["schemaText"])))
-        except (KeyError, IndexError, AttributeError, ValueError) as error:
+        except (KeyError, IndexError, AttributeError, ValueError):
             return {}
 
     def _translate_schema(self):
