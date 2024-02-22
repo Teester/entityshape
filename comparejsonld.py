@@ -347,8 +347,8 @@ class Utilities:
         cardinality: str = "correct"
         min_cardinality: bool = True
         max_cardinality: bool = True
-        max_card: int = 1
-        min_card: int = 1
+        max_card: int = -1
+        min_card: int = -1
         if "max" in expression:
             max_card = expression["max"]
         if "min" in expression:
