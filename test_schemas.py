@@ -308,6 +308,17 @@ class MyTestCase(unittest.TestCase):
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
+    def test_entityschema_e351(self):
+        """
+        Tests that blank schemas doesn't fail
+
+        This test tests entityschema E351 (pharmaceutical product) against entity Q743656 (Daytona Road Course).
+        P31 should return as incorrect
+        """
+        response = self.app.get('/api?entityschema=E351&entity=Q743656&language=en',
+                                follow_redirects=True)
+        self.assertIn(response.json["properties"]["P31"]["response"],["incorrect"])
+
 
 if __name__ == '__main__':
     unittest.main()
