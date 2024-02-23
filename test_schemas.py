@@ -12,6 +12,7 @@ class MyTestCase(unittest.TestCase):
     """
     Testcases to test wikidata entityschemas against wikidata items
     """
+
     def setUp(self) -> None:
         app.config["TESTING"] = True
         self.app = app.test_client()
@@ -224,7 +225,7 @@ class MyTestCase(unittest.TestCase):
 
     def test_entityschema_e278(self):
         """
-        Tests that {} containing non cardinalities arent evaluated as cardinalities
+        Tests that {} containing non cardinalities aren't evaluated as cardinalities
 
         This test tests entityschema E278 against entity Q85396849 (Drumlohan).
         The schema contains a line ps:P279 { wdt:P31 wd:Q67101749 }.  The test makes
@@ -249,8 +250,8 @@ class MyTestCase(unittest.TestCase):
         properties: list = ["P361"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertIn(response.json["properties"][prop]["response"],["too many statements"])
-                self.assertIn(response.json["properties"][prop]["necessity"],["absent"])
+                self.assertIn(response.json["properties"][prop]["response"], ["too many statements"])
+                self.assertIn(response.json["properties"][prop]["necessity"], ["absent"])
 
     def test_entityschema_e297(self):
         """
@@ -267,7 +268,7 @@ class MyTestCase(unittest.TestCase):
         properties: list = ["P2043", "P2067"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertIn(response.json["properties"][prop]["response"] , ["correct", "present"])
+                self.assertIn(response.json["properties"][prop]["response"], ["correct", "present"])
 
     def test_entityschema_e300(self):
         """
@@ -317,7 +318,7 @@ class MyTestCase(unittest.TestCase):
         """
         response = self.app.get('/api?entityschema=E351&entity=Q743656&language=en',
                                 follow_redirects=True)
-        self.assertIn(response.json["properties"]["P31"]["response"],["incorrect"])
+        self.assertIn(response.json["properties"]["P31"]["response"], ["incorrect"])
 
     def test_entityschema_e351_2(self):
         """
@@ -328,8 +329,7 @@ class MyTestCase(unittest.TestCase):
         """
         response = self.app.get('/api?entityschema=E351&entity=Q29006691&language=en',
                                 follow_redirects=True)
-        self.assertIn(response.json["properties"]["P31"]["response"],["too many statements"])
-
+        self.assertIn(response.json["properties"]["P31"]["response"], ["too many statements"])
 
 
 if __name__ == '__main__':

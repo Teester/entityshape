@@ -180,7 +180,7 @@ class Shape:
                 head = ""
             schema_text += f"\n{head.strip()}"
         # replace data types with the any value designator(.).  Since wikidata won't allow items
-        # to enter the incorrect type (eg. trying to enter a LITERAL value where an IRI (i.e. a
+        # to enter the incorrect type (e.g. trying to enter a LITERAL value where an IRI (i.e. a
         # wikidata item) is required will fail to save
         schema_text = schema_text.replace("IRI", ".")
         schema_text = schema_text.replace("LITERAL", ".")
