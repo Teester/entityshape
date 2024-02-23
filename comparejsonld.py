@@ -306,14 +306,14 @@ class CompareStatements:
         if "predicate" in expression and \
                 expression["predicate"].endswith(statement_property):
             allowed = "allowed"
-        Utilities.process_cardinalities(expression, {"mainsnak": statement})
-        try:
-            if expression["valueExpr"]["type"] == "NodeConstraint":
-                allowed = Utilities.process_node_constraint(statement,
-                                                            expression["valueExpr"],
-                                                            allowed)
-        except (KeyError, TypeError):
-            pass
+            Utilities.process_cardinalities(expression, {"mainsnak": statement})
+            try:
+                if expression["valueExpr"]["type"] == "NodeConstraint":
+                    allowed = Utilities.process_node_constraint(statement,
+                                                                expression["valueExpr"],
+                                                                allowed)
+            except (KeyError, TypeError):
+                pass
         return allowed
 
 
