@@ -319,6 +319,18 @@ class MyTestCase(unittest.TestCase):
                                 follow_redirects=True)
         self.assertIn(response.json["properties"]["P31"]["response"],["incorrect"])
 
+    def test_entityschema_e351_2(self):
+        """
+        Tests that blank schemas doesn't fail
+
+        This test tests entityschema E351 (pharmaceutical product) against entity Q29006691 (Xgeva).
+        P31 should return as too many statements
+        """
+        response = self.app.get('/api?entityschema=E351&entity=Q29006691&language=en',
+                                follow_redirects=True)
+        self.assertIn(response.json["properties"]["P31"]["response"],["too many statements"])
+
+
 
 if __name__ == '__main__':
     unittest.main()
