@@ -227,13 +227,13 @@ class CompareProperties:
         if "predicate" in expression and \
                 expression["predicate"].endswith(statement_property):
             allowed = "present"
-        try:
-            if expression["valueExpr"]["type"] == "NodeConstraint":
-                allowed = Utilities.process_node_constraint(statement,
-                                                            expression["valueExpr"],
-                                                            allowed)
-        except (KeyError, TypeError):
-            pass
+            try:
+                if expression["valueExpr"]["type"] == "NodeConstraint":
+                    allowed = Utilities.process_node_constraint(statement,
+                                                                expression["valueExpr"],
+                                                                allowed)
+            except (KeyError, TypeError):
+                pass
         return allowed
 
 
