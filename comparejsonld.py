@@ -20,7 +20,7 @@ class CompareJSONLD:
 
         :param dict shape: The json-ld representation of the entityschema to be assessed against
         :param str entity: The Q number of the wikidata entity to be assessed
-        :param str language: The language to return the results in as a 2 letter code
+        :param str language: The language to return the results in as a 2-letter code
         """
         self._entity: str = entity
         self._shape: dict = shape
