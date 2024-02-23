@@ -384,6 +384,9 @@ class Utilities:
         if statement["snaktype"] == "value" and \
                 statement["datavalue"]["type"] == "wikibase-entityid":
             obj = f'http://www.wikidata.org/entity/{statement["datavalue"]["value"]["id"]}'
-            if "values" in expression and obj in expression["values"]:
-                allowed = "correct"
+            if "values" in expression:
+                if obj in expression["values"]:
+                    allowed = "correct"
+                else:
+                    allowed = "incorrect"
         return allowed
