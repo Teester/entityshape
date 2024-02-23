@@ -280,10 +280,14 @@ class CompareStatements:
             expressions = shape["expression"]["expressions"]
         allowed: str = "not in schema"
         for expression in expressions:
-            if expression["type"] == "TripleConstraint":
+            if expression["type"] == "TripleConstraint" and expression["predicate"].endswith(statement["property"]):
                 allowed = self._process_triple_constraint(statement,
                                                           expression,
                                                           allowed)
+                if "extra" in shape:
+                    for extra in shape["extra"]:
+                        if extra.endswith(statement["property"]) and allowed == "incorrect":
+                            allowed = "allowed"
         if allowed != "":
             child["response"] = allowed
         return child, allowed
