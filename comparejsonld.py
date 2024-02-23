@@ -205,10 +205,10 @@ class CompareProperties:
         cardinality: str = ""
         if "expression" in shape and "expressions" in shape["expression"]:
             for expression in shape["expression"]["expressions"]:
-                predicate: str = f'http://www.wikidata.org/prop/direct/{claims[0]["mainsnak"]["property"]}'
-                predicate2: str = f'http://www.wikidata.org/prop/{claims[0]["mainsnak"]["property"]}'
-                if "predicate" in expression and (expression["predicate"] in [predicate, predicate2]):
+                snak_property: str = claims[0]["mainsnak"]["property"]
+                if "predicate" in expression and (expression["predicate"].endswith(snak_property)):
                     cardinality = Utilities.process_cardinalities(expression, claims)
+                    predicate: str = f'http://www.wikidata.org/prop/direct/{snak_property}'
                     if "extra" in shape and predicate in shape["extra"] and cardinality == "too many statements":
                         cardinality = "correct"
         return cardinality
