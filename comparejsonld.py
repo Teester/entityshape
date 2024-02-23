@@ -171,26 +171,31 @@ class CompareProperties:
         if self._start_shape is None:
             return properties
         for prop in self._props:
+            utilities = Utilities()
             child: dict = {"name": self._names[prop],
-                           "necessity": Utilities.calculate_necessity(prop, self._start_shape)}
+                           "necessity": utilities.calculate_necessity(prop, self._start_shape)}
             if prop in claims:
-                cardinality: str = self._process_cardinalities(claims[prop], self._start_shape)
-                allowed: str = "allowed"
-                if "expression" in self._start_shape and "expressions" in self._start_shape["expression"]:
-                    for expression in self._start_shape["expression"]["expressions"]:
-                        allowed = self._process_triple_constraint(claims[prop][0]["mainsnak"],
-                                                                  expression,
-                                                                  allowed)
-                if cardinality == "correct":
-                    response = allowed
-                else:
-                    response = cardinality
+                response = self.check_claims_for_props(claims, prop)
             else:
                 response = "missing"
             if response != "":
                 child["response"] = response
             properties[prop] = child
         return properties
+
+    def check_claims_for_props(self, claims, prop):
+        cardinality: str = self._process_cardinalities(claims[prop], self._start_shape)
+        allowed: str = "allowed"
+        if "expression" in self._start_shape and "expressions" in self._start_shape["expression"]:
+            for expression in self._start_shape["expression"]["expressions"]:
+                allowed = self._process_triple_constraint(claims[prop][0]["mainsnak"],
+                                                          expression,
+                                                          allowed)
+        if cardinality == "correct":
+            response = allowed
+        else:
+            response = cardinality
+        return response
 
     @staticmethod
     def _process_cardinalities(claims: dict, shape: dict):
@@ -256,7 +261,8 @@ class CompareStatements:
             property_statement_results: list = []
             for statement in claims[claim]:
                 child: dict = {"property": claim}
-                necessity = Utilities.calculate_necessity(statement["mainsnak"]["property"], self.start_shape)
+                utilities = Utilities()
+                necessity = utilities.calculate_necessity(statement["mainsnak"]["property"], self.start_shape)
                 if necessity != "absent":
                     child["necessity"] = necessity
                 child, allowed = self._process_shape(statement["mainsnak"], self.start_shape, child)
@@ -280,17 +286,21 @@ class CompareStatements:
             expressions = shape["expression"]["expressions"]
         allowed: str = "not in schema"
         for expression in expressions:
-            if expression["type"] == "TripleConstraint" and expression["predicate"].endswith(statement["property"]):
-                allowed = self._process_triple_constraint(statement,
-                                                          expression,
-                                                          allowed)
-                if "extra" in shape:
-                    for extra in shape["extra"]:
-                        if extra.endswith(statement["property"]) and allowed == "incorrect":
-                            allowed = "allowed"
+            allowed = self.process_expressions(expression, shape, statement, allowed)
         if allowed != "":
             child["response"] = allowed
         return child, allowed
+
+    def process_expressions(self, expression, shape, statement, allowed):
+        if expression["type"] == "TripleConstraint" and expression["predicate"].endswith(statement["property"]):
+            allowed = self._process_triple_constraint(statement,
+                                                      expression,
+                                                      allowed)
+            if "extra" in shape:
+                for extra in shape["extra"]:
+                    if extra.endswith(statement["property"]) and allowed == "incorrect":
+                        allowed = "allowed"
+        return allowed
 
     @staticmethod
     def _process_triple_constraint(statement, expression, allowed):
@@ -318,8 +328,8 @@ class CompareStatements:
 
 
 class Utilities:
-    @staticmethod
-    def calculate_necessity(prop: str, shape: dict) -> str:
+
+    def calculate_necessity(self, prop: str, shape: dict) -> str:
         """
         Check if a property is required, optional or absent from a shape
 
@@ -330,15 +340,17 @@ class Utilities:
         necessity: str = "absent"
         if "expression" in shape and "expressions" in shape["expression"]:
             for expression in shape["expression"]["expressions"]:
-                if "predicate" in expression and \
-                        expression["predicate"].endswith(prop):
-                    necessity = "optional"
-                    if ("min" in expression and expression["min"] > 0) or \
-                            ("min" not in expression and "max" not in expression):
-                        necessity = "required"
-                    if "min" in expression and "max" in expression and \
-                            expression["min"] == 0 and expression["max"] == 0:
-                        necessity = "absent"
+                if "predicate" in expression and expression["predicate"].endswith(prop):
+                    necessity = self.required_or_absent(expression)
+        return necessity
+
+    @staticmethod
+    def required_or_absent(expression) -> str:
+        necessity = "optional"
+        if ("min" in expression and expression["min"] > 0) or ("min" not in expression and "max" not in expression):
+            necessity = "required"
+        if "min" in expression and "max" in expression and expression["min"] == 0 and expression["max"] == 0:
+            necessity = "absent"
         return necessity
 
     @staticmethod

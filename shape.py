@@ -125,7 +125,7 @@ class Shape:
             child["shape"] = sub_shape_name[1:-1]
         if re.search(r"\[.*]", line):
             required_parameters_string: str = re.search(r"\[.*]", line).group(0)
-            required_parameters_string = re.sub(r"wd:", "", required_parameters_string)
+            required_parameters_string = required_parameters_string.replace("wd:", "")
             if "^" in line:
                 child["not_allowed"] = required_parameters_string[1:-1].split()
             else:
