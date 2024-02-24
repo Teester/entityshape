@@ -14,7 +14,7 @@ class CompareJSONLD:
     A class to compare a wikidata entity with a JSON-LD representation of an entityschema
     """
 
-    def __init__(self, shape: dict, entity: str, language: str):
+    def __init__(self, shape: dict, entity: str, language: str) -> None:
         """
         Compares json from a wikidata entity with the json-ld representation of an entityschema
 
@@ -38,7 +38,8 @@ class CompareJSONLD:
         Gets the result of comparison for each property with the schema
         :return: json for comparison of properties
         """
-        props = CompareProperties(self._entity, self._entities, self._props, self._names, self.start_shape)
+        props: CompareProperties = CompareProperties(self._entity, self._entities,
+                                                     self._props, self._names, self.start_shape)
         return props.compare_properties()
 
     def get_statements(self) -> dict:
@@ -46,7 +47,7 @@ class CompareJSONLD:
         Gets the result of comparison of each statement with the schema
         :return: json for comparison of statements
         """
-        statements = CompareStatements(self._entities, self._entity, self.start_shape)
+        statements: CompareStatements = CompareStatements(self._entities, self._entity, self.start_shape)
         return statements.compare_statements()
 
     def get_general(self) -> dict:
@@ -59,7 +60,7 @@ class CompareJSONLD:
         properties: list = ["lexicalCategory", "language"]
         for item in properties:
             if "shapes" in self._shape:
-                data_string = json.dumps(self._shape["shapes"])
+                data_string: str = json.dumps(self._shape["shapes"])
                 if item in data_string and item in self._entities["entities"][self._entity]:
                     general[item] = "incorrect"
                     expected: list = self._shape["shapes"]
@@ -90,7 +91,7 @@ class CompareJSONLD:
         # Get properties from the shape
         if "shapes" in self._shape:
             for shape in self._shape["shapes"]:
-                properties = re.findall(r'P\d+', json.dumps(shape))
+                properties: list = re.findall(r'P\d+', json.dumps(shape))
                 for prop in properties:
                     if prop not in self._props and prop.startswith("P") and len(prop) > 1:
                         self._props.append(prop)
@@ -126,7 +127,7 @@ class CompareJSONLD:
         """
         if "start" in self._shape:
             start: dict = self._shape['start']
-            start_shape = {}
+            start_shape: dict = {}
             if "shapes" in self._shape:
                 for shape in self._shape['shapes']:
                     if shape["id"] == start:
@@ -135,7 +136,7 @@ class CompareJSONLD:
         else:
             return {}
 
-    def _process_one_of(self):
+    def _process_one_of(self) -> None:
         """
         Processes one of expression types in the shape
 
@@ -143,7 +144,7 @@ class CompareJSONLD:
         """
         pass
 
-    def _process_each_of(self):
+    def _process_each_of(self) -> None:
         """
        Processes each of expression types in the shape
 
@@ -154,14 +155,14 @@ class CompareJSONLD:
 
 class CompareProperties:
 
-    def __init__(self, entity, entities, props, names, start_shape):
-        self._entities = entities
-        self._names = names
-        self._entity = entity
-        self._props = props
-        self._start_shape = start_shape
+    def __init__(self, entity: str, entities: dict, props: list, names: dict, start_shape: dict) -> None:
+        self._entities: dict = entities
+        self._names: dict = names
+        self._entity: str = entity
+        self._props: list = props
+        self._start_shape: dict = start_shape
 
-    def compare_properties(self):
+    def compare_properties(self) -> dict:
         """
 
         :return:
@@ -171,19 +172,19 @@ class CompareProperties:
         if self._start_shape is None:
             return properties
         for prop in self._props:
-            utilities = Utilities()
+            utilities: Utilities = Utilities()
             child: dict = {"name": self._names[prop],
                            "necessity": utilities.calculate_necessity(prop, self._start_shape)}
             if prop in claims:
-                response = self.check_claims_for_props(claims, prop)
+                response: str = self.check_claims_for_props(claims, prop)
             else:
-                response = "missing"
+                response: str = "missing"
             if response != "":
                 child["response"] = response
             properties[prop] = child
         return properties
 
-    def check_claims_for_props(self, claims, prop):
+    def check_claims_for_props(self, claims: dict, prop: str) -> str:
         cardinality: str = self._process_cardinalities(claims[prop], self._start_shape)
         allowed: str = "allowed"
         if "expression" in self._start_shape and "expressions" in self._start_shape["expression"]:
@@ -198,7 +199,7 @@ class CompareProperties:
         return response
 
     @staticmethod
-    def _process_cardinalities(claims: dict, shape: dict):
+    def _process_cardinalities(claims: dict, shape: dict) -> str:
         """
         Processes cardinalities of claims to see if the number of claims on a property match
         the requirements of the shape
@@ -244,10 +245,10 @@ class CompareProperties:
 
 class CompareStatements:
 
-    def __init__(self, entities, entity, start_shape):
-        self._entities = entities
-        self._entity = entity
-        self.start_shape = start_shape
+    def __init__(self, entities: dict, entity: str, start_shape: dict) -> None:
+        self._entities: dict = entities
+        self._entity: str = entity
+        self.start_shape: dict = start_shape
 
     def compare_statements(self) -> dict:
         """
@@ -261,7 +262,7 @@ class CompareStatements:
             property_statement_results: list = []
             for statement in claims[claim]:
                 child: dict = {"property": claim}
-                utilities = Utilities()
+                utilities: Utilities = Utilities()
                 necessity = utilities.calculate_necessity(statement["mainsnak"]["property"], self.start_shape)
                 if necessity != "absent":
                     child["necessity"] = necessity
@@ -272,7 +273,7 @@ class CompareStatements:
                 property_statement_results.append(allowed)
         return statements
 
-    def _process_shape(self, statement, shape, child) -> Tuple[Any, str]:
+    def _process_shape(self, statement: dict, shape: dict, child: dict) -> Tuple[Any, str]:
         """
         Processes a full shape
 
@@ -291,7 +292,7 @@ class CompareStatements:
             child["response"] = allowed
         return child, allowed
 
-    def process_expressions(self, expression, shape, statement, allowed):
+    def process_expressions(self, expression: dict, shape: dict, statement: dict, allowed: str) -> str:
         if expression["type"] == "TripleConstraint" and expression["predicate"].endswith(statement["property"]):
             allowed = self._process_triple_constraint(statement,
                                                       expression,
@@ -303,7 +304,7 @@ class CompareStatements:
         return allowed
 
     @staticmethod
-    def _process_triple_constraint(statement, expression, allowed):
+    def _process_triple_constraint(statement: dict, expression: dict, allowed: str) -> str:
         """
         Processes triple constraint expression types in the shape
 
@@ -345,8 +346,8 @@ class Utilities:
         return necessity
 
     @staticmethod
-    def required_or_absent(expression) -> str:
-        necessity = "optional"
+    def required_or_absent(expression: dict) -> str:
+        necessity: str = "optional"
         if ("min" in expression and expression["min"] > 0) or ("min" not in expression and "max" not in expression):
             necessity = "required"
         if "min" in expression and "max" in expression and expression["min"] == 0 and expression["max"] == 0:

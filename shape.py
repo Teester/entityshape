@@ -21,7 +21,7 @@ class Shape:
     :return name: the name of the entityschema
     :return shape: a json representation of the entityschema
     """
-    def __init__(self, schema: str, language: str):
+    def __init__(self, schema: str, language: str) -> None:
         # self.name: str = ""
         self.schema_shape: dict = {}
 
@@ -38,14 +38,14 @@ class Shape:
             except (re.error, IndexError, KeyError):
                 print("error")
 
-    def get_schema_shape(self):
+    def get_schema_shape(self) -> dict:
         """
         Gets the json representation of the schema
         :return: the json representation of the schema
         """
         return self.schema_shape
 
-    def get_name(self):
+    def get_name(self) -> str:
         """
         Gets the name of the schema
         :return: the name of the schema
@@ -54,7 +54,7 @@ class Shape:
             return self._json_text["labels"][self._language]
         return ""
 
-    def get_json_ld(self):
+    def get_json_ld(self) -> dict:
         """
         Gets the JSON_LD form of the Schema
         """
@@ -63,7 +63,7 @@ class Shape:
         except (KeyError, IndexError, AttributeError, ValueError):
             return {}
 
-    def _translate_schema(self):
+    def _translate_schema(self) -> None:
         """
         Converts the entityschema to a json representation
         """
@@ -80,7 +80,7 @@ class Shape:
                 schema_json[key]["required"] = schema_json[key]["required"]["required"]
         self.schema_shape = schema_json
 
-    def _convert_shape(self, shape: str):
+    def _convert_shape(self, shape: str) -> None:
         """
         Converts a shape into its json representation
 
@@ -111,7 +111,7 @@ class Shape:
                 shape_json["language"] = self._assess_property(line, {})
         self._schema_shapes[shape] = shape_json
 
-    def _assess_property(self, line: str, child: dict):
+    def _assess_property(self, line: str, child: dict) -> dict:
         """
         converts a line og a schema to a json representation of itself
 
@@ -139,7 +139,7 @@ class Shape:
         return child
 
     @staticmethod
-    def _get_shape_properties(first_line: str):
+    def _get_shape_properties(first_line: str) -> dict:
         """
         Get the overall properties of the shape
 
@@ -157,7 +157,7 @@ class Shape:
                 shape_json[wikidata_property] = {"extra": "allowed"}
         return shape_json
 
-    def _get_schema_json(self, schema):
+    def _get_schema_json(self, schema) -> None:
         """
         Downloads the schema from wikidata
 
@@ -167,7 +167,7 @@ class Shape:
         response = requests.get(url)
         self._json_text: dict = response.json()
 
-    def _strip_schema_comments(self):
+    def _strip_schema_comments(self) -> None:
         """
         Strips the comments out of the schema and converts parts we don't care about
         because they're enforced by wikidata
@@ -193,7 +193,7 @@ class Shape:
         schema_text = os.linesep.join([s for s in schema_text.splitlines() if s])
         self._schema_text = schema_text
 
-    def _get_default_shape(self):
+    def _get_default_shape(self) -> None:
         """
         Gets the default shape to start at in the schema
         """
@@ -206,7 +206,7 @@ class Shape:
             for name in shape_names:
                 self._shapes[name[2:-1]] = self._get_specific_shape(name[2:-1])
 
-    def _get_specific_shape(self, shape_name: str):
+    def _get_specific_shape(self, shape_name: str) -> str:
         """
         Extracts a specific shape from the schema
 
@@ -234,7 +234,7 @@ class Shape:
         return ""
 
     @staticmethod
-    def _find_parentheses(shape):
+    def _find_parentheses(shape) -> dict[int, int]:
         index_list = {}
         pop_stack = []
         for index, character in enumerate(shape):
@@ -248,7 +248,7 @@ class Shape:
             raise IndexError('No matching } for {')
         return index_list
 
-    def _translate_sub_shape(self, schema_json: dict):
+    def _translate_sub_shape(self, schema_json: dict) -> dict:
         """
         Converts a sub-shape to a json representation
 
@@ -276,7 +276,7 @@ class Shape:
         return schema_json
 
     @staticmethod
-    def _get_cardinality(schema_line: str):
+    def _get_cardinality(schema_line: str) -> dict:
         """
         Gets the cardinality of a line of the schema
 
@@ -310,7 +310,7 @@ class Shape:
         return cardinality
 
     @staticmethod
-    def _get_snak_type(schema_line: str):
+    def _get_snak_type(schema_line: str) -> str:
         """
         Gets the type of snak from a schema line
 
@@ -324,7 +324,7 @@ class Shape:
         return "reference"
 
     @staticmethod
-    def _assess_cardinality(necessity: str, child: dict, cardinality: dict):
+    def _assess_cardinality(necessity: str, child: dict, cardinality: dict) -> tuple[str, dict]:
         if "cardinality" in child:
             if "min" in child["cardinality"] and "min" in cardinality:
                 cardinality["min"] = cardinality["min"] + child["cardinality"]["min"]
@@ -338,7 +338,12 @@ class Shape:
             necessity = "absent"
         return necessity, child
 
-    def _assess_sub_shape_key(self, sub_shape, key, schema_json, qualifier_child, reference_child):
+    def _assess_sub_shape_key(self,
+                              sub_shape: dict,
+                              key: dict,
+                              schema_json: dict,
+                              qualifier_child: dict,
+                              reference_child: dict) -> tuple[Any, Any, Any]:
         if "shape" in key:
             sub_shape_json = self._translate_sub_shape(key)
             if key["status"] == "statement":
