@@ -11,7 +11,7 @@ class CompareShape:
     Compares a wikidata entity (e.g. Q42) with a shape and returns the conformity of
     the statements and properties in the entity to the shape
 
-    :param shape: The a json representation of the shape to be compared against
+    :param shape: The json representation of the shape to be compared against
     :param entity: The entity to be compared (e.g. Q42)
     :param language: The language to use for details like property names
 

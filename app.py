@@ -8,7 +8,8 @@ import requests
 from flask import Flask, request, json
 from flask_cors import CORS
 from requests import Response
-from compareshape import CompareShape
+
+from comparejsonld import CompareJSONLD
 from shape import Shape
 
 app = Flask(__name__)
@@ -30,7 +31,7 @@ def data():
         # valid: dict = check_against_pyshexy(schema, entity)
         valid: dict = {}
         shape: Shape = Shape(schema, language)
-        comparison: CompareShape = CompareShape(shape.get_schema_shape(), entity, language)
+        comparison: CompareJSONLD = CompareJSONLD(shape.get_json_ld(), entity, language)
         payload: dict = {'schema': schema,
                          'name': shape.get_name(),
                          'validity': valid,
