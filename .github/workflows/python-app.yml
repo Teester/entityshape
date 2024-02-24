@@ -40,7 +40,6 @@ jobs:
         echo "PYTHONPATH=home/runner/work/entityshape" >> $GITHUB_ENV
     - name: Test with unittest
       run: |
-        pip install coverage
         coverage run -m unittest
     - name: SonarCloud Scan
       uses: sonarsource/sonarcloud-github-action@master

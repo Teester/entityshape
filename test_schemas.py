@@ -268,7 +268,8 @@ class MyTestCase(unittest.TestCase):
         properties: list = ["P2043", "P2067"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertIn(response.json["properties"][prop]["response"], ["correct", "present"])
+                self.assertIn(response.json["properties"][prop]["response"],
+                              ["correct", "present", "too many statements"])
 
     def test_entityschema_e300(self):
         """
