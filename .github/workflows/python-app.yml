@@ -40,15 +40,15 @@ jobs:
         echo "PYTHONPATH=home/runner/work/entityshape" >> $GITHUB_ENV
     - name: Test with unittest
       run: |
-        coverage run --omit=*/site-packages/* -m unittest discover
-        coverage xml
-        coverage report
-    - uses: actions/upload-artifact@v2
-      with:
-        name: code-coverage
-        path: htmlcov
+        pip install coverage
+        coverage run -m unittest
     - name: SonarCloud Scan
       uses: sonarsource/sonarcloud-github-action@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v4.0.1
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        slug: Teester/entityshape
