@@ -22,7 +22,7 @@ $(document).ready(function(){
 let entityschema_conditions = ["/wiki/Q", "/wiki/P", "/wiki/L"];
 if (entityschema_conditions.some(el => document.location.pathname.includes(el))) {
 	let entityschema_entity_html = '<div><span id="entityschema-simpleSearch"><span>';
-	entityschema_entity_html += '<input type="text" id="entityschema-entityToCheck" placeholder="Enter a schema to check against e.g. E234">';
+	entityschema_entity_html += '<input type="text" id="entityschema-entityToCheck" placeholder="Enter schema to check against e.g. E234" title="Enter 1 or more schemas to check against separated by commas e.g. E10, E236">';
 	entityschema_entity_html += '<input type="submit" id="entityschema-schemaSearchButton" class="searchButton" name="check" value="Check">';
 	entityschema_entity_html += '</span></span><input type="checkbox" id="entityschema-checkbox">';
 	entityschema_entity_html += '<label for="entityschema-checkbox"><small>Automatically check schema</small></label><span id="entityschemaResponse"></span></div>';
