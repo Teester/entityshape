@@ -58,113 +58,114 @@ function entityschema_checkbox() {
 function entityschema_checkEntity(entity, entitySchema, language) {
 	$("#entityschemaResponse").contents().remove();
 	$(".entityschema-property").remove();
-	let url = "https://entityshape.toolforge.org/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
-	//let url = "http://127.0.0.1:5000/api?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
+	let url = "https://entityshape.toolforge.org/api/v2?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
+	//let url = "http://127.0.0.1:5000/api/v2?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
 	$.ajax({
 		type: "GET",
 		dataType: "json",
 		url: url,
 		success: function(data){
 			let html = "";
-
-			html += "<br/>Checking against <b><a href='https://www.wikidata.org/wiki/EntitySchema:" + data.schema + "'>" + data.schema + ":" + data.name + '</a></b>:';
-			if (data.validity.results) {
-				if (data.validity.results[0].result) {
-					html += '<span class="response"><span class="pass">✔</span><span> Pass</span></span><br/>';
-				} else {
-					html += entityschema_parseResult(data.validity.results[0]);
-				}
-			}
-			html += '<div style="overflow-y: scroll; max-height:200px;"><table style="width:100%;">';
-			html += '<th class="entityschema_table" title="Properties in this item which must be present">Required properties</th>';
-			html += '<th class="entityschema_table" title="Properties in this item which can be present but do not have to be">Optional properties</th>';
-			html += '<th class="entityschema_table" title="Properties in this item which are not allowed to be present or not mentioned in the entityschema">Other properties</th><tr>';
-
-			let required_html = '<td class="entityschema_table required">';
-			let optional_html = '<td class="entityschema_table optional">';
-			let absent_html = '<td class="entityschema_table absent">';
-			if (data.properties) {
-				for (let key in data.properties) {
-					let shape_html = "";
-					let response1 = data.properties[key].response;
-					let response_class  = "";
-					switch (response1) {
-						case "present":
-							response_class = "present";
-							break;
-						case "correct":
-							response_class = "correct";
-							break;
-						case "missing":
-							response_class = "missing";
-							break;
-						default:
-							response_class = "wrong";
-							break;
-					}
-					if (data.properties[key].necessity == "absent") {
-					    if (response1 == "too many statements") {
-					        response1 = "not allowed";
-					    }
-					}
-					if (!response1) {
-						response1 = "Not in schema";
-						response_class = "notinschema";
-					}
-					if (response1 == null) {
-						response1 = "";
-						shape_html += '<a href="https://www.wikidata.org/wiki/Property:' + key;
-						shape_html +='">'+ key + " - <small>" + data.properties[key].name + '</small></a><br/>';
-					} else {
-						shape_html += '<span class="entityschema-span entityschema-' + response_class + '">' + response1 + '</span><a href="https://www.wikidata.org/wiki/Property:' + key;
-						shape_html +='" class="is_entityschema-'+ response_class+'">'+ key + " - <small>" + data.properties[key].name + '</small></a><br/>';
-					}
-					switch (data.properties[key].necessity){
-						case "required":
-							required_html += shape_html;
-							break;
-						case "optional":
-							optional_html += shape_html;
-							break;
-						default:
-							absent_html += shape_html;
-							break;
-					}
-					if ($("#" + key)[0]) {
-						$("#" + key + " .wikibase-statementgroupview-property-label").append("<br class='entityschema-property'/><div style='display:inline-block;' class='entityschema-span entityschema-property entityschema-" + response_class + "' title='" + data.schema + ": " + data.name + "'>" + data.schema + ": " + response1 + "</div>");
-					}
-				}
-			}
-			required_html += "</td>";
-			optional_html += "</td>";
-			absent_html += "</td>";
-			html += required_html + optional_html + absent_html;
-			html += '</tr></table></div>';
-
-			$("#entityschemaResponse" ).append( html );
-
-			if (data.statements) {
-				for (var statement in data.statements) {
-					let response2 = data.statements[statement].response;
-					if (response2 != "not in schema") {
-						html = "<br class='entityschema-property'/><span class='entityschema-span entityschema-property entityschema-" + response2 + "'>" + response2 + "</span>";
-						$("div[id='" + statement + "'] .wikibase-toolbar-button-edit").append(html);
-					}
-				}
-			}
-			if (data.general) {
-			    if (data.general.language) {
-			    	let response3 = data.general.language;
-                    if (response3 != "not in schema") {
-                        html = "<span class='entityschema-property'/><span class='entityschema-span entityschema-property entityschema-" + response3 + "'>" + response3 + "</span>";
-                        $("span[class='language-lexical-category-widget_language']").append(html);
+			for (var i = 0; i < data.schema.length; i++ ) {
+                html += "<br/>Checking against <b><a href='https://www.wikidata.org/wiki/EntitySchema:" + data.schema[i] + "'>" + data.schema[i] + ":" + data.name[i] + '</a></b>:';
+                if (data.validity.results) {
+                    if (data.validity.results[0].result) {
+                        html += '<span class="response"><span class="pass">✔</span><span> Pass</span></span><br/>';
+                    } else {
+                        html += entityschema_parseResult(data.validity.results[0]);
                     }
-			    }
-                if (data.general.lexicalCategory) {
-                    let response4 = data.general.lexicalCategory;
-                    if (response4 != "not in schema") {
-                        html = "<span class='entityschema-property'/><span class='entityschema-span entityschema-property entityschema-" + response4 + "'>" + response4 + "</span>";
-                        $("span[class='language-lexical-category-widget_lexical-category']").append(html);
+                }
+                html += '<div style="overflow-y: scroll; max-height:200px;"><table style="width:100%;">';
+                html += '<th class="entityschema_table" title="Properties in this item which must be present">Required properties</th>';
+                html += '<th class="entityschema_table" title="Properties in this item which can be present but do not have to be">Optional properties</th>';
+                html += '<th class="entityschema_table" title="Properties in this item which are not allowed to be present or not mentioned in the entityschema">Other properties</th><tr>';
+
+                let required_html = '<td class="entityschema_table required">';
+                let optional_html = '<td class="entityschema_table optional">';
+                let absent_html = '<td class="entityschema_table absent">';
+                if (data.properties[i]) {
+                    for (let key in data.properties[i]) {
+                        let shape_html = "";
+                        let response1 = data.properties[i][key].response;
+                        let response_class  = "";
+                        switch (response1) {
+                            case "present":
+                                response_class = "present";
+                                break;
+                            case "correct":
+                                response_class = "correct";
+                                break;
+                            case "missing":
+                                response_class = "missing";
+                                break;
+                            default:
+                                response_class = "wrong";
+                                break;
+                        }
+                        if (data.properties[i][key].necessity == "absent") {
+                            if (response1 == "too many statements") {
+                                response1 = "not allowed";
+                            }
+                        }
+                        if (!response1) {
+                            response1 = "Not in schema";
+                            response_class = "notinschema";
+                        }
+                        if (response1 == null) {
+                            response1 = "";
+                            shape_html += '<a href="https://www.wikidata.org/wiki/Property:' + key;
+                            shape_html +='">'+ key + " - <small>" + data.properties[i][key].name + '</small></a><br/>';
+                        } else {
+                            shape_html += '<span class="entityschema-span entityschema-' + response_class + '">' + response1 + '</span><a href="https://www.wikidata.org/wiki/Property:' + key;
+                            shape_html +='" class="is_entityschema-'+ response_class+'">'+ key + " - <small>" + data.properties[i][key].name + '</small></a><br/>';
+                        }
+                        switch (data.properties[i][key].necessity){
+                            case "required":
+                                required_html += shape_html;
+                                break;
+                            case "optional":
+                                optional_html += shape_html;
+                                break;
+                            default:
+                                absent_html += shape_html;
+                                break;
+                        }
+                        if ($("#" + key)[0]) {
+                            $("#" + key + " .wikibase-statementgroupview-property-label").append("<br class='entityschema-property'/><div style='display:inline-block;' class='entityschema-span entityschema-property entityschema-" + response_class + "' title='" + data.schema[i] + ": " + data.name[i] + "'>" + data.schema[i] + ": " + response1 + "</div>");
+                        }
+                    }
+                }
+                required_html += "</td>";
+                optional_html += "</td>";
+                absent_html += "</td>";
+                html += required_html + optional_html + absent_html;
+                html += '</tr></table></div>';
+
+                $("#entityschemaResponse" ).append( html );
+
+                if (data.statements[i]) {
+                    for (var statement in data.statements[i]) {
+                        let response2 = data.statements[i][statement].response;
+                        if (response2 != "not in schema") {
+                            html = "<br class='entityschema-property'/><span class='entityschema-span entityschema-property entityschema-" + response2 + "'>" + response2 + "</span>";
+                            $("div[id='" + statement + "'] .wikibase-toolbar-button-edit").append(html);
+                        }
+                    }
+                }
+                if (data.general[i]) {
+                    if (data.general[i].language) {
+                        let response3 = data.general[i].language;
+                        if (response3 != "not in schema") {
+                            html = "<span class='entityschema-property'/><span class='entityschema-span entityschema-property entityschema-" + response3 + "'>" + response3 + "</span>";
+                            $("span[class='language-lexical-category-widget_language']").append(html);
+                        }
+                    }
+                    if (data.general[i].lexicalCategory) {
+                        let response4 = data.general[i].lexicalCategory;
+                        if (response4 != "not in schema") {
+                            html = "<span class='entityschema-property'/><span class='entityschema-span entityschema-property entityschema-" + response4 + "'>" + response4 + "</span>";
+                            $("span[class='language-lexical-category-widget_lexical-category']").append(html);
+                        }
                     }
                 }
 			}

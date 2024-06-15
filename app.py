@@ -64,6 +64,7 @@ def v2():
     :return: a response to the query
     """
     schema: str = request.args.get("entityschema", type=str)
+    schema_list: list = schema.split(', ')
     entity: str = request.args.get("entity", type=str)
     if "Lexeme" in entity:
         entity = entity[7:]
@@ -71,14 +72,23 @@ def v2():
     try:
         # valid: dict = check_against_pyshexy(schema, entity)
         valid: dict = {}
-        shape: Shape = Shape(schema, language)
-        comparison: CompareJSONLD = CompareJSONLD(shape.get_json_ld(), entity, language)
-        payload: dict = {'schema': schema,
-                         'name': shape.get_name(),
+        names: list = []
+        general: list = []
+        properties: list = []
+        statements: list = []
+        for schema in schema_list:
+            shape: Shape = Shape(schema, language)
+            comparison: CompareJSONLD = CompareJSONLD(shape.get_json_ld(), entity, language)
+            names.append(shape.get_name())
+            general.append(comparison.get_general())
+            properties.append(comparison.get_properties())
+            statements.append(comparison.get_statements())
+        payload: dict = {'schema': schema_list,
+                         'name': names,
                          'validity': valid,
-                         'general': comparison.get_general(),
-                         'properties': comparison.get_properties(),
-                         'statements': comparison.get_statements(),
+                         'general': general,
+                         'properties': properties,
+                         'statements': statements,
                          'error': ""}
         status: int = 200
     except (AttributeError, TypeError, KeyError, IndexError) as exception:
