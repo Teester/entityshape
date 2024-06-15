@@ -18,12 +18,11 @@ CORS(app)
 
 
 @app.route("/api")
-def data():
+def v1():
     """
     Compares an entityschema with a wikidata item
     :return: a response to the query
     """
-    print("v1")
     schema: str = request.args.get("entityschema", type=str)
     entity: str = request.args.get("entity", type=str)
     if "Lexeme" in entity:
@@ -64,7 +63,6 @@ def v2():
     Compares an entityschema with a wikidata item
     :return: a response to the query
     """
-    print("v2")
     schema: str = request.args.get("entityschema", type=str)
     entity: str = request.args.get("entity", type=str)
     if "Lexeme" in entity:

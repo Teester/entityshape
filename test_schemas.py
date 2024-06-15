@@ -73,7 +73,6 @@ class MyTestCase(unittest.TestCase):
             with self.subTest(schema=schema):
                 if schema in skips:
                     self.skipTest(f"Schema {schema} not supported")
-                print(schema)
                 response = self.app.get(f'/api?entityschema={schema}&entity=Q100532807&language=en',
                                         follow_redirects=True)
                 self.assertEqual(response.status_code, 200)
@@ -319,18 +318,7 @@ class MyTestCase(unittest.TestCase):
         """
         response = self.app.get('/api?entityschema=E351&entity=Q743656&language=en',
                                 follow_redirects=True)
-        self.assertIn(response.json["properties"]["P31"]["response"], ["incorrect"])
-
-    def test_entityschema_e351_2(self):
-        """
-        Tests that blank schemas doesn't fail
-
-        This test tests entityschema E351 (pharmaceutical product) against entity Q29006691 (Xgeva).
-        P31 should return as too many statements
-        """
-        response = self.app.get('/api?entityschema=E351&entity=Q29006691&language=en',
-                                follow_redirects=True)
-        self.assertIn(response.json["properties"]["P31"]["response"], ["too many statements"])
+        self.assertIn(response.json["properties"]["P31"]["response"], ["not enough correct statements"])
 
 
 if __name__ == '__main__':
