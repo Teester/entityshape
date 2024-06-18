@@ -58,8 +58,8 @@ function entityschema_checkbox() {
 function entityschema_checkEntity(entity, entitySchema, language) {
 	$("#entityschemaResponse").contents().remove();
 	$(".entityschema-property").remove();
-	let url = "https://entityshape.toolforge.org/api/v2?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
-	//let url = "http://127.0.0.1:5000/api/v2?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
+	//let url = "https://entityshape.toolforge.org/api/v2?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
+	let url = "http://127.0.0.1:5000/api/v2?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
 	$.ajax({
 		type: "GET",
 		dataType: "json",
@@ -79,7 +79,6 @@ function entityschema_checkEntity(entity, entitySchema, language) {
                 html += '<th class="entityschema_table" title="Properties in this item which must be present">Required properties</th>';
                 html += '<th class="entityschema_table" title="Properties in this item which can be present but do not have to be">Optional properties</th>';
                 html += '<th class="entityschema_table" title="Properties in this item which are not allowed to be present or not mentioned in the entityschema">Other properties</th><tr>';
-
                 let required_html = '<td class="entityschema_table required">';
                 let optional_html = '<td class="entityschema_table optional">';
                 let absent_html = '<td class="entityschema_table absent">';
@@ -87,7 +86,7 @@ function entityschema_checkEntity(entity, entitySchema, language) {
                     for (let key in data.properties[i]) {
                         let shape_html = "";
                         let response1 = data.properties[i][key].response;
-                        let response_class  = "";
+                       let response_class  = "";
                         switch (response1) {
                             case "present":
                                 response_class = "present";
@@ -140,8 +139,7 @@ function entityschema_checkEntity(entity, entitySchema, language) {
                 absent_html += "</td>";
                 html += required_html + optional_html + absent_html;
                 html += '</tr></table></div>';
-
-                $("#entityschemaResponse" ).append( html );
+               //$("#entityschemaResponse" ).append( html );
 
                 if (data.statements[i]) {
                     for (var statement in data.statements[i]) {
@@ -169,6 +167,123 @@ function entityschema_checkEntity(entity, entitySchema, language) {
                     }
                 }
 			}
+            const combined_schemas = ""
+			const combined_properties = {}
+			for (var i = 0; i < data.schema.length; i++ ) {
+                for (let key in data.properties[i]) {
+                  if(!combined_properties.hasOwnProperty(key)){ combined_properties[key] = {}; }
+                  combined_properties[key]["name"] = data.properties[i][key]["name"]
+                  if(!combined_properties[key].hasOwnProperty("response")) { combined_properties[key]["response"] = {}; }
+                  combined_properties[key]["response"][data.schema[i]] = data.properties[i][key]["response"]
+                  if(!combined_properties[key].hasOwnProperty("necessity")) { combined_properties[key]["necessity"] = {}; }
+                  combined_properties[key]["necessity"][data.schema[i]] = data.properties[i][key]["necessity"]
+                }
+			}
+
+			for (let key in combined_properties) {
+			    let necessity = "absent"
+			    let response = "Not in schema"
+			    response_key = combined_properties[key]["response"]
+                necessity_key = combined_properties[key]["necessity"]
+
+			    if (Object.values(necessity_key).includes("required")) {
+			        necessity = "required";
+			    } else if (Object.values(necessity_key).includes("optional")) {
+			        necessity = "optional";
+			    }
+
+			    if (Object.values(response_key).includes("incorrect")) {
+                     response = "incorrect";
+                } else if (Object.values(response_key).includes("missing")) {
+                     response = "missing";
+                } else if (Object.values(response_key).includes("too many statements")) {
+                     response = "too many statements";
+                } else if (Object.values(response_key).includes("not enough statements")) {
+                     response = "not enough statements";
+                } else if (Object.values(response_key).includes("correct")) {
+                     response = "correct";
+                } else if (Object.values(response_key).includes("present")) {
+                     response = "present";
+                }
+
+			    combined_properties[key]["response"]["combined"] = response
+			    combined_properties[key]["necessity"]["combined"] = necessity;
+			}
+			console.log(combined_properties)
+
+            html += "<br/>Checking against <b>"
+            for (let schema in data.schema) {
+                html += "<a href='https://www.wikidata.org/wiki/EntitySchema:" + data.schema[schema] + "'>" + data.schema[schema] + ":" + data.name[schema] + '</a> '
+            }
+            html += '</b>:'
+
+            html += '<div style="overflow-y: scroll; max-height:200px;"><table style="width:100%;">';
+            html += '<th class="entityschema_table" title="Properties in this item which must be present">Required properties</th>';
+            html += '<th class="entityschema_table" title="Properties in this item which can be present but do not have to be">Optional properties</th>';
+            html += '<th class="entityschema_table" title="Properties in this item which are not allowed to be present or not mentioned in the entityschema">Other properties</th><tr>';
+
+            let required_html2 = '<td class="entityschema_table required">';
+            let optional_html2 = '<td class="entityschema_table optional">';
+            let absent_html2 = '<td class="entityschema_table absent">';
+            if (combined_properties) {
+                    for (let key in combined_properties) {
+                        let shape_html = "";
+                        let response1 = combined_properties[key].response.combined;
+                        let response_class  = "";
+                        switch (response1) {
+                            case "present":
+                                response_class = "present";
+                                break;
+                            case "correct":
+                                response_class = "correct";
+                                break;
+                            case "missing":
+                                response_class = "missing";
+                                break;
+                            default:
+                                response_class = "wrong";
+                                break;
+                        }
+                        if (combined_properties[key].necessity.combined == "absent") {
+                            if (response1 == "too many statements") {
+                                response1 = "not allowed";
+                            }
+                        }
+                        if (!response1) {
+                            response1 = "Not in schema";
+                            response_class = "notinschema";
+                        }
+                        if (response1 == null) {
+                            response1 = "";
+                            shape_html += '<a href="https://www.wikidata.org/wiki/Property:' + key;
+                            shape_html +='">'+ key + " - <small>" + combined_properties[key].name + '</small></a><br/>';
+                        } else {
+                            shape_html += '<span class="entityschema-span entityschema-' + response_class + '">' + response1 + '</span><a href="https://www.wikidata.org/wiki/Property:' + key;
+                            shape_html +='" class="is_entityschema-'+ response_class+'">'+ key + " - <small>" + combined_properties[key].name + '</small></a><br/>';
+                        }
+                        switch (combined_properties[key].necessity.combined){
+                            case "required":
+                                required_html2 += shape_html;
+                                break;
+                            case "optional":
+                                optional_html2 += shape_html;
+                                break;
+                            default:
+                                absent_html2 += shape_html;
+                                break;
+                        }
+                        //if ($("#" + key)[0]) {
+                        //    $("#" + key + " .wikibase-statementgroupview-property-label").append("<br class='entityschema-property'/><div style='display:inline-block;' class='entityschema-span entityschema-property entityschema-" + response_class + "' title='" + data.schema + ": " + data.name + "'>" + data.schema + ": " + response1 + "</div>");
+                        //}
+                    }
+                }
+                required_html2 += "</td>";
+                optional_html2 += "</td>";
+                absent_html2 += "</td>";
+                html += required_html2 + optional_html2 + absent_html2;
+                html += '</tr></table></div>';
+
+                $("#entityschemaResponse" ).append( html );
 		},
 		error: function(data) {
 			$("#entityschemaResponse").append( '<span>Unable to validate schema</span>' );
