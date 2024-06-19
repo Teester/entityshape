@@ -59,7 +59,7 @@ function entityschema_checkEntity(entity, entitySchema, language) {
 	$("#entityschemaResponse").contents().remove();
 	//$(".entityschema-property").remove();
 	let url = "https://entityshape.toolforge.org/api/v2?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
-	let url = "http://127.0.0.1:5000/api/v2?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
+	//let url = "http://127.0.0.1:5000/api/v2?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
 	$.ajax({
 		type: "GET",
 		dataType: "json",
@@ -108,7 +108,7 @@ function entityschema_checkEntity(entity, entitySchema, language) {
                     for (var statement in data.statements[i]) {
                         let response2 = data.statements[i][statement].response;
                         if (response2 != "not in schema") {
-                            html = "<br class='entityschema-property'/><span class='entityschema-span entityschema-property entityschema-" + response2 + "'>" + response2 + "</span>";
+                            html = "<br class='entityschema-property'/><span class='entityschema-span entityschema-property entityschema-" + response2 + "'>" + data.schema[i] + ": " + response2 + "</span>";
                             $("div[id='" + statement + "'] .wikibase-toolbar-button-edit").append(html);
                         }
                     }
