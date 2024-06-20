@@ -186,7 +186,7 @@ class CompareProperties:
 
     def check_claims_for_props(self, claims: dict, prop: str) -> str:
         cardinality: str = self._process_cardinalities(claims[prop], self._start_shape)
-        allowed: str = "allowed"
+        allowed: str = "present"
         if "expression" in self._start_shape and "expressions" in self._start_shape["expression"]:
             for expression in self._start_shape["expression"]["expressions"]:
                 allowedlist = []
