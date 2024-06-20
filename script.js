@@ -58,8 +58,8 @@ function entityschema_checkbox() {
 function entityschema_checkEntity(entity, entitySchema, language) {
 	$("#entityschemaResponse").contents().remove();
 	//$(".entityschema-property").remove();
-	let url = "https://entityshape.toolforge.org/api/v2?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
-	//let url = "http://127.0.0.1:5000/api/v2?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
+	//let url = "https://entityshape.toolforge.org/api/v2?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
+	let url = "http://127.0.0.1:5000/api/v2?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
 	$.ajax({
 		type: "GET",
 		dataType: "json",
@@ -67,6 +67,7 @@ function entityschema_checkEntity(entity, entitySchema, language) {
 		success: function(data){
 			let html = "";
 			for (var i = 0; i < data.schema.length; i++ ) {
+			console.log(data)
                 if (data.properties[i]) {
                     for (let key in data.properties[i]) {
                        let response1 = data.properties[i][key].response;
@@ -167,6 +168,8 @@ function entityschema_checkEntity(entity, entitySchema, language) {
                      response = "correct";
                 } else if (Object.values(response_key).includes("present")) {
                      response = "present";
+                } else if (Object.values(response_key).includes("allowed")) {
+                     response = "present";
                 }
 
 			    combined_properties[key]["response"]["combined"] = response
@@ -194,6 +197,9 @@ function entityschema_checkEntity(entity, entitySchema, language) {
                         let response_class  = "";
                         switch (response1) {
                             case "present":
+                                response_class = "present";
+                                break;
+                            case "allowed":
                                 response_class = "present";
                                 break;
                             case "correct":

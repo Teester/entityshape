@@ -189,9 +189,18 @@ class CompareProperties:
         allowed: str = "allowed"
         if "expression" in self._start_shape and "expressions" in self._start_shape["expression"]:
             for expression in self._start_shape["expression"]["expressions"]:
-                allowed = self._process_triple_constraint(claims[prop][0]["mainsnak"],
+                allowedlist = []
+                for property2 in claims[prop]:
+                    thisallowed = self._process_triple_constraint(property2["mainsnak"],
                                                           expression,
                                                           allowed)
+                    if "extra" in self._start_shape:
+                        for extra in self._start_shape["extra"]:
+                            if extra.endswith(property2["mainsnak"]["property"]) and allowed == "incorrect":
+                                thisallowed = "allowed"
+                    allowedlist.append(thisallowed)
+                if "correct" in allowedlist:
+                    allowed = "correct"
         if cardinality == "correct":
             response = allowed
         else:
