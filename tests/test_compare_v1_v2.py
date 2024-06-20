@@ -8,7 +8,7 @@ import requests
 from app import app
 
 
-class MyTestCase(unittest.TestCase):
+class CompareV1V2(unittest.TestCase):
     """
     Testcases to test wikidata entityschemas against wikidata items
     """
@@ -26,15 +26,19 @@ class MyTestCase(unittest.TestCase):
         Tests a specific entity against a certain schema and checks that
         a statements and a properties response are returned
         """
-        test_pairs: dict = {"E236": "Q1728820"}
+        test_pairs: dict = {"E236": "Q1728820",
+                            "E236": "Q100532807"
+                            }
 
         for key in test_pairs:
             with self.subTest(key=key):
                 value = test_pairs[key]
-                response = self.app.get(f'/api/v2?entityschema={key}&entity={value}&language=en',
+                response = self.app.get(f'/api?entityschema={key}&entity={value}&language=en',
                                         follow_redirects=True)
-                self.assertIsNotNone(response.json["statements"])
-                self.assertIsNotNone(response.json["properties"])
+                response2 = self.app.get(f'/api/v2?entityschema={key}&entity={value}&language=en',
+                                         follow_redirects=True)
+                self.assertEqual(response.json["statements"], response2.json["statements"][0])
+                self.assertEqual(response.json["properties"], response2.json["properties"][0])
 
     def test_lexical_category(self):
         """
@@ -47,8 +51,8 @@ class MyTestCase(unittest.TestCase):
                 value = test_pairs[key]
                 response = self.app.get(f'/api/v2?entityschema={key}&entity={value}&language=en',
                                         follow_redirects=True)
-                self.assertIsNotNone(response.json["general"][0]["lexicalCategory"])
-                self.assertIsNotNone(response.json["general"][0]["language"])
+                self.assertIsNotNone(response.json["general"]["lexicalCategory"])
+                self.assertIsNotNone(response.json["general"]["language"])
 
     def test_wikidata_entityschemas(self) -> None:
         """
@@ -198,7 +202,7 @@ class MyTestCase(unittest.TestCase):
         response = self.app.get('/api/v2?entityschema=E236&entity=Q185272&language=en',
                                 follow_redirects=True)
         response2 = self.app.get('/api?entityschema=E236&entity=Q185272&language=en',
-                                follow_redirects=True)
+                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
         properties: list = ["P39","P106", "P18", "P4690"]
         for prop in properties:
@@ -336,7 +340,7 @@ class MyTestCase(unittest.TestCase):
         """
         response = self.app.get('/api/v2?entityschema=E351&entity=Q743656&language=en',
                                 follow_redirects=True)
-        self.assertIn(response.json["properties"][0]["P31"]["response"], ["not enough correct statements"])
+        self.assertIn(response.json["properties"]["P31"]["response"], ["not enough correct statements"])
 
 
 if __name__ == '__main__':
