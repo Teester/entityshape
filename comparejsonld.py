@@ -171,16 +171,17 @@ class CompareProperties:
         properties: dict = {}
         if self._start_shape is None:
             return properties
+        utilities: Utilities = Utilities()
         for prop in self._props:
-            utilities: Utilities = Utilities()
             child: dict = {"name": self._names[prop],
                            "necessity": utilities.calculate_necessity(prop, self._start_shape)}
             if prop in claims:
                 response: str = self.check_claims_for_props(claims, prop)
             else:
                 response: str = "missing"
-            if response != "":
-                child["response"] = response
+            if child["necessity"] != "absent":
+                if response != "":
+                    child["response"] = response
             properties[prop] = child
         return properties
 
@@ -189,21 +190,22 @@ class CompareProperties:
 
         :return:
         """
-        cardinality = ""
+        cardinality = "correct"
         allowed: str = "present"
         if "expression" in self._start_shape and "expressions" in self._start_shape["expression"]:
             for expression in self._start_shape["expression"]["expressions"]:
                 allowed_list = []
                 for property2 in claims[prop]:
-                    thisallowed = self._process_triple_constraint(property2["mainsnak"],
-                                                          expression,
-                                                          allowed)
+                    is_it_allowed = self._process_triple_constraint(property2["mainsnak"],
+                                                                    expression,
+                                                                    allowed)
                     if "extra" in self._start_shape:
                         for extra in self._start_shape["extra"]:
                             if extra.endswith(property2["mainsnak"]["property"]) and allowed == "incorrect":
-                                thisallowed = "allowed"
-                    allowed_list.append(thisallowed)
-                    cardinality = self._process_cardinalities2(allowed_list, self._start_shape, property2["mainsnak"]["property"])
+                                is_it_allowed = "allowed"
+                    allowed_list.append(is_it_allowed)
+                    cardinality = self._process_cardinalities2(allowed_list, self._start_shape,
+                                                               property2["mainsnak"]["property"])
                 if "correct" in allowed_list:
                     allowed = "correct"
         if cardinality == "correct":
