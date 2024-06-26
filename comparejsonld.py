@@ -215,6 +215,8 @@ class CompareProperties:
         return response
 
     def _process_cardinalities2(self, allowed_list, shape, prop):
+        if "predicate" not in shape["expression"]["expressions"][0]:
+            return "correct"
         if not shape["expression"]["expressions"][0]["predicate"].endswith(prop):
             return "correct"
         occurrences: dict = allowed_list.count("correct")
