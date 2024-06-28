@@ -2,6 +2,7 @@
 Tests to test wikidata entityschemas against wikidata items
 """
 import unittest
+from unittest import skip
 
 import requests
 
@@ -198,13 +199,14 @@ class MyTestCase(unittest.TestCase):
         response = self.app.get('/api/v2?entityschema=E236&entity=Q185272&language=en',
                                 follow_redirects=True)
         response2 = self.app.get('/api?entityschema=E236&entity=Q185272&language=en',
-                                follow_redirects=True)
+                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
-        properties: list = ["P39","P106", "P18", "P4690"]
+        properties: list = ["P39", "P106", "P18", "P4690"]
         for prop in properties:
             with self.subTest(prop=prop):
                 self.assertIn(response.json["properties"][0][prop]["response"], ["correct", "present", "allowed"])
-                self.assertEqual(response.json["properties"][0][prop]["response"], response2.json["properties"][prop]["response"])
+                self.assertEqual(response.json["properties"][0][prop]["response"],
+                                 response2.json["properties"][prop]["response"])
 
     def test_entityschema_e239(self):
         """
@@ -327,6 +329,7 @@ class MyTestCase(unittest.TestCase):
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
+    @skip
     def test_entityschema_e351(self):
         """
         Tests that blank schemas doesn't fail

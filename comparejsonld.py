@@ -202,13 +202,13 @@ class CompareProperties:
                     if statement["mainsnak"]["property"] == prop:
                         is_it_allowed = self._process_triple_constraint(statement["mainsnak"],
                                                                         expression,
-                                                                "present")
+                                                                        "present")
                     if "extra" in self._start_shape:
                         for extra in self._start_shape["extra"]:
                             if extra.endswith(prop) and allowed == "incorrect":
                                 is_it_allowed = "allowed"
                     allowed_list.append(is_it_allowed)
-                    cardinality = self._process_cardinalities2(expression, allowed_list, self._start_shape, prop)
+                    cardinality = self._process_cardinalities(expression, allowed_list, self._start_shape, prop)
             if "correct" in allowed_list:
                 allowed = "correct"
         if cardinality == "correct":
@@ -217,7 +217,7 @@ class CompareProperties:
             response = cardinality
         return response
 
-    def _process_cardinalities2(self, expression, allowed_list, shape, prop):
+    def _process_cardinalities(self, expression, allowed_list, shape, prop):
         if "predicate" not in expression:
             return "correct"
         if not expression["predicate"].endswith(prop):
@@ -227,14 +227,14 @@ class CompareProperties:
         cardinality: str = "correct"
         for expression in shape["expression"]["expressions"]:
             if "predicate" in expression and expression["predicate"].endswith(prop):
-                cardinality = self._process_cardinalities3(occurrences, expression)
+                cardinality = self._get_cardinalities(occurrences, expression)
                 predicate: str = f'http://www.wikidata.org/prop/direct/{prop}'
                 if "extra" in shape and predicate in shape["extra"] and cardinality == "too many statements":
                     cardinality = "correct"
         return cardinality
 
     @staticmethod
-    def _process_cardinalities3(occurrences, expression) -> str:
+    def _get_cardinalities(occurrences, expression) -> str:
         cardinality: str = "correct"
         min_cardinality: bool = True
         max_cardinality: bool = True
@@ -256,27 +256,6 @@ class CompareProperties:
             cardinality = "too many statements"
         if max_cardinality and not min_cardinality:
             cardinality = "not enough correct statements"
-        return cardinality
-
-    @staticmethod
-    def _process_cardinalities(claims: dict, shape: dict) -> str:
-        """
-        Processes cardinalities of claims to see if the number of claims on a property match
-        the requirements of the shape
-
-        :param claims: The claims to be checked
-        :param shape: The shape to be checked against
-        :return: the status of the cardinality
-        """
-        cardinality: str = ""
-        if "expression" in shape and "expressions" in shape["expression"]:
-            for expression in shape["expression"]["expressions"]:
-                snak_property: str = claims[0]["mainsnak"]["property"]
-                if "predicate" in expression and (expression["predicate"].endswith(snak_property)):
-                    cardinality = Utilities.process_cardinalities(expression, claims)
-                    predicate: str = f'http://www.wikidata.org/prop/direct/{snak_property}'
-                    if "extra" in shape and predicate in shape["extra"] and cardinality == "too many statements":
-                        cardinality = "correct"
         return cardinality
 
     @staticmethod
