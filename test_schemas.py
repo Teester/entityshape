@@ -2,7 +2,6 @@
 Tests to test wikidata entityschemas against wikidata items
 """
 import unittest
-from unittest import skip
 
 import requests
 
@@ -329,7 +328,6 @@ class MyTestCase(unittest.TestCase):
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
-    @skip
     def test_entityschema_e351(self):
         """
         Tests that blank schemas doesn't fail

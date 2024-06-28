@@ -192,37 +192,47 @@ class CompareProperties:
 
         :return:
         """
-        cardinality = "correct"
+        cardinality: str = "correct"
         allowed: str = "present"
-        if "expression" in self._start_shape and "expressions" in self._start_shape["expression"]:
-            allowed_list = []
-            for expression in self._start_shape["expression"]["expressions"]:
-                for statement in claims[prop]:
-                    is_it_allowed = []
-                    if statement["mainsnak"]["property"] == prop:
-                        is_it_allowed = self._process_triple_constraint(statement["mainsnak"],
-                                                                        expression,
-                                                                        "present")
-                    if "extra" in self._start_shape:
-                        for extra in self._start_shape["extra"]:
-                            if extra.endswith(prop) and allowed == "incorrect":
-                                is_it_allowed = "allowed"
-                    allowed_list.append(is_it_allowed)
-                    cardinality = self._process_cardinalities(expression, allowed_list, self._start_shape, prop)
-            if "correct" in allowed_list:
-                allowed = "correct"
+        if "expression" not in self._start_shape:
+            return "present"
+        if "expressions" not in self._start_shape["expression"]:
+            return "present"
+        for expression in self._start_shape["expression"]["expressions"]:
+            if "predicate" in expression and expression["predicate"].endswith(prop):
+                allowed_list = self._get_allowed_list(claims, prop, expression)
+                cardinality2 = self._process_cardinalities(expression, allowed_list, self._start_shape, prop)
+                if cardinality2 not in ["", "correct"]:
+                    cardinality = cardinality2
+                if "correct" in allowed_list:
+                    allowed = "correct"
         if cardinality == "correct":
-            response = allowed
+            response: str = allowed
         else:
-            response = cardinality
+            response: str = cardinality
         return response
 
-    def _process_cardinalities(self, expression, allowed_list, shape, prop):
+    def _get_allowed_list(self, claims: dict, prop: str, expression: dict) -> list:
+        allowed_list: list = []
+        for statement in claims[prop]:
+            is_it_allowed: str = ""
+            if statement["mainsnak"]["property"] == prop:
+                is_it_allowed = self._process_triple_constraint(statement["mainsnak"],
+                                                                expression,
+                                                                "")
+            if "extra" in self._start_shape:
+                for extra in self._start_shape["extra"]:
+                    if extra.endswith(prop) and is_it_allowed == "incorrect":
+                        is_it_allowed = "allowed"
+            allowed_list.append(is_it_allowed)
+        return allowed_list
+
+    def _process_cardinalities(self, expression: dict, allowed_list: list, shape: dict, prop: str) -> str:
         if "predicate" not in expression:
-            return "correct"
+            return ""
         if not expression["predicate"].endswith(prop):
-            return "correct"
-        occurrences: dict = allowed_list.count("correct")
+            return ""
+        occurrences: int = allowed_list.count("correct")
         occurrences += allowed_list.count("present")
         cardinality: str = "correct"
         for expression in shape["expression"]["expressions"]:
@@ -234,7 +244,7 @@ class CompareProperties:
         return cardinality
 
     @staticmethod
-    def _get_cardinalities(occurrences, expression) -> str:
+    def _get_cardinalities(occurrences: int, expression: dict) -> str:
         cardinality: str = "correct"
         min_cardinality: bool = True
         max_cardinality: bool = True
