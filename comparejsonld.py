@@ -182,6 +182,8 @@ class CompareProperties:
             if child["necessity"] != "absent":
                 if response != "":
                     child["response"] = response
+            elif response != "present":
+                child["response"] = response
             properties[prop] = child
         return properties
 
@@ -195,38 +197,40 @@ class CompareProperties:
         if "expression" in self._start_shape and "expressions" in self._start_shape["expression"]:
             for expression in self._start_shape["expression"]["expressions"]:
                 allowed_list = []
-                for property2 in claims[prop]:
-                    is_it_allowed = self._process_triple_constraint(property2["mainsnak"],
-                                                                    expression,
-                                                                    allowed)
+                for statement in claims[prop]:
+                    if statement["mainsnak"]["property"] == prop:
+                        is_it_allowed = self._process_triple_constraint(statement["mainsnak"],
+                                                                        expression,
+                                                                "present")
                     if "extra" in self._start_shape:
                         for extra in self._start_shape["extra"]:
-                            if extra.endswith(property2["mainsnak"]["property"]) and allowed == "incorrect":
+                            if extra.endswith(prop) and allowed == "incorrect":
                                 is_it_allowed = "allowed"
                     allowed_list.append(is_it_allowed)
-                    cardinality = self._process_cardinalities2(allowed_list, self._start_shape,
-                                                               property2["mainsnak"]["property"])
-                if "correct" in allowed_list:
-                    allowed = "correct"
+                    cardinality = self._process_cardinalities2(expression, allowed_list, self._start_shape, prop)
+            if "correct" in allowed_list:
+                allowed = "correct"
         if cardinality == "correct":
             response = allowed
         else:
             response = cardinality
         return response
 
-    def _process_cardinalities2(self, allowed_list, shape, prop):
-        if "predicate" not in shape["expression"]["expressions"][0]:
+    def _process_cardinalities2(self, expression, allowed_list, shape, prop):
+        if "predicate" not in expression:
             return "correct"
-        if not shape["expression"]["expressions"][0]["predicate"].endswith(prop):
+        if not expression["predicate"].endswith(prop):
             return "correct"
         occurrences: dict = allowed_list.count("correct")
+        occurrences += allowed_list.count("present")
+        cardinality: str = "correct"
         for expression in shape["expression"]["expressions"]:
             if expression["predicate"].endswith(prop):
                 cardinality = self._process_cardinalities3(occurrences, expression)
                 predicate: str = f'http://www.wikidata.org/prop/direct/{prop}'
                 if "extra" in shape and predicate in shape["extra"] and cardinality == "too many statements":
                     cardinality = "correct"
-                return cardinality
+        return cardinality
 
     @staticmethod
     def _process_cardinalities3(occurrences, expression) -> str:
