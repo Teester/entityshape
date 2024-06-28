@@ -195,9 +195,10 @@ class CompareProperties:
         cardinality = "correct"
         allowed: str = "present"
         if "expression" in self._start_shape and "expressions" in self._start_shape["expression"]:
+            allowed_list = []
             for expression in self._start_shape["expression"]["expressions"]:
-                allowed_list = []
                 for statement in claims[prop]:
+                    is_it_allowed = []
                     if statement["mainsnak"]["property"] == prop:
                         is_it_allowed = self._process_triple_constraint(statement["mainsnak"],
                                                                         expression,
@@ -225,7 +226,7 @@ class CompareProperties:
         occurrences += allowed_list.count("present")
         cardinality: str = "correct"
         for expression in shape["expression"]["expressions"]:
-            if expression["predicate"].endswith(prop):
+            if "predicate" in expression and expression["predicate"].endswith(prop):
                 cardinality = self._process_cardinalities3(occurrences, expression)
                 predicate: str = f'http://www.wikidata.org/prop/direct/{prop}'
                 if "extra" in shape and predicate in shape["extra"] and cardinality == "too many statements":
