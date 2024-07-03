@@ -257,6 +257,21 @@ class CompareV1V2(unittest.TestCase):
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
+    def test_entityschema_e292(self):
+        """
+        Tests item with cardinality of 0 evaluates correctly
+
+        This test tests entityschema E295 (townland) against entity Q85396849 (Drumlohan).
+        The schema has a P361 (part of) with a cardinality of 0, meaning the item should
+        not contain any P361.  The test checks that the response is false for this item
+        """
+        response = self.app.get('/api?entityschema=E292&entity=Q51792612&language=en',
+                                follow_redirects=True)
+        response2 = self.app.get('/api/v2?entityschema=E292&entity=Q51792612&language=en',
+                                 follow_redirects=True)
+        self.assertEqual(response.status_code, response2.status_code)
+        self.assertEqual(response.json["properties"], response2.json["properties"][0])
+
     def test_entityschema_e295(self):
         """
         Tests item with cardinality of 0 evaluates correctly
