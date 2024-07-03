@@ -25,14 +25,14 @@ $(document).ready(function(){
         dataType: "json",
         url: url2,
         success: function(data){
-            let claims = data["entities"][entityID]["claims"]
-            let property_list = []
-            let item_list = []
+            let claims = data["entities"][entityID]["claims"];
+            let property_list = [];
+            let item_list = [];
             for (let claim in claims) {
-                property_list.push(claim)
-                let statements = claims[claim]
+                property_list.push(claim);
+                let statements = claims[claim];
                 for (let statement in statements) {
-                    let mainsnak = statements[statement]["mainsnak"]
+                    let mainsnak = statements[statement]["mainsnak"];
                     if (mainsnak["datatype"] == "wikibase-item") {
                         if (!item_list.includes(mainsnak["datavalue"]["value"]["id"])) {
                             item_list.push(mainsnak["datavalue"]["value"]["id"]);
@@ -46,9 +46,9 @@ $(document).ready(function(){
                     type: "GET",
                     dataType: "json",
                     url: url3,
-                    success: function(data){
+                    success: function(data) {
                         if (data["claims"].hasOwnProperty("P12861")) {
-                            entityschema_list.push(data["claims"]["P12861"][0]["mainsnak"]["datavalue"]["value"]["id"])
+                            entityschema_list.push(data["claims"]["P12861"][0]["mainsnak"]["datavalue"]["value"]["id"]);
                         }
                     }
                 })
@@ -59,7 +59,7 @@ $(document).ready(function(){
                     type: "GET",
                     dataType: "json",
                     url: url3,
-                    success: function(data){
+                    success: function(data) {
                         if (data["claims"].hasOwnProperty("P12861")) {
                             entityschema_list.push(data["claims"]["P12861"][0]["mainsnak"]["datavalue"]["value"]["id"]);
                         }
@@ -73,7 +73,7 @@ $(document).ready(function(){
 let entityschema_conditions = ["/wiki/Q", "/wiki/P", "/wiki/L"];
 if (entityschema_conditions.some(el => document.location.pathname.includes(el))) {
 	let entityschema_entity_html = '<div><span id="entityschema-simpleSearch"><span>';
-	entityschema_entity_html += '<input type="text" id="entityschema-entityToCheck" placeholder="Enter schema to check against e.g. E234" title="Enter 1 or more schemas to check against separated by commas e.g. E10, E236">';
+	entityschema_entity_html += '<input type="text" id="entityschema-entityToCheck" placeholder="Enter schema to check against e.g. E234" title="Enter 1 or more schemas to check against separated by commas e.g. E10, E236 or press Check to auto-determine schemas to check">';
 	entityschema_entity_html += '<input type="submit" id="entityschema-schemaSearchButton" class="searchButton" name="check" value="Check">';
 	entityschema_entity_html += '</span></span><input type="checkbox" id="entityschema-checkbox">';
 	entityschema_entity_html += '<label for="entityschema-checkbox"><small>Automatically check schema</small></label><span id="entityschemaResponse"></span></div>';
@@ -94,11 +94,12 @@ function entityschema_update() {
 	let entityschema_entitySchema = $("#entityschema-entityToCheck")[0].value.toUpperCase();
 	if (entityschema_entitySchema.length == 0) {
 	    entityschema_entitySchema = entityschema_list.join(", ")
+    	window.localStorage.setItem("entityschema", "");
+	} else {
+    	window.localStorage.setItem("entityschema", entityschema_entitySchema);
 	}
-	console.log(entityschema_entitySchema)
 	let entityschema_entityName = document.location.pathname.substring(6);
 	let lang = mw.config.get( 'wgUserLanguage' );
-	window.localStorage.setItem("entityschema", entityschema_entitySchema);
 	entityschema_checkEntity(entityschema_entityName, entityschema_entitySchema, lang);
 }
 
@@ -185,6 +186,7 @@ function entityschema_checkEntity(entity, entitySchema, language) {
                     }
                 }
 			}
+
 			const combined_properties = {}
 			for (let i = 0; i < data.schema.length; i++ ) {
                 for (let key in data.properties[i]) {
@@ -244,94 +246,69 @@ function entityschema_checkEntity(entity, entitySchema, language) {
             let optional_html = '<td class="entityschema_table optional">';
             let absent_html = '<td class="entityschema_table absent">';
             if (combined_properties) {
-                    for (let key in combined_properties) {
-                        let shape_html = "";
-                        let response1 = combined_properties[key].response.combined;
-                        let response_class  = "";
-                        switch (response1) {
-                            case "present":
-                                response_class = "present";
-                                break;
-                            case "allowed":
-                                response_class = "present";
-                                break;
-                            case "correct":
-                                response_class = "correct";
-                                break;
-                            case "missing":
-                                response_class = "missing";
-                                break;
-                            default:
-                                response_class = "wrong";
-                                break;
-                        }
-                        if (combined_properties[key].necessity.combined == "absent") {
-                            if (response1 == "too many statements") {
-                                response1 = "not allowed";
-                            }
-                        }
-                        if (!response1) {
-                            response1 = "Not in schema";
-                            response_class = "notinschema";
-                        }
-                        if (response1 == null) {
-                            response1 = "";
-                            shape_html += '<a href="https://www.wikidata.org/wiki/Property:' + key;
-                            shape_html +='">'+ key + " - <small>" + combined_properties[key].name + '</small></a><br/>';
-                        } else {
-                            shape_html += '<span class="entityschema-span entityschema-' + response_class + '">' + response1 + '</span><a href="https://www.wikidata.org/wiki/Property:' + key;
-                            shape_html +='" class="is_entityschema-'+ response_class+'">'+ key + " - <small>" + combined_properties[key].name + '</small></a><br/>';
-                        }
-                        switch (combined_properties[key].necessity.combined){
-                            case "required":
-                                required_html += shape_html;
-                                break;
-                            case "optional":
-                                optional_html += shape_html;
-                                break;
-                            default:
-                                absent_html += shape_html;
-                                break;
+                for (let key in combined_properties) {
+                    let shape_html = "";
+                    let response1 = combined_properties[key].response.combined;
+                    let response_class  = "";
+                    switch (response1) {
+                        case "present":
+                            response_class = "present";
+                            break;
+                        case "allowed":
+                            response_class = "present";
+                            break;
+                        case "correct":
+                            response_class = "correct";
+                            break;
+                        case "missing":
+                            response_class = "missing";
+                            break;
+                        default:
+                            response_class = "wrong";
+                            break;
+                    }
+                    if (combined_properties[key].necessity.combined == "absent") {
+                        if (response1 == "too many statements") {
+                            response1 = "not allowed";
                         }
                     }
+                    if (!response1) {
+                        response1 = "Not in schema";
+                        response_class = "notinschema";
+                    }
+                    if (response1 == null) {
+                        response1 = "";
+                        shape_html += '<a href="https://www.wikidata.org/wiki/Property:' + key;
+                        shape_html +='">'+ key + " - <small>" + combined_properties[key].name + '</small></a><br/>';
+                    } else {
+                        shape_html += '<span class="entityschema-span entityschema-' + response_class + '">' + response1 + '</span><a href="https://www.wikidata.org/wiki/Property:' + key;
+                        shape_html +='" class="is_entityschema-'+ response_class+'">'+ key + " - <small>" + combined_properties[key].name + '</small></a><br/>';
+                    }
+                    switch (combined_properties[key].necessity.combined){
+                        case "required":
+                            required_html += shape_html;
+                            break;
+                        case "optional":
+                            optional_html += shape_html;
+                            break;
+                        default:
+                            absent_html += shape_html;
+                            break;
+                    }
                 }
-                required_html += "</td>";
-                optional_html += "</td>";
-                absent_html += "</td>";
-                html += required_html + optional_html + absent_html;
-                html += '</tr></table></div>';
+            }
+            required_html += "</td>";
+            optional_html += "</td>";
+            absent_html += "</td>";
+            html += required_html + optional_html + absent_html;
+            html += '</tr></table></div>';
 
-                $("#entityschemaResponse" ).append( html );
+            $("#entityschemaResponse" ).append( html );
 		},
 		error: function(data) {
 			$("#entityschemaResponse").append( '<span>Unable to validate schema</span>' );
 		}
 	});
-}
-
-function entityschema_parseResult(data) {
-	let property = [];
-	let html = '<span class="response" title="' + data.reason + '"><span class="fail">✘</span><span class="response"> Fail</span>';
-	let no_matching_triples = "No matching triples found for predicate";
-	if (data.reason.includes(no_matching_triples)) {
-		property = data.reason.match(/P\d+/g);
-	}
-	if (property !== null) {
-		property = property.reduce(function(a,b) {
-		        if (a.indexOf(b) < 0) {
-		            a.push(b);
-		        }
-		        return a;
-		    },[]);
-		for (let i = 0; i < property.length; i++) {
-			if (property[i].length > 100) {
-				property[i] = property[i].substr(0,100) + "…"
-			}
-			html += '<span class="missing"> Missing valid ' + property[i] + '</span>';
-		}
-	}
-	html += "</span>";
-	return html;
 }
 
 function entityschema_getStylesheet() {
