@@ -1,7 +1,7 @@
 (function() {
 let entityschema_stylesheet = entityschema_getStylesheet();
 $('html > head').append("<style>" + entityschema_stylesheet + "</style>");
-entityschemalist = []
+let entityschema_list = []
 
 $(document).ready(function(){
 	let entityID = mw.config.get( 'wbEntityId' );
@@ -18,56 +18,56 @@ $(document).ready(function(){
 		}
 		$("#entityschema-entityToCheck:text").val(schema);
 	}
-	// Get entity from api
+
     let url2 = "https://www.wikidata.org/w/api.php?action=wbgetentities&props=claims&format=json&ids=" + entityID;
-    //process entity to get relevant props and entities
     $.ajax({
-    		type: "GET",
-    		dataType: "json",
-    		url: url2,
-    		success: function(data){
-    		    var claims = data["entities"][entityID]["claims"]
-    		    property_list = []
-    		    item_list = []
-    		    for (var claim in claims) {
-                    property_list.push(claim)
-                    statements = claims[claim]
-                    for (statement in statements) {
-                        mainsnak = statements[statement]["mainsnak"]
-                        if (mainsnak["datatype"] == "wikibase-item") {
-                            if (!item_list.includes(mainsnak["datavalue"]["value"]["id"])) {
-                            item_list.push(mainsnak["datavalue"]["value"]["id"])
-                        }}
+        type: "GET",
+        dataType: "json",
+        url: url2,
+        success: function(data){
+            let claims = data["entities"][entityID]["claims"]
+            let property_list = []
+            let item_list = []
+            for (let claim in claims) {
+                property_list.push(claim)
+                let statements = claims[claim]
+                for (let statement in statements) {
+                    let mainsnak = statements[statement]["mainsnak"]
+                    if (mainsnak["datatype"] == "wikibase-item") {
+                        if (!item_list.includes(mainsnak["datavalue"]["value"]["id"])) {
+                            item_list.push(mainsnak["datavalue"]["value"]["id"]);
+                        }
                     }
-    		    }
-    		    for (item in item_list) {
-    		        url3 = "https://www.wikidata.org/w/api.php?action=wbgetclaims&property=P12861&format=json&entity=" + item_list[item]
-    		        $.ajax({
-                        		type: "GET",
-                        		dataType: "json",
-                        		url: url3,
-                        		success: function(data){
-                        		    if (data["claims"].hasOwnProperty("P12861")) {
-                        		        entityschemalist.push(data["claims"]["P12861"][0]["mainsnak"]["datavalue"]["value"]["id"])
-                        		    }
-                        		}
-                        		})
-    		    }
-    		        		    for (item in property_list) {
-                    		        url3 = "https://www.wikidata.org/w/api.php?action=wbgetclaims&property=P12861&format=json&entity=" + property_list[item]
-                    		        $.ajax({
-                                        		type: "GET",
-                                        		dataType: "json",
-                                        		url: url3,
-                                        		success: function(data){
-                                        		    if (data["claims"].hasOwnProperty("P12861")) {
-                                        		        entityschemalist.push(data["claims"]["P12861"][0]["mainsnak"]["datavalue"]["value"]["id"])
-                                        		    }
-                                        		}
-                                        		})
-                    		    }
-    		}
-    		})
+                }
+            }
+            for (let item in item_list) {
+                let url3 = "https://www.wikidata.org/w/api.php?action=wbgetclaims&property=P12861&format=json&entity=" + item_list[item];
+                $.ajax({
+                    type: "GET",
+                    dataType: "json",
+                    url: url3,
+                    success: function(data){
+                        if (data["claims"].hasOwnProperty("P12861")) {
+                            entityschema_list.push(data["claims"]["P12861"][0]["mainsnak"]["datavalue"]["value"]["id"])
+                        }
+                    }
+                })
+            }
+            for (let item in property_list) {
+                let url3 = "https://www.wikidata.org/w/api.php?action=wbgetclaims&property=P12861&format=json&entity=" + property_list[item];
+                $.ajax({
+                    type: "GET",
+                    dataType: "json",
+                    url: url3,
+                    success: function(data){
+                        if (data["claims"].hasOwnProperty("P12861")) {
+                            entityschema_list.push(data["claims"]["P12861"][0]["mainsnak"]["datavalue"]["value"]["id"]);
+                        }
+                    }
+                })
+            }
+        }
+    })
 });
 
 let entityschema_conditions = ["/wiki/Q", "/wiki/P", "/wiki/L"];
@@ -92,9 +92,10 @@ $("#entityschema-entityToCheck").on("keyup", function(event){
 
 function entityschema_update() {
 	let entityschema_entitySchema = $("#entityschema-entityToCheck")[0].value.toUpperCase();
-	if (entityschemalist.length > 0) {
-	    entityschema_entitySchema = entityschemalist.join(", ")
+	if (entityschema_entitySchema.length == 0) {
+	    entityschema_entitySchema = entityschema_list.join(", ")
 	}
+	console.log(entityschema_entitySchema)
 	let entityschema_entityName = document.location.pathname.substring(6);
 	let lang = mw.config.get( 'wgUserLanguage' );
 	window.localStorage.setItem("entityschema", entityschema_entitySchema);
@@ -120,7 +121,7 @@ function entityschema_checkEntity(entity, entitySchema, language) {
 		url: url,
 		success: function(data){
 			let html = "";
-			for (var i = 0; i < data.schema.length; i++ ) {
+			for (let i = 0; i < data.schema.length; i++ ) {
                 if (data.properties[i]) {
                     for (let key in data.properties[i]) {
                        let response1 = data.properties[i][key].response;
@@ -159,7 +160,7 @@ function entityschema_checkEntity(entity, entitySchema, language) {
                 }
 
                 if (data.statements[i]) {
-                    for (var statement in data.statements[i]) {
+                    for (let statement in data.statements[i]) {
                         let response2 = data.statements[i][statement].response;
                         if (response2 != "not in schema") {
                             html = "<br class='entityschema-property'/><span class='entityschema-span entityschema-property entityschema-" + response2 + "'>" + data.schema[i] + ": " + response2 + "</span>";
@@ -184,9 +185,8 @@ function entityschema_checkEntity(entity, entitySchema, language) {
                     }
                 }
 			}
-            const combined_schemas = ""
 			const combined_properties = {}
-			for (var i = 0; i < data.schema.length; i++ ) {
+			for (let i = 0; i < data.schema.length; i++ ) {
                 for (let key in data.properties[i]) {
                   if(!combined_properties.hasOwnProperty(key)){ combined_properties[key] = {}; }
                   combined_properties[key]["name"] = data.properties[i][key]["name"]
@@ -200,8 +200,8 @@ function entityschema_checkEntity(entity, entitySchema, language) {
 			for (let key in combined_properties) {
 			    let necessity = "absent"
 			    let response = ""
-			    response_key = combined_properties[key]["response"]
-                necessity_key = combined_properties[key]["necessity"]
+			    let response_key = combined_properties[key]["response"]
+                let necessity_key = combined_properties[key]["necessity"]
 
 			    if (Object.values(necessity_key).includes("required")) {
 			        necessity = "required";
