@@ -113,7 +113,9 @@ function entityschema_checkbox() {
 
 function entityschema_checkEntity(entity, entitySchema, language) {
 	$("#entityschemaResponse").contents().remove();
-	//$(".entityschema-property").remove();
+	$(".entityschema-property").remove();
+    $(".entityschema-span").remove();
+
 	//let url = "https://entityshape.toolforge.org/api/v2?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
 	let url = "http://127.0.0.1:5000/api/v2?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
 	$.ajax({
