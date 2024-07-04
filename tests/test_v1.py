@@ -105,8 +105,7 @@ class V1Tests(unittest.TestCase):
                             "P27", "P106", "P569", "P4690"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertTrue(response.json["properties"][prop]["response"]
-                                in ["correct", "present"])
+                self.assertIn(response.json["properties"][prop]["response"], ["correct", "present"])
 
     def test_entityschema_e297(self):
         """
@@ -123,8 +122,7 @@ class V1Tests(unittest.TestCase):
         properties: list = ["P2043", "P2067"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertTrue(response.json["properties"][prop]["response"] in
-                                ["correct", "present"])
+                self.assertIn(response.json["properties"][prop]["response"], ["correct", "present"])
 
     def test_entityschema_e295(self):
         """
@@ -140,10 +138,8 @@ class V1Tests(unittest.TestCase):
         properties: list = ["P361"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertTrue(response.json["properties"][prop]["response"] in
-                                ["too many statements"])
-                self.assertTrue(response.json["properties"][prop]["necessity"] in
-                                ["absent"])
+                self.assertIn(response.json["properties"][prop]["response"], ["too many statements"])
+                self.assertIn(response.json["properties"][prop]["necessity"], ["absent"])
 
     def test_entityschema_e300(self):
         """
@@ -159,8 +155,8 @@ class V1Tests(unittest.TestCase):
         properties: list = ["P3450"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertTrue(response.json["properties"][prop]["response"] in ["present"])
-                self.assertTrue(response.json["properties"][prop]["necessity"] in ["required"])
+                self.assertIn(response.json["properties"][prop]["response"], ["present"])
+                self.assertIn(response.json["properties"][prop]["necessity"], ["required"])
 
     def test_entityschema_e126(self):
         """
