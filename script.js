@@ -122,17 +122,14 @@ function entityschema_checkEntity(entity, entitySchema, language) {
 
 	let url = "https://entityshape.toolforge.org/api/v2?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
 	// let url = "http://127.0.0.1:5000/api/v2 ?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
-	console.log("here")
 	$.ajax({
 		type: "GET",
 		dataType: "json",
 		url: url,
 		beforeSend: function() {
 		    $(".entityshape-spinner").show();
-		    console.log("before")
 		},
 		success: function(data){
-		    console.log("success")
 			let html = "";
 			for (let i = 0; i < data.schema.length; i++ ) {
                 if (data.properties[i]) {
