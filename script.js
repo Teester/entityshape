@@ -1,3 +1,11 @@
+/**
+ * EntityShape.js adds an input box to a wikidata page wherein you can enter an entityschema
+ * (such as E10).  When you click "Check", checks whether each statement and property conforms
+ * to the schema.  It then displays a summary at the top of the item for each property indicating
+ * whether they conform or not.  It also adds a badge to each statement and each property on the
+ * page indicating whether they conform or not.
+ **/
+
 (function() {
 let entityschema_stylesheet = entityschema_getStylesheet();
 $('html > head').append("<style>" + entityschema_stylesheet + "</style>");
@@ -62,7 +70,7 @@ function check_entity_for_schemas(entity_list) {
 }
 
 $(document).ajaxStop(function () {
-  if (value == "true") {
+  if (value == "true" && mw.config.get( 'wbEntityId' )) {
      entityschema_update()
   }
   $("#entityschema-entityToCheck:text").val(schema);
