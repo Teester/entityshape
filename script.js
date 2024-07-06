@@ -1,73 +1,72 @@
 (function() {
 let entityschema_stylesheet = entityschema_getStylesheet();
 $('html > head').append("<style>" + entityschema_stylesheet + "</style>");
-let entityschema_list = []
+let entityschema_list = [];
+let value = window.localStorage.getItem("entityschema-auto");
+let schema = window.localStorage.getItem("entityschema");
 
 $(document).ready(function(){
+    let property_list = [];
+    let item_list = [];
 	let entityID = mw.config.get( 'wbEntityId' );
-	let lang = mw.config.get( 'wgUserLanguage' );
-	if (entityID) {
-		let schema = window.localStorage.getItem("entityschema");
-		let value = window.localStorage.getItem("entityschema-auto");
-		let entityschema_entityName = document.location.pathname.substring(6);
-		if (value == "true") {
-			entityschema_checkEntity(entityschema_entityName, schema, lang);
-			$("#entityschema-checkbox").prop('checked', true);
-		} else {
-			$("#entityschema-checkbox").prop('checked', false);
-		}
-		$("#entityschema-entityToCheck:text").val(schema);
-	}
 
-    let url2 = "https://www.wikidata.org/w/api.php?action=wbgetentities&props=claims&format=json&ids=" + entityID;
-    $.ajax({
-        type: "GET",
-        dataType: "json",
-        url: url2,
-        success: function(data){
-            let claims = data["entities"][entityID]["claims"];
-            let property_list = [];
-            let item_list = [];
-            for (let claim in claims) {
-                property_list.push(claim);
-                let statements = claims[claim];
-                for (let statement in statements) {
-                    let mainsnak = statements[statement]["mainsnak"];
-                    if (mainsnak["datatype"] == "wikibase-item") {
-                        if (!item_list.includes(mainsnak["datavalue"]["value"]["id"])) {
-                            item_list.push(mainsnak["datavalue"]["value"]["id"]);
+    if (value == "true") {
+        $("#entityschema-checkbox").prop('checked', true);
+    } else {
+        $("#entityschema-checkbox").prop('checked', false);
+    }
+
+	if (entityID) {
+        let url = "https://www.wikidata.org/w/api.php?action=wbgetentities&props=claims&format=json&ids=" + entityID;
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: url,
+            success: function(data){
+                let claims = data["entities"][entityID]["claims"];
+                for (let claim in claims) {
+                    property_list.push(claim);
+                    let statements = claims[claim];
+                    for (let statement in statements) {
+                        let mainsnak = statements[statement]["mainsnak"];
+                        if (mainsnak["datatype"] == "wikibase-item") {
+                            if (!item_list.includes(mainsnak["datavalue"]["value"]["id"])) {
+                                item_list.push(mainsnak["datavalue"]["value"]["id"]);
+                            }
                         }
                     }
                 }
+            },
+            complete: function() {
+                check_entity_for_schemas(item_list)
+                check_entity_for_schemas(property_list)
             }
-            for (let item in item_list) {
-                let url3 = "https://www.wikidata.org/w/api.php?action=wbgetclaims&property=P12861&format=json&entity=" + item_list[item];
-                $.ajax({
-                    type: "GET",
-                    dataType: "json",
-                    url: url3,
-                    success: function(data) {
-                        if (data["claims"].hasOwnProperty("P12861")) {
-                            entityschema_list.push(data["claims"]["P12861"][0]["mainsnak"]["datavalue"]["value"]["id"]);
-                        }
-                    }
-                })
-            }
-            for (let item in property_list) {
-                let url3 = "https://www.wikidata.org/w/api.php?action=wbgetclaims&property=P12861&format=json&entity=" + property_list[item];
-                $.ajax({
-                    type: "GET",
-                    dataType: "json",
-                    url: url3,
-                    success: function(data) {
-                        if (data["claims"].hasOwnProperty("P12861")) {
-                            entityschema_list.push(data["claims"]["P12861"][0]["mainsnak"]["datavalue"]["value"]["id"]);
-                        }
-                    }
-                })
-            }
-        }
-    })
+        });
+    }
+});
+
+function check_entity_for_schemas(entity_list) {
+    for (let item in entity_list) {
+        let url = "https://www.wikidata.org/w/api.php?action=wbgetclaims&property=P12861&format=json&entity=" + entity_list[item];
+        $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: url,
+            success: function(data) {
+                if (data["claims"].hasOwnProperty("P12861")) {
+                    entityschema_list.push(data["claims"]["P12861"][0]["mainsnak"]["datavalue"]["value"]["id"]);
+                }
+            },
+        });
+    }
+}
+
+$(document).ajaxStop(function () {
+  if (value == "true") {
+     entityschema_update()
+  }
+  $("#entityschema-entityToCheck:text").val(schema);
+  $(this).unbind('ajaxStop');
 });
 
 let entityschema_conditions = ["/wiki/Q", "/wiki/P", "/wiki/L"];
