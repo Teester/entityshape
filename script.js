@@ -3,8 +3,6 @@ let entityschema_stylesheet = entityschema_getStylesheet();
 $('html > head').append("<style>" + entityschema_stylesheet + "</style>");
 let entityschema_list = [];
 let value = window.localStorage.getItem("entityschema-auto");
-let entityschema_entityName = "";
-let lang = "";
 let schema = window.localStorage.getItem("entityschema");
 
 $(document).ready(function(){
