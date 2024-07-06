@@ -74,6 +74,7 @@ if (entityschema_conditions.some(el => document.location.pathname.includes(el)))
 	let entityschema_entity_html = '<div><span id="entityschema-simpleSearch"><span>';
 	entityschema_entity_html += '<input type="text" id="entityschema-entityToCheck" placeholder="Enter schema to check against e.g. E234" title="Enter 1 or more schemas to check against separated by commas e.g. E10, E236 or press Check to auto-determine schemas to check">';
 	entityschema_entity_html += '<input type="submit" id="entityschema-schemaSearchButton" class="searchButton" name="check" value="Check">';
+	entityschema_entity_html += '<div class="entityshape-spinner" style="display:none"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>'
 	entityschema_entity_html += '</span></span><input type="checkbox" id="entityschema-checkbox">';
 	entityschema_entity_html += '<label for="entityschema-checkbox"><small>Automatically check schema</small></label><span id="entityschemaResponse"></span></div>';
 	$(entityschema_entity_html).insertAfter("#siteSub");
@@ -121,11 +122,17 @@ function entityschema_checkEntity(entity, entitySchema, language) {
 
 	let url = "https://entityshape.toolforge.org/api/v2?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
 	// let url = "http://127.0.0.1:5000/api/v2 ?entityschema=" + entitySchema + "&entity=" + entity + "&language=" + language;
+	console.log("here")
 	$.ajax({
 		type: "GET",
 		dataType: "json",
 		url: url,
+		beforeSend: function() {
+		    $(".entityshape-spinner").show();
+		    console.log("before")
+		},
 		success: function(data){
+		    console.log("success")
 			let html = "";
 			for (let i = 0; i < data.schema.length; i++ ) {
                 if (data.properties[i]) {
@@ -309,6 +316,7 @@ function entityschema_checkEntity(entity, entitySchema, language) {
             html += '</tr></table></div>';
 
             $("#entityschemaResponse" ).append( html );
+            $(".entityshape-spinner").hide();
 		},
 		error: function(data) {
 			$("#entityschemaResponse").append( '<span>Unable to validate schema</span>' );
@@ -344,6 +352,23 @@ function entityschema_getStylesheet() {
 	stylesheet += ".absent .entityschema-missing { display: none;}";
 	stylesheet += ".absent a.is_entityschema-missing { display: none;}";
 	stylesheet += ".entityschema-span { color: #ffffff; padding:2px; margin: 2px; font-size:75%; border-radius:2px; }";
+	stylesheet += ".entityshape-spinner,.entityshape-spinner div,.entityshape-spinner div:after {box-sizing: border-box;}"
+	stylesheet += ".entityshape-spinner { padding-top:5px; padding-bottom:5px; color: currentColor; display: inline-block; position: relative; width: 20px; height: 20px;}"
+	stylesheet += ".entityshape-spinner div { transform-origin: 10px 10px; animation: entityshape-spinner 1.2s linear infinite;}"
+	stylesheet += '.entityshape-spinner div:after { content: " "; display: block; position: absolute; top: 0.8px; left: 9.2px; width: 1.6px; height: 4.4px; border-radius: 20%; background: currentColor;}'
+	stylesheet += ".entityshape-spinner div:nth-child(1) { transform: rotate(0deg); animation-delay: -1.1s;}"
+	stylesheet += ".entityshape-spinner div:nth-child(2) { transform: rotate(30deg); animation-delay: -1s;}"
+	stylesheet += ".entityshape-spinner div:nth-child(3) { transform: rotate(60deg); animation-delay: -0.9s;}"
+	stylesheet += ".entityshape-spinner div:nth-child(4) { transform: rotate(90deg); animation-delay: -0.8s;}"
+	stylesheet += ".entityshape-spinner div:nth-child(5) { transform: rotate(120deg); animation-delay: -0.7s;}"
+	stylesheet += ".entityshape-spinner div:nth-child(6) { transform: rotate(150deg); animation-delay: -0.6s;}"
+	stylesheet += ".entityshape-spinner div:nth-child(7) { transform: rotate(180deg); animation-delay: -0.5s;}"
+	stylesheet += ".entityshape-spinner div:nth-child(8) { transform: rotate(210deg); animation-delay: -0.4s;}"
+	stylesheet += ".entityshape-spinner div:nth-child(9) { transform: rotate(240deg); animation-delay: -0.3s;}"
+	stylesheet += ".entityshape-spinner div:nth-child(10) { transform: rotate(270deg); animation-delay: -0.2s;}"
+	stylesheet += ".entityshape-spinner div:nth-child(11) { transform: rotate(300deg); animation-delay: -0.1s;}"
+	stylesheet += ".entityshape-spinner div:nth-child(12) { transform: rotate(330deg); animation-delay: 0s;}"
+	stylesheet += "@keyframes entityshape-spinner { 0% { opacity: 1; } 100% { opacity: 0; }}"
 	return stylesheet;
 }
 }());
