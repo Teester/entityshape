@@ -171,7 +171,7 @@ function entityschema_checkEntity(entity, entitySchema, language) {
                             response1 = "Not in schema";
                             response_class = "notinschema";
                         }
-                        if ($("#" + key)[0]) {
+                        if (response1 != "Not in schema" && $("#" + key)[0]) {
                             $("#" + key + " .wikibase-statementgroupview-property-label").append("<br class='entityschema-property'/><div style='display:inline-block;' class='entityschema-span entityschema-property entityschema-" + response_class + "' title='" + data.schema[i] + ": " + data.name[i] + "'>" + data.schema[i] + ": " + response1 + "</div>");
                         }
                     }
@@ -263,6 +263,8 @@ function entityschema_checkEntity(entity, entitySchema, language) {
             let optional_html = '<td class="entityschema_table optional">';
             let absent_html = '<td class="entityschema_table absent">';
             if (combined_properties) {
+                let other_array = []
+                let other_array_names = []
                 for (let key in combined_properties) {
                     let shape_html = "";
                     let response1 = combined_properties[key].response.combined;
@@ -297,11 +299,14 @@ function entityschema_checkEntity(entity, entitySchema, language) {
                         response1 = "";
                         shape_html += '<a href="https://www.wikidata.org/wiki/Property:' + key;
                         shape_html +='">'+ key + " - <small>" + combined_properties[key].name + '</small></a><br/>';
+                    } else if (response1 == "Not in schema") {
+                        other_array.push(key)
+                        other_array_names.push(combined_properties[key].name)
                     } else {
                         shape_html += '<span class="entityschema-span entityschema-' + response_class + '">' + response1 + '</span><a href="https://www.wikidata.org/wiki/Property:' + key;
                         shape_html +='" class="is_entityschema-'+ response_class+'">'+ key + " - <small>" + combined_properties[key].name + '</small></a><br/>';
                     }
-                    switch (combined_properties[key].necessity.combined){
+                    switch (combined_properties[key].necessity.combined) {
                         case "required":
                             required_html += shape_html;
                             break;
@@ -313,6 +318,13 @@ function entityschema_checkEntity(entity, entitySchema, language) {
                             break;
                     }
                 }
+                let other_html = "<details><summary>" + other_array.length + " properties not in any schema checked</summary><ul style='list-style-type:none';>";
+                for (let item in other_array) {
+                    other_html += '<li><span class="entityschema-span entityschema-notinschema">Not in schema</span><a href="https://www.wikidata.org/wiki/Property:' + other_array[item];
+                    other_html += '" class="is_entityschema-notinschema">'+ other_array[item] + " - <small>" + other_array_names[item] + '</small></a></li>'
+                }
+                other_html += "</ul></details>"
+                absent_html += other_html
             }
             required_html += "</td>";
             optional_html += "</td>";
