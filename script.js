@@ -23,32 +23,23 @@ $(document).ready(function(){
     } else {
         $("#entityschema-checkbox").prop('checked', false);
     }
-
-	if (entityID) {
-        let url = "https://www.wikidata.org/w/api.php?action=wbgetentities&props=claims&format=json&ids=" + entityID;
-        $.ajax({
-            type: "GET",
-            dataType: "json",
-            url: url,
-            success: function(data){
-                let claims = data["entities"][entityID]["claims"];
-                for (let claim in claims) {
-                    property_list.push(claim);
-                    let statements = claims[claim];
-                    for (let statement in statements) {
-                        let mainsnak = statements[statement]["mainsnak"];
-                        if (mainsnak["datatype"] == "wikibase-item") {
-                            if (!item_list.includes(mainsnak["datavalue"]["value"]["id"])) {
-                                item_list.push(mainsnak["datavalue"]["value"]["id"]);
-                            }
+    if (entityID) {
+        mw.hook( 'wikibase.entityPage.entityLoaded' ).add( function ( data ) {
+            let claims = data["claims"];
+            for (let claim in claims) {
+                property_list.push(claim);
+                let statements = claims[claim];
+                for (let statement in statements) {
+                    let mainsnak = statements[statement]["mainsnak"];
+                    if (mainsnak["datatype"] == "wikibase-item") {
+                        if (!item_list.includes(mainsnak["datavalue"]["value"]["id"])) {
+                            item_list.push(mainsnak["datavalue"]["value"]["id"]);
                         }
                     }
                 }
-            },
-            complete: function() {
-                check_entity_for_schemas(item_list)
-                check_entity_for_schemas(property_list)
             }
+            check_entity_for_schemas(item_list)
+            check_entity_for_schemas(property_list)
         });
     }
 });
