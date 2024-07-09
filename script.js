@@ -43,11 +43,15 @@
     });
 
     mw.hook( 'wikibase.statement.saved' ).add( function ( data ) {
-        entityschema_update();
+        if (value == "true") {
+            entityschema_update();
+        }
     });
 
     mw.hook( 'wikibase.statement.removed' ).add( function ( data ) {
-        entityschema_update();
+        if (value == "true") {
+            entityschema_update();
+        }
     });
 
     function check_entity_for_schemas(entity_list) {
