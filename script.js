@@ -44,6 +44,14 @@ $(document).ready(function(){
     }
 });
 
+mw.hook( 'wikibase.statement.saved' ).add( function ( data ) {
+    entityschema_update();
+}
+
+mw.hook( 'wikibase.statement.removed' ).add( function ( data ) {
+    entityschema_update();
+}
+
 function check_entity_for_schemas(entity_list) {
     for (let item in entity_list) {
         let url = "https://www.wikidata.org/w/api.php?action=wbgetclaims&property=P12861&format=json&entity=" + entity_list[item];
