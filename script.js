@@ -182,9 +182,9 @@
     }
 
     function entityschema_process_combined_properties(properties) {
-        let required_html = '<td class="entityschema_table required">';
-        let optional_html = '<td class="entityschema_table optional">';
-        let absent_html = '<td class="entityschema_table absent">';
+        let required_html = '<td class="entityschema_table required"><ul style="list-style-type:none";>';
+        let optional_html = '<td class="entityschema_table optional"><ul style="list-style-type:none";>';
+        let absent_html = '<td class="entityschema_table absent"><ul style="list-style-type:none";>';
         let other_array = [];
         let other_array_names = [];
         for (let key in properties) {
@@ -224,10 +224,11 @@
                 other_array.push(key);
                 other_array_names.push(properties[key].name);
             } else {
-                shape_html += `<span class="entityschema-span entityschema-${response_class}">${response1}</span>
+                shape_html += `<li class="is_entityschema-${response_class}">
+                               <span class="entityschema-span entityschema-${response_class}">${response1}</span>
                                <a href="https://www.wikidata.org/wiki/Property:${key}"
                                   class="is_entityschema-${response_class}">
-                               ${key} - <small>${properties[key].name}</small></a><br/>`;
+                               ${key} - <small>${properties[key].name}</small></a></li>`
             }
             switch (properties[key].necessity.combined) {
                 case "required":
@@ -249,9 +250,9 @@
                                   class="is_entityschema-notinschema">${other_array[item]} - <small>${other_array_names[item]}</small></a></li>`;
         }
         other_html += "</ul></details>";
-        absent_html += other_html;
-        required_html += "</td>";
-        optional_html += "</td>";
+        absent_html += "</ul>" + other_html;
+        required_html += "</ul></td>";
+        optional_html += "</ul></td>";
         absent_html += "</td>";
         html = required_html + optional_html + absent_html + '</tr></table></div>';
         return html;
