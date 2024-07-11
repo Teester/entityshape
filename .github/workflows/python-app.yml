@@ -41,6 +41,7 @@ jobs:
     - name: Test with unittest
       run: |
         coverage run -m unittest
+        coverage xml
     - name: SonarCloud Scan
       uses: sonarsource/sonarcloud-github-action@master
       env:
