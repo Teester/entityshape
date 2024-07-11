@@ -16,11 +16,7 @@
     let entityID = mw.config.get( 'wbEntityId' );
 
     $(document).ready(function(){
-        if (value == "true") {
-            $("#entityschema-checkbox").prop('checked', true);
-        } else {
-            $("#entityschema-checkbox").prop('checked', false);
-        }
+
         let entityschema_conditions = ["/wiki/Q", "/wiki/P", "/wiki/L"];
         if (entityschema_conditions.some(el => document.location.pathname.includes(el))) {
             let entityschema_entity_html = `<div><span id="entityschema-simpleSearch">
@@ -36,6 +32,11 @@
                                             <label for="entityschema-checkbox"><small>Automatically check schema</small></label>
                                             <span id="entityschemaResponse"></span></div>`;
             $(entityschema_entity_html).insertAfter("#siteSub");
+            if (value == "true") {
+                $("#entityschema-checkbox").prop('checked', true);
+            } else {
+                $("#entityschema-checkbox").prop('checked', false);
+            }
             $("#entityschema-schemaSearchButton").click(function(){ entityschema_update(); });
             $("#entityschema-checkbox").click(function() { entityschema_checkbox(); });
         }
