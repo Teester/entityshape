@@ -80,7 +80,9 @@
                 url: url,
                 success: function(data) {
                     if (data["claims"].hasOwnProperty("P12861")) {
-                        entityschema_list.push(data["claims"]["P12861"][0]["mainsnak"]["datavalue"]["value"]["id"]);
+                        for (let claim in data["claims"]["P12861"]) {
+                            entityschema_list.push(data["claims"]["P12861"][claim]["mainsnak"]["datavalue"]["value"]["id"]);
+                        }
                     }
                 },
             });
