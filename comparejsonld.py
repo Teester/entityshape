@@ -388,10 +388,20 @@ class Utilities:
         :return: necessity
         """
         necessity: str = "absent"
-        if "expression" in shape and "expressions" in shape["expression"]:
+        list_of_expressions: list = []
+
+        if "expression" not in shape:
+            return necessity
+
+        if "expressions" in shape["expression"]:
             for expression in shape["expression"]["expressions"]:
-                if "predicate" in expression and expression["predicate"].endswith(prop):
-                    necessity = self.required_or_absent(expression)
+                list_of_expressions.append(expression)
+        else:
+            list_of_expressions.append(shape["expression"])
+
+        for expression in list_of_expressions:
+            if "predicate" in expression and expression["predicate"].endswith(prop):
+                necessity = self.required_or_absent(expression)
         return necessity
 
     @staticmethod

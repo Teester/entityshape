@@ -339,6 +339,17 @@ class MyTestCase(unittest.TestCase):
                                 follow_redirects=True)
         self.assertIn(response.json["properties"][0]["P31"]["response"], ["not enough correct statements"])
 
+    def test_entityschema_e438(self):
+        """
+        Tests that a schemas with only 1 expression evaluates correctly
+
+        This test tests entityschema E438 (wikimedia disambiguation page) against entity Q11645745.
+        P31 should return as present
+        """
+        response = self.app.get('/api/v2?entityschema=E438&entity=Q11645745&language=en',
+                                follow_redirects=True)
+        self.assertIn(response.json["properties"][0]["P31"]["response"], ["correct", "present"])
+
 
 if __name__ == '__main__':
     unittest.main()
