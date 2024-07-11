@@ -49,7 +49,7 @@
             let statements = claims[claim];
             for (let statement in statements) {
                 let mainsnak = statements[statement]["mainsnak"];
-                if (mainsnak["datatype"] == "wikibase-item") {
+                if (mainsnak["datavalue"] && mainsnak["datatype"] == "wikibase-item") {
                     if (!item_list.includes(mainsnak["datavalue"]["value"]["id"])) {
                         item_list.push(mainsnak["datavalue"]["value"]["id"]);
                     }
