@@ -45,13 +45,13 @@
     mw.hook( 'wikibase.entityPage.entityLoaded' ).add( function ( data ) {
         let claims = data["claims"];
         for (let claim in claims) {
-            property_list.push(claim);
+            property_list.push([claim]);
             let statements = claims[claim];
             for (let statement in statements) {
                 let mainsnak = statements[statement]["mainsnak"];
                 if (mainsnak["datavalue"] && mainsnak["datatype"] == "wikibase-item") {
                     if (!item_list.includes(mainsnak["datavalue"]["value"]["id"])) {
-                        item_list.push(mainsnak["datavalue"]["value"]["id"]);
+                        item_list.push([claim, mainsnak["datavalue"]["value"]["id"]]);
                     }
                 }
             }
@@ -74,15 +74,30 @@
 
     function check_entity_for_schemas(entity_list) {
         for (let item in entity_list) {
-            let url = "https://www.wikidata.org/w/api.php?action=wbgetclaims&property=P12861&format=json&entity=" + entity_list[item];
+            if (entity_list[item][1]) {
+                query_item = entity_list[item][1]
+            } else {
+                query_item = entity_list[item][0]
+            }
+            let url = "https://www.wikidata.org/w/api.php?action=wbgetclaims&property=P12861&format=json&entity=" + query_item;
             $.ajax({
                 type: "GET",
                 dataType: "json",
                 url: url,
                 success: function(data) {
                     if (data["claims"].hasOwnProperty("P12861")) {
-                        for (let claim in data["claims"]["P12861"]) {
-                            entityschema_list.push(data["claims"]["P12861"][claim]["mainsnak"]["datavalue"]["value"]["id"]);
+                        let claims = data["claims"]["P12861"]
+                        for (let claim in claims) {
+                            let qualifiers = claims[claim]["qualifiers"]
+                            if (qualifiers) {
+                                for (let qualifier in qualifiers) {
+                                    if (qualifiers[qualifier][0]["datavalue"]["value"]["id"] == entity_list[item][0]) {
+                                        entityschema_list.push(claims[claim]["mainsnak"]["datavalue"]["value"]["id"]);
+                                    }
+                                }
+                            } else {
+                                entityschema_list.push(claims[claim]["mainsnak"]["datavalue"]["value"]["id"]);
+                            }
                         }
                     }
                 },
