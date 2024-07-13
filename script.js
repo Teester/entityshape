@@ -45,7 +45,7 @@
     mw.hook( 'wikibase.entityPage.entityLoaded' ).add( function ( data ) {
         let claims = data["claims"];
         for (let claim in claims) {
-            property_list.push([claim]);
+            property_list.push([claim, claim]);
             let statements = claims[claim];
             for (let statement in statements) {
                 let mainsnak = statements[statement]["mainsnak"];
@@ -74,12 +74,7 @@
 
     function check_entity_for_schemas(entity_list) {
         for (let item in entity_list) {
-            if (entity_list[item][1]) {
-                query_item = entity_list[item][1]
-            } else {
-                query_item = entity_list[item][0]
-            }
-            let url = "https://www.wikidata.org/w/api.php?action=wbgetclaims&property=P12861&format=json&entity=" + query_item;
+            let url = "https://www.wikidata.org/w/api.php?action=wbgetclaims&property=P12861&format=json&entity=" + entity_list[item][0];
             $.ajax({
                 type: "GET",
                 dataType: "json",
@@ -91,7 +86,7 @@
                             let qualifiers = claims[claim]["qualifiers"]
                             if (qualifiers) {
                                 for (let qualifier in qualifiers) {
-                                    if (qualifiers[qualifier][0]["datavalue"]["value"]["id"] == entity_list[item][0]) {
+                                    if (qualifiers[qualifier][0]["datavalue"]["value"]["id"] == entity_list[item][1]) {
                                         entityschema_list.push(claims[claim]["mainsnak"]["datavalue"]["value"]["id"]);
                                     }
                                 }
