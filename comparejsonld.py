@@ -161,6 +161,7 @@ class CompareProperties:
         self._entity: str = entity
         self._props: list = props
         self._start_shape: dict = start_shape
+        self.responses = {}
 
     def compare_properties(self) -> dict:
         """
@@ -172,6 +173,9 @@ class CompareProperties:
         if self._start_shape is None:
             return properties
         utilities: Utilities = Utilities()
+
+        self.check_props_for_claims()
+
         for prop in self._props:
             child: dict = {"name": self._names[prop],
                            "necessity": utilities.calculate_necessity(prop, self._start_shape)}
@@ -186,6 +190,70 @@ class CompareProperties:
                 child["response"] = response
             properties[prop] = child
         return properties
+
+    def check_props_for_claims(self):
+        if "expressions" in self._start_shape:
+            for expression in self._start_shape["expressions"]:
+                self.process_expression(expression)
+        else:
+            self.process_expression(self._start_shape["expression"])
+        print(json.dumps(self.responses, sort_keys=True, indent=2))
+
+    def process_expression(self, expression: dict):
+        claims: dict = self._entities["entities"][self._entity]["claims"]
+        if "predicate" in expression:
+            if expression["predicate"] not in self.responses:
+                self.responses[expression["predicate"]] = {}
+            self.responses[expression["predicate"]]["in_schema"] = True
+        for claim in claims:
+            if all([f"{Constants.Prefixes.wdt}{claim}", f"{Constants.Prefixes.p}{claim}"]) not in self.responses:
+                self.responses[f"{Constants.Prefixes.wdt}{claim}"] = {}
+            for snaks in claims[claim]:
+                if expression["type"] == "TripleConstraint":
+                    if expression["predicate"] in [f"{Constants.Prefixes.wdt}{claim}",
+                                                   f"{Constants.Prefixes.p}{claim}"]:
+                        self.responses[expression["predicate"]]["in_schema"] = True
+                        self.process_triple_constraint(expression, snaks)
+                elif expression["type"] == "EachOf":
+                    self.process_each_of(expression)
+                else:
+                    self.responses[expression["predicate"]]["in_schema"] = True
+                    self.responses[expression["predicate"]][snaks["id"]] = Constants.Responses.correct
+
+    def process_each_of(self, expression):
+        if "expressions" in expression:
+            for expressiont in expression["expressions"]:
+                self.process_expression((expressiont))
+        else:
+            self.process_expression(expression["expression"])
+
+    def process_triple_constraint(self, expression, snaks):
+        property_id = snaks["mainsnak"]["property"]
+        predicate = [f"{Constants.Prefixes.wdt}{property_id}", f"{Constants.Prefixes.p}{property_id}"]
+        if snaks["mainsnak"]["datatype"] in ["wikibase-item", "wikibase-entity-id]"]:
+            value = snaks["mainsnak"]["datavalue"]["value"]["id"]
+            value_id = f"{Constants.Prefixes.wd}{value}"
+            if expression["predicate"] in predicate:
+                if "valueExpr" not in expression:
+                    response = Constants.Responses.correct
+                elif "type" not in expression["valueExpr"]:
+                    response = Constants.Responses.correct
+                elif expression["valueExpr"]["type"] == "NodeConstraint":
+                    response = self.process_node_constraint(value_id, expression["valueExpr"])
+                else:
+                    response = Constants.Responses.missing
+                    print("not a nodeconstraint or value")
+                self.responses[expression["predicate"]][snaks["id"]] = response
+        elif snaks["mainsnak"]["datatype"] in ["time", "quantity"]:
+            self.responses[expression["predicate"]][snaks["id"]] = Constants.Responses.correct
+        else:
+            print(f"type = {snaks["mainsnak"]["datatype"]}")
+
+    @staticmethod
+    def process_node_constraint(value, node):
+        if value in node["values"]:
+            return Constants.Responses.correct
+        return Constants.Responses.incorrect
 
     def check_claims_for_props(self, claims: dict, prop: str) -> str:
         """"
@@ -462,3 +530,15 @@ class Utilities:
                 else:
                     allowed = "incorrect"
         return allowed
+
+
+class Constants:
+    class Prefixes:
+        wdt: str = "http://www.wikidata.org/prop/direct/"
+        wd:  str = "http://www.wikidata.org/entity/"
+        p:   str = "http://www.wikidata.org/prop/"
+
+    class Responses:
+        correct = "correct"
+        incorrect = "incorrect"
+        missing = "missing"
