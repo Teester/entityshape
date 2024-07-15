@@ -5,6 +5,7 @@ import time
 import unittest
 
 import requests
+import xmlrunner
 
 from app import app
 
@@ -358,4 +359,5 @@ class MyTestCase(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    unittest.main()
+    unittest.main(testRunner=xmlrunner.XMLTestRunner(output='test-reports'),
+                  failfast=False, buffer=False, catchbreak=False)

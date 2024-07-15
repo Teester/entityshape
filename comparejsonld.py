@@ -39,7 +39,7 @@ class CompareJSONLD:
         :return: json for comparison of properties
         """
         props: CompareProperties = CompareProperties(self._entity, self._entities,
-                                                     self._props, self._names, self.start_shape)
+                                                     self._props, self._names, self.start_shape, self._shape)
         return props.compare_properties()
 
     def get_statements(self) -> dict:
@@ -155,12 +155,13 @@ class CompareJSONLD:
 
 class CompareProperties:
 
-    def __init__(self, entity: str, entities: dict, props: list, names: dict, start_shape: dict) -> None:
+    def __init__(self, entity: str, entities: dict, props: list, names: dict, start_shape: dict, shapes: dict) -> None:
         self._entities: dict = entities
         self._names: dict = names
         self._entity: str = entity
         self._props: list = props
         self._start_shape: dict = start_shape
+        self._shapes: dict = shapes
         self.responses = {}
 
     def compare_properties(self) -> dict:
@@ -192,62 +193,113 @@ class CompareProperties:
         return properties
 
     def check_props_for_claims(self):
-        if "expressions" in self._start_shape:
-            for expression in self._start_shape["expressions"]:
-                self.process_expression(expression)
-        else:
-            self.process_expression(self._start_shape["expression"])
+        #print(self._start_shape)
+        #print(self._shapes)
+        self.add_claims_to_response()
+        self.process_expression(self._start_shape)
         print(json.dumps(self.responses, sort_keys=True, indent=2))
 
-    def process_expression(self, expression: dict):
+    def add_claims_to_response(self):
         claims: dict = self._entities["entities"][self._entity]["claims"]
-        if "predicate" in expression:
-            if expression["predicate"] not in self.responses:
-                self.responses[expression["predicate"]] = {}
-            self.responses[expression["predicate"]]["in_schema"] = True
         for claim in claims:
-            if all([f"{Constants.Prefixes.wdt}{claim}", f"{Constants.Prefixes.p}{claim}"]) not in self.responses:
-                self.responses[f"{Constants.Prefixes.wdt}{claim}"] = {}
-            for snaks in claims[claim]:
-                if expression["type"] == "TripleConstraint":
-                    if expression["predicate"] in [f"{Constants.Prefixes.wdt}{claim}",
-                                                   f"{Constants.Prefixes.p}{claim}"]:
-                        self.responses[expression["predicate"]]["in_schema"] = True
-                        self.process_triple_constraint(expression, snaks)
-                elif expression["type"] == "EachOf":
-                    self.process_each_of(expression)
-                else:
-                    self.responses[expression["predicate"]]["in_schema"] = True
-                    self.responses[expression["predicate"]][snaks["id"]] = Constants.Responses.correct
+            self.add_claim_properties_to_response(claim)
 
-    def process_each_of(self, expression):
-        if "expressions" in expression:
-            for expressiont in expression["expressions"]:
-                self.process_expression((expressiont))
+        self.add_shape_properties_to_response(self._start_shape)
+
+        print(self.responses)
+
+    def add_claim_properties_to_response(self, claim):
+        if f"{Constants.Prefixes.wdt}{claim}" not in self.responses:
+            if f"{Constants.Prefixes.p}{claim}" not in self.responses:
+                self.add_expressions_to_response(f"{Constants.Prefixes.wdt}{claim}")
+
+    def add_shape_properties_to_response(self, shape):
+        print("shape")
+        print(f"shape = {shape}")
+        if "expressions" in shape:
+            for expression in shape["expressions"]:
+                print(f"expression = {expression}")
+                self.add_expressions_from_shape(expression)
+        elif "expression" in shape:
+            print(f"expression2 = {shape['expression']}")
+            self.add_expressions_from_shape(shape['expression'])
         else:
-            self.process_expression(expression["expression"])
+            print(f"shape = {shape}")
 
-    def process_triple_constraint(self, expression, snaks):
-        property_id = snaks["mainsnak"]["property"]
+    def add_expressions_from_shape(self, expression):
+        if "predicate" not in expression:
+            if "expressions" in expression:
+                self.add_shape_properties_to_response(expression["expressions"])
+        elif expression["predicate"] not in self.responses:
+            self.add_expressions_to_response(expression["predicate"])
+            self.responses[expression["predicate"]]["in_schema"] = True
+
+    def add_expressions_to_response(self, property_id):
+        self.responses[property_id] = {}
+
+    def process_expression(self, shape: dict):
+        expressions = []
+        if "expressions" in shape:
+            for expression in shape["expressions"]:
+                expressions.append(expression)
+        elif "expression" in shape:
+            expressions.append(shape["expression"])
+        else:
+            print(f"shape = {shape}")
+        for expression in expressions:
+            print(expression)
+            claims: dict = self._entities["entities"][self._entity]["claims"]
+            if "predicate" in expression:
+                if expression["predicate"] not in self.responses:
+                    self.responses[expression["predicate"]] = {}
+                self.responses[expression["predicate"]]["in_schema"] = True
+            for claim in claims:
+                for snak in claims[claim]:
+                    if expression["type"] == "TripleConstraint":
+                        if expression["predicate"] in [f"{Constants.Prefixes.wdt}{claim}",
+                                                       f"{Constants.Prefixes.p}{claim}"]:
+                            self.responses[expression["predicate"]]["in_schema"] = True
+                            self.process_triple_constraint(expression, snak)
+                    elif expression["type"] == "EachOf":
+                        self.process_each_of(expression)
+                    else:
+                        self.responses[expression["predicate"]]["in_schema"] = True
+                        self.responses[expression["predicate"]][snak["id"]] = Constants.Responses.correct
+
+    def process_each_of(self, shape):
+        if "expressions" in shape:
+            for expression in shape["expressions"]:
+                self.process_expression(expression)
+        else:
+            self.process_expression(shape["expression"])
+
+    def process_triple_constraint(self, expression, snak):
+        property_id = snak["mainsnak"]["property"]
         predicate = [f"{Constants.Prefixes.wdt}{property_id}", f"{Constants.Prefixes.p}{property_id}"]
-        if snaks["mainsnak"]["datatype"] in ["wikibase-item", "wikibase-entity-id]"]:
-            value = snaks["mainsnak"]["datavalue"]["value"]["id"]
+        if snak["mainsnak"]["datatype"] in ["wikibase-item", "wikibase-entity-id]"]:
+            value = snak["mainsnak"]["datavalue"]["value"]["id"]
             value_id = f"{Constants.Prefixes.wd}{value}"
             if expression["predicate"] in predicate:
                 if "valueExpr" not in expression:
+                    # any value is valid
                     response = Constants.Responses.correct
                 elif "type" not in expression["valueExpr"]:
-                    response = Constants.Responses.correct
+                    # must conform to a sub-shape
+                    for shape in self._shapes["shapes"]:
+                        if shape["id"] == expression["valueExpr"]:
+                            self.process_expression(shape)
+                    #response = Constants.Responses.correct
                 elif expression["valueExpr"]["type"] == "NodeConstraint":
+                    # must conform to a node constraint
                     response = self.process_node_constraint(value_id, expression["valueExpr"])
                 else:
                     response = Constants.Responses.missing
-                    print("not a nodeconstraint or value")
-                self.responses[expression["predicate"]][snaks["id"]] = response
-        elif snaks["mainsnak"]["datatype"] in ["time", "quantity"]:
-            self.responses[expression["predicate"]][snaks["id"]] = Constants.Responses.correct
+                    print("not a node constraint or value")
+                self.responses[expression["predicate"]][snak["id"]] = response
+        elif snak["mainsnak"]["datatype"] in ["time", "quantity", "commonsMedia", "globe-coordinate"]:
+            self.responses[expression["predicate"]][snak["id"]] = Constants.Responses.correct
         else:
-            print(f"type = {snaks["mainsnak"]["datatype"]}")
+            print(f'type = {snak["mainsnak"]["datatype"]}')
 
     @staticmethod
     def process_node_constraint(value, node):
