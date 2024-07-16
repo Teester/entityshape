@@ -10,6 +10,7 @@ from flask_cors import CORS
 from requests import Response
 
 from comparejsonld import CompareJSONLD
+from comparejsonld2 import CompareJSONLD2
 from compareshape import CompareShape
 from shape import Shape
 
@@ -79,6 +80,56 @@ def v2():
         for schema in schema_list:
             shape: Shape = Shape(schema, language)
             comparison: CompareJSONLD = CompareJSONLD(shape.get_json_ld(), entity, language)
+            names.append(shape.get_name())
+            general.append(comparison.get_general())
+            properties.append(comparison.get_properties())
+            statements.append(comparison.get_statements())
+        payload: dict = {'schema': schema_list,
+                         'name': names,
+                         'validity': valid,
+                         'general': general,
+                         'properties': properties,
+                         'statements': statements,
+                         'error': ""}
+        status: int = 200
+    except (AttributeError, TypeError, KeyError, IndexError) as exception:
+        payload: dict = {'schema': "",
+                         'name': "",
+                         'validity': "",
+                         'general': "",
+                         'properties': "",
+                         'statements': "",
+                         'error': "An error has occurred while translating this schema"}
+        status = 500
+        print(f"Schema: {schema} - {type(exception).__name__}: {exception}")
+    response: Response = app.response_class(response=json.dumps(payload),
+                                            status=status,
+                                            mimetype="application/json")
+    return response
+
+
+@app.route("/api/v3")
+def v3():
+    """
+    Compares an entityschema with a wikidata item
+    :return: a response to the query
+    """
+    schema: str = request.args.get("entityschema", type=str)
+    schema_list: list = schema.split(', ')
+    entity: str = request.args.get("entity", type=str)
+    if "Lexeme" in entity:
+        entity = entity[7:]
+    language: str = request.args.get("language", type=str)
+    try:
+        # valid: dict = check_against_pyshexy(schema, entity)
+        valid: dict = {}
+        names: list = []
+        general: list = []
+        properties: list = []
+        statements: list = []
+        for schema in schema_list:
+            shape: Shape = Shape(schema, language)
+            comparison: CompareJSONLD2 = CompareJSONLD2(shape.get_json_ld(), entity, language)
             names.append(shape.get_name())
             general.append(comparison.get_general())
             properties.append(comparison.get_properties())
