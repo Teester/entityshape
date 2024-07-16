@@ -212,6 +212,19 @@ class MyTestCase(unittest.TestCase):
                 self.assertEqual(response.json["properties"][0][prop]["response"],
                                  response2.json["properties"][prop]["response"])
 
+    def test_entityschema_e236_3(self):
+        """
+        Tests results in v2 vs v3 of api.
+
+        responses should be identical
+        """
+        response = self.app.get('/api/v2?entityschema=E236&entity=Q185272&language=en',
+                                follow_redirects=True)
+        response2 = self.app.get('/api/v3?entityschema=E236&entity=Q185272&language=en',
+                                 follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(response2.json["properties"][0], response.json["properties"][0])
+
     def test_entityschema_e239(self):
         """
         Tests that blank schemas doesn't fail
