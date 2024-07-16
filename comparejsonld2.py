@@ -1,9 +1,6 @@
 """
 A class to compare a wikidata entity with a JSON-LD representation of an entityschema
 """
-import json
-from typing import Tuple, Any
-
 import requests
 from requests import Response
 
@@ -23,26 +20,32 @@ class CompareJSONLD2:
         """
         self._entity: str = entity
         self._shape: dict = shape
-        self._property_responses: dict = {}
 
-        self.response = SetupResponse(entity, shape, language)
-        self._entities = self.response.get_entities()
+        self.response: SetupResponse = SetupResponse(entity, shape, language)
+
+        self._entity: str = self.response.get_entity()
+        self._entities: dict = self.response.get_entities()
+        self._names: dict = self.response.get_names()
+        self._responses: dict = self.response.get_response()
+        self._shapes: dict = self.response.get_shapes()
+        self._start_shape: dict = self.response.get_start_shape()
+        self._statements: dict = self.response.get_statements()
+
+        self._check_props_for_claims()
 
     def get_properties(self) -> dict:
         """
         Gets the result of comparison for each property with the schema
         :return: json for comparison of properties
         """
-        props: CompareProperties = CompareProperties(self.response)
-        return props.compare_properties()
+        return self._properties
 
     def get_statements(self) -> dict:
         """
         Gets the result of comparison of each statement with the schema
         :return: json for comparison of statements
         """
-        statements: CompareStatements = CompareStatements(self.response)
-        return statements.compare_statements()
+        return self._statements
 
     def get_general(self) -> dict:
         """
@@ -54,7 +57,7 @@ class CompareJSONLD2:
         properties: list = ["lexicalCategory", "language"]
         for item in properties:
             if "shapes" in self._shape:
-                data_string: str = json.dumps(self._shape["shapes"])
+                data_string: str = self._shape["shapes"]
                 if item in data_string and item in self._entities["entities"][self._entity]:
                     general[item] = "incorrect"
                     expected: list = self._shape["shapes"]
@@ -63,32 +66,11 @@ class CompareJSONLD2:
                         general[item] = "correct"
         return general
 
-
-class CompareProperties:
-
-    def __init__(self, response) -> None:
-        self.results: dict = {}
-
-        self._shapes: dict = response.get_shapes()
-        self._entity: str = response.get_entity()
-        self._entities: dict = response.get_entities()
-        self._responses: dict = response.get_response()
-        self._start_shape: dict = response.get_start_shape()
-        self._names: dict = response.get_names()
-
-    def compare_properties(self) -> dict:
-        """
-
-        :return:
-        """
-        self._check_props_for_claims()
-        return self.results
-
-    def _check_props_for_claims(self):
+    def _check_props_for_claims(self) -> None:
         self._process_expression(self._start_shape)
         self._process_responses()
 
-    def _process_expression(self, shape: dict):
+    def _process_expression(self, shape: dict) -> None:
         expressions = self._get_list_of_expressions(shape)
 
         for expression in expressions:
@@ -97,7 +79,7 @@ class CompareProperties:
                 for snak in claims[claim]:
                     self._process_claims(expression, claim, snak)
 
-    def _process_claims(self, expression, claim, snak):
+    def _process_claims(self, expression: dict, claim: str, snak: dict) -> None:
         if expression["type"] == "TripleConstraint":
             if expression["predicate"] in [f"{Constants.Prefixes.wdt}{claim}",
                                            f"{Constants.Prefixes.p}{claim}"]:
@@ -105,11 +87,11 @@ class CompareProperties:
         elif expression["type"] == "EachOf":
             self._process_each_of(expression)
         else:
-            self._responses[expression["predicate"]][snak["id"]] = Constants.Responses.correct
+            self._update_results(expression["predicate"], snak["id"], Constants.Responses.correct)
 
     @staticmethod
-    def _get_list_of_expressions(shape):
-        expressions = []
+    def _get_list_of_expressions(shape: dict) -> list:
+        expressions: list = []
         if "expressions" in shape:
             for expression in shape["expressions"]:
                 expressions.append(expression)
@@ -119,30 +101,34 @@ class CompareProperties:
             expressions.append(shape)
         return expressions
 
-    def _process_each_of(self, shape):
+    def _process_each_of(self, shape: dict) -> None:
         if "expressions" in shape:
             for expression in shape["expressions"]:
                 self._process_expression(expression)
         else:
             self._process_expression(shape["expression"])
 
-    def _process_triple_constraint(self, expression, snak):
-        property_id = snak["mainsnak"]["property"]
+    def _process_triple_constraint(self, expression: dict, snak: dict) -> None:
+        property_id: str = snak["mainsnak"]["property"]
         if snak["mainsnak"]["datatype"] in ["wikibase-item", "wikibase-entity-id]"]:
             if snak["mainsnak"]["datatype"] == "wikibase-item":
-                predicate = f"{Constants.Prefixes.wdt}{property_id}"
+                predicate: str = f"{Constants.Prefixes.wdt}{property_id}"
             else:
-                predicate = f"{Constants.Prefixes.p}{property_id}"
-            value = snak["mainsnak"]["datavalue"]["value"]["id"]
-            value_id = f"{Constants.Prefixes.wd}{value}"
-            response = self._process_wikidata_item(expression, predicate, value_id)
-            self._responses[expression["predicate"]][snak["id"]] = response
+                predicate: str = f"{Constants.Prefixes.p}{property_id}"
+            value: str = snak["mainsnak"]["datavalue"]["value"]["id"]
+            value_id: str = f"{Constants.Prefixes.wd}{value}"
+            response: str = self._process_wikidata_item(expression, predicate, value_id)
+            self._update_results(expression["predicate"], snak["id"], response)
         elif snak["mainsnak"]["datatype"] in ["time", "quantity", "commonsMedia", "globe-coordinate", "external-id"]:
-            self._responses[expression["predicate"]][snak["id"]] = Constants.Responses.present
+            self._update_results(expression["predicate"], snak["id"], Constants.Responses.present)
         else:
             print(f'type = {snak["mainsnak"]["datatype"]}')
 
-    def _process_wikidata_item(self, expression, predicate, value_id):
+    def _update_results(self, predicate: dict, snak: dict, response: str) -> None:
+        self._responses[predicate][snak] = response
+        self._statements[snak]["response"] = response
+
+    def _process_wikidata_item(self, expression: dict, predicate: str, value_id: str) -> str:
         if expression["predicate"] not in predicate:
             return Constants.Responses.missing
         if "valueExpr" not in expression:
@@ -161,20 +147,20 @@ class CompareProperties:
             return Constants.Responses.missing
 
     @staticmethod
-    def _process_node_constraint(value, node):
+    def _process_node_constraint(value: str, node: dict) -> str:
         if value in node["values"]:
             return Constants.Responses.correct
         return Constants.Responses.incorrect
 
-    def _process_responses(self):
-        responses = {}
+    def _process_responses(self) -> None:
+        responses: dict = {}
         for expression in self._start_shape["expression"]["expressions"]:
-            cardinality = self._process_cardinality(expression)
+            cardinality: str = self._process_cardinality(expression)
+            necessity: str = self.get_necessity(expression)
             if "extra" in self._start_shape:
                 if expression["predicate"] in self._start_shape["extra"]:
                     cardinality = Constants.Responses.correct
-            necessity = Utilities.get_necessity(expression)
-            predicate = expression["predicate"].removeprefix(Constants.Prefixes.wdt)
+            predicate: str = expression["predicate"].removeprefix(Constants.Prefixes.wdt)
             predicate = predicate.removeprefix(Constants.Prefixes.p)
             if expression["predicate"] not in responses:
                 responses[predicate] = {}
@@ -186,11 +172,11 @@ class CompareProperties:
                 responses[claim]["necessity"] = Constants.Necessities.absent
         for response in responses:
             responses[response]["name"] = self._names[response]
-        self.results = responses
+        self._properties = responses
 
     def _process_cardinality(self, expression: dict) -> str:
-        cardinality_result = Constants.Responses.correct
-        cardinality = len(self._responses[expression["predicate"]])
+        cardinality_result: str = Constants.Responses.correct
+        cardinality: int = len(self._responses[expression["predicate"]])
         if self._responses[expression["predicate"]]["in_schema"]:
             cardinality = cardinality - 1
         maximum_allowed_cardinality = 1
@@ -207,171 +193,9 @@ class CompareProperties:
             cardinality_result = Constants.Responses.not_enough
         return cardinality_result
 
-
-class CompareStatements:
-
-    def __init__(self, response) -> None:
-        self._entity: str = response.get_entity()
-        self._entities: dict = response.get_entities()
-        self.start_shape: dict = response.get_start_shape()
-        self._statements = response.get_statements()
-
-    def compare_statements(self) -> dict:
-        """
-        Compares the statements with the shape
-
-        :return: statements
-        """
-        statements: dict = {}
-        claims: dict = self._entities["entities"][self._entity]['claims']
-        for claim in claims:
-            property_statement_results: list = []
-            for statement in claims[claim]:
-                child: dict = {"property": claim}
-                necessity = self.calculate_necessity(statement["mainsnak"]["property"], self.start_shape)
-                if necessity != Constants.Responses.absent:
-                    child["necessity"] = necessity
-                child, allowed = self._process_shape(statement["mainsnak"], self.start_shape, child)
-                statements[statement["id"]] = child
-                if allowed.startswith(Constants.Responses.missing):
-                    allowed = Constants.Responses.incorrect
-                property_statement_results.append(allowed)
-        print(statements)
-        return statements
-
-    def _process_shape(self, statement: dict, shape: dict, child: dict) -> Tuple[Any, str]:
-        """
-        Processes a full shape
-
-        :param statement: The entity's statement to be assessed
-        :param shape: The shape to be assessed against
-        :param child: The current response from the assessment
-        :return: child and allowed
-        """
-        expressions: dict = {}
-        if "expression" in shape and "expressions" in shape["expression"]:
-            expressions = shape["expression"]["expressions"]
-        allowed: str = Constants.Responses.not_in_schema
-        for expression in expressions:
-            allowed = self.process_expressions(expression, shape, statement, allowed)
-        if allowed != "":
-            child["response"] = allowed
-        return child, allowed
-
-    def process_expressions(self, expression: dict, shape: dict, statement: dict, allowed: str) -> str:
-        if expression["type"] == "TripleConstraint" and expression["predicate"].endswith(statement["property"]):
-            allowed = self._process_triple_constraint(statement,
-                                                      expression,
-                                                      allowed)
-            if "extra" in shape:
-                for extra in shape["extra"]:
-                    if extra.endswith(statement["property"]) and allowed == Constants.Responses.incorrect:
-                        allowed = Constants.Responses.allowed
-        return allowed
-
-    def _process_triple_constraint(self, statement: dict, expression: dict, allowed: str) -> str:
-        """
-        Processes triple constraint expression types in the shape
-
-        :param statement: The entity's statement to be assessed
-        :param expression: The expression from the shape to be assessed against
-        :param allowed: Whether the statement is allowed by the expression or not currently
-        :return: allowed
-        """
-        statement_property: str = statement["property"]
-        if "predicate" in expression and \
-                expression["predicate"].endswith(statement_property):
-            allowed = Constants.Responses.allowed
-            self.process_cardinalities(expression, {"mainsnak": statement})
-            try:
-                if expression["valueExpr"]["type"] == "NodeConstraint":
-                    allowed = self.process_node_constraint(statement,
-                                                           expression["valueExpr"],
-                                                           allowed)
-            except (KeyError, TypeError):
-                pass
-        return allowed
-
-    @staticmethod
-    def calculate_necessity(prop: str, shape: dict) -> str:
-        """
-        Check if a property is required, optional or absent from a shape
-
-        :param str prop: the property to be checked
-        :param dict shape: the shape to check against
-        :return: necessity
-        """
-        necessity: str = "absent"
-        list_of_expressions: list = []
-
-        if "expression" not in shape:
-            return necessity
-
-        if "expressions" in shape["expression"]:
-            for expression in shape["expression"]["expressions"]:
-                list_of_expressions.append(expression)
-        else:
-            list_of_expressions.append(shape["expression"])
-
-        for expression in list_of_expressions:
-            if "predicate" in expression and expression["predicate"].endswith(prop):
-                necessity = Utilities.get_necessity(expression)
-        return necessity
-
-    @staticmethod
-    def process_cardinalities(expression: dict, claim: dict) -> str:
-        """
-        Processes cardinalities in expressions
-
-        :return: cardinality
-        """
-        cardinality: str = Constants.Responses.correct
-        min_cardinality: bool = True
-        max_cardinality: bool = True
-        max_card: int = 1
-        min_card: int = 1
-        if "max" in expression:
-            max_card = expression["max"]
-        if "min" in expression:
-            min_card = expression["min"]
-        if max_card < len(claim):
-            max_cardinality = False
-        if min_card > len(claim):
-            min_cardinality = False
-        if max_card == -1:
-            max_cardinality = True
-        if min_card == -1:
-            min_cardinality = True
-        if min_cardinality and not max_cardinality:
-            cardinality = Constants.Responses.too_many
-        if max_cardinality and not min_cardinality:
-            cardinality = Constants.Responses.not_enough
-        return cardinality
-
-    @staticmethod
-    def process_node_constraint(statement: dict, expression: dict, allowed: str) -> str:
-        """
-        Processes node constraint expression types in the shape
-
-        :param dict statement: The entity's statement to be assessed
-        :param dict expression: The expression from the shape to be assessed against
-        :param str allowed: Whether the statement is allowed by the expression or not currently
-        :return: allowed
-        """
-        if statement["snaktype"] == "value" and statement["datavalue"]["type"] == "wikibase-entityid":
-            obj = f'{Constants.Prefixes.wd}{statement["datavalue"]["value"]["id"]}'
-            if "values" in expression:
-                if obj in expression["values"]:
-                    allowed = Constants.Responses.correct
-                else:
-                    allowed = Constants.Responses.incorrect
-        return allowed
-
-
-class Utilities:
     @staticmethod
     def get_necessity(expression: dict) -> str:
-        necessity_result = Constants.Necessities.required
+        necessity_result: str = Constants.Necessities.required
         if "min" in expression and expression["min"] == 0:
             necessity_result = Constants.Necessities.optional
             if "max" in expression and expression["max"] == 0:
@@ -382,42 +206,41 @@ class Utilities:
 class Constants:
     class Prefixes:
         wdt: str = "http://www.wikidata.org/prop/direct/"
-        wd:  str = "http://www.wikidata.org/entity/"
-        p:   str = "http://www.wikidata.org/prop/"
+        wd: str = "http://www.wikidata.org/entity/"
+        p: str = "http://www.wikidata.org/prop/"
 
     class Responses:
-        absent = "absent"
-        allowed = "allowed"
-        correct = "correct"
-        incorrect = "incorrect"
-        missing = "missing"
-        not_enough = "not enough statements"
-        not_in_schema = "not in schema"
-        present = "present"
-        too_many = "too many statements"
+        absent: str = "absent"
+        allowed: str = "allowed"
+        correct: str = "correct"
+        incorrect: str = "incorrect"
+        missing: str = "missing"
+        not_enough: str = "not enough statements"
+        not_in_schema: str = "not in schema"
+        present: str = "present"
+        too_many: str = "too many statements"
 
     class Necessities:
-        required = "required"
-        optional = "optional"
-        not_allowed = "not allowed"
-        absent = "absent"
+        required: str = "required"
+        optional: str = "optional"
+        not_allowed: str = "not allowed"
+        absent: str = "absent"
 
 
 class SetupResponse:
     """
     This class downloads the entity being checked and sets up the structures needed for processing shapes
     """
-    def __init__(self, entity, shapes, language):
-        self._entity = entity
+    def __init__(self, entity: str, shapes: dict, language: str) -> None:
+        self._entity: str = entity
         self._get_entity_json()
-        self._shapes = shapes
-        self._language = language
-        self._responses = {}
-        self._start_shape = {}
-        self._names = {}
-        self._statements = {}
-        self._props = []
-        self._get_start_shape()
+        self._shapes: dict = shapes
+        self._language: str = language
+        self._responses: dict = {}
+        self._start_shape: dict = self._get_start_shape()
+        self._names: dict = {}
+        self._statements: dict = {}
+        self._props: list = []
         self._add_claims_to_response()
         self._get_property_names()
         self._get_statements()
@@ -440,7 +263,7 @@ class SetupResponse:
     def get_shapes(self) -> dict:
         return self._shapes
 
-    def get_statements(self):
+    def get_statements(self) -> dict:
         return self._statements
 
     def _add_claims_to_response(self) -> None:
@@ -475,20 +298,20 @@ class SetupResponse:
 
     def _add_expressions_to_response(self, property_id: str) -> None:
         self._responses[property_id] = {}
-        prop = property_id.removeprefix(Constants.Prefixes.wdt)
+        prop: str = property_id.removeprefix(Constants.Prefixes.wdt)
         prop = prop.removeprefix(Constants.Prefixes.p)
         self._props.append(prop)
 
-    def _get_start_shape(self) -> None:
+    def _get_start_shape(self) -> dict:
         if "start" not in self._shapes:
-            self._start_shape = {}
+            return {}
         if "shapes" not in self._shapes:
-            self._start_shape = {}
+            return {}
 
         start: dict = self._shapes['start']
         for shape in self._shapes['shapes']:
             if shape["id"] == start:
-                self._start_shape = shape
+                return shape
 
     def _get_property_names(self) -> None:
         """
@@ -507,7 +330,7 @@ class SetupResponse:
             response: Response = requests.get(url)
             json_text: dict = response.json()
             for item in element:
-                entity = json_text["entities"][item]
+                entity: dict = json_text["entities"][item]
                 if "labels" in entity and self._language in entity["labels"]:
                     self._names[entity["id"]] = entity["labels"][self._language]["value"]
                 else:
@@ -521,9 +344,9 @@ class SetupResponse:
         response: Response = requests.get(url)
         self._entities = response.json()
 
-    def _get_statements(self):
+    def _get_statements(self) -> None:
         for claim in self._entities:
-            property_id = self._entities[claim][self._entity]["claims"]
+            property_id: dict = self._entities[claim][self._entity]["claims"]
             for prop in property_id:
                 for snak in property_id[prop]:
                     self._statements[snak["id"]] = {}
