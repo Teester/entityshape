@@ -74,7 +74,6 @@ class CompareJSONLD2:
 
     def _process_expression(self, shape: dict) -> None:
         expressions = self._get_list_of_expressions(shape)
-
         for expression in expressions:
             claims: dict = self._entities["entities"][self._entity]["claims"]
             for claim in claims:
@@ -82,14 +81,18 @@ class CompareJSONLD2:
                     self._process_claims(expression, claim, snak)
 
     def _process_claims(self, expression: dict, claim: str, snak: dict) -> None:
-        if expression["type"] == "TripleConstraint":
-            if expression["predicate"] in [f"{Constants.Prefixes.wdt}{claim}",
-                                           f"{Constants.Prefixes.p}{claim}"]:
-                self._process_triple_constraint(expression, snak)
-        elif expression["type"] == "EachOf":
-            self._process_each_of(expression)
-        else:
-            self._update_results(expression["predicate"], snak["id"], Constants.Responses.correct)
+        if "type" in expression:
+            if expression["type"] == "TripleConstraint":
+                if expression["predicate"] in [f"{Constants.Prefixes.wdt}{claim}",
+                                               f"{Constants.Prefixes.p}{claim}"]:
+                    self._process_triple_constraint(expression, snak)
+            elif expression["type"] == "EachOf":
+                self._process_each_of(expression)
+            elif expression["type"] == "OneOf":
+                self._process_one_of(expression)
+            else:
+                if "predicate" in expression:
+                    self._update_results(expression["predicate"], snak["id"], Constants.Responses.correct)
 
     @staticmethod
     def _get_list_of_expressions(shape: dict) -> list:
@@ -110,6 +113,13 @@ class CompareJSONLD2:
         else:
             self._process_expression(shape["expression"])
 
+    def _process_one_of(self, shape: dict) -> None:
+        if "expressions" in shape:
+            for expression in shape["expressions"]:
+                self._process_expression(expression)
+        else:
+            self._process_expression(shape["expression"])
+
     def _process_triple_constraint(self, expression: dict, snak: dict) -> None:
         property_id: str = snak["mainsnak"]["property"]
         if snak["mainsnak"]["datatype"] in ["wikibase-item", "wikibase-entity-id]"]:
@@ -121,7 +131,12 @@ class CompareJSONLD2:
             value_id: str = f"{Constants.Prefixes.wd}{value}"
             response: str = self._process_wikidata_item(expression, predicate, value_id)
             self._update_results(expression["predicate"], snak["id"], response)
-        elif snak["mainsnak"]["datatype"] in ["time", "quantity", "commonsMedia", "globe-coordinate", "external-id"]:
+        elif snak["mainsnak"]["datatype"] in ["time",
+                                              "quantity",
+                                              "commonsMedia",
+                                              "globe-coordinate",
+                                              "external-id",
+                                              "url"]:
             self._update_results(expression["predicate"], snak["id"], Constants.Responses.present)
         else:
             print(f'type = {snak["mainsnak"]["datatype"]}')
@@ -155,40 +170,57 @@ class CompareJSONLD2:
         return Constants.Responses.incorrect
 
     def _process_responses(self) -> None:
-        print(self._responses)
         responses: dict = {}
-        for expression in self._start_shape["expression"]["expressions"]:
-            response: str = Constants.Responses.missing
-            print(self._responses[expression["predicate"]])
-            true = countOf(self._responses[expression["predicate"]].values(), Constants.Responses.correct)
-            print(true)
-            if Constants.Responses.correct in self._responses[expression["predicate"]].values():
-                response = Constants.Responses.correct
-            elif Constants.Responses.present in self._responses[expression["predicate"]].values():
-                response = Constants.Responses.present
-            cardinality: str = self._process_cardinality(expression)
-            necessity: str = self.get_necessity(expression)
-            if "extra" in self._start_shape:
-                if expression["predicate"] in self._start_shape["extra"]:
-                    cardinality = Constants.Responses.correct
-            predicate: str = expression["predicate"].removeprefix(Constants.Prefixes.wdt)
-            predicate = predicate.removeprefix(Constants.Prefixes.p)
-            if predicate not in responses:
-                responses[predicate] = {}
-            responses[predicate]["necessity"] = necessity
-            if cardinality == Constants.Responses.correct:
-                responses[predicate]["response"] = response
+        expression_list: list = []
+        if "expression" in self._start_shape:
+            if "expressions" in self._start_shape["expression"]:
+                expression_list = self._get_list_of_expressions(self._start_shape["expression"])
             else:
-                responses[predicate]["response"] = cardinality
-        for claim in self._entities["entities"][self._entity]["claims"]:
-            if claim not in responses:
-                responses[claim] = {}
-                responses[claim]["necessity"] = Constants.Necessities.absent
-        for response in responses:
-            responses[response]["name"] = self._names[response]
+                expression_list.append(self._start_shape["expression"])
+            for expression in expression_list:
+                if "predicate" in expression:
+                    response: str = Constants.Responses.missing
+                    true = countOf(self._responses[expression["predicate"]].values(), Constants.Responses.correct)
+                    if Constants.Responses.correct in self._responses[expression["predicate"]].values():
+                        response = Constants.Responses.correct
+                    elif Constants.Responses.present in self._responses[expression["predicate"]].values():
+                        response = Constants.Responses.present
+                    cardinality: str = self._process_cardinality(expression)
+                    necessity: str = self.get_necessity(expression)
+                    if "extra" in self._start_shape:
+                        if expression["predicate"] in self._start_shape["extra"]:
+                            cardinality = Constants.Responses.correct
+                    predicate: str = expression["predicate"].removeprefix(Constants.Prefixes.wdt)
+                    predicate = predicate.removeprefix(Constants.Prefixes.p)
+                    if predicate not in responses:
+                        responses[predicate] = {}
+                    responses[predicate]["necessity"] = necessity
+                    if cardinality == Constants.Responses.correct:
+                        responses[predicate]["response"] = response
+                    else:
+                        responses[predicate]["response"] = cardinality
+            for claim in self._entities["entities"][self._entity]["claims"]:
+                if claim not in responses:
+                    responses[claim] = {}
+                    responses[claim]["necessity"] = Constants.Necessities.absent
+                    if cardinality == Constants.Responses.not_allowed:
+                        responses[claim]["necessity"] = Constants.Responses.not_allowed
+            for response in responses:
+                responses[response]["name"] = self._names[response]
         self._properties = responses
 
     def _process_cardinality(self, expression: dict) -> str:
+        """Checks whether the cardinality of a schema expression matches the result with the matching predicate
+          - Gets the predicate of the expression
+          - Gets the matching predicate from the responses, which contains a list of the matching statements and whether they are correct or not
+          - Gets max and min from the expression (if they exist) and checks if the number of statements fall in this range
+
+          - If there are no max or min, then max and min are assumed to be 1
+          - If max is -1, then max is assumed to be infinite
+
+        :param expression: The schema expression to be evaluated
+        :return: cardinality (correct, too many, not enough or not allowed)
+        """
         cardinality_result: str = Constants.Responses.correct
         cardinality: int = len(self._responses[expression["predicate"]])
         if self._responses[expression["predicate"]]["in_schema"]:
@@ -205,10 +237,21 @@ class CompareJSONLD2:
             cardinality_result = Constants.Responses.too_many
         if cardinality < minimum_allowed_cardinality:
             cardinality_result = Constants.Responses.not_enough
+        if maximum_allowed_cardinality == 0:
+            cardinality_result = Constants.Responses.not_allowed
         return cardinality_result
 
     @staticmethod
     def get_necessity(expression: dict) -> str:
+        """Checks whether the necessity of a schema expression matches the result with the matching predicate
+            - Gets the predicate of the expression
+            - Gets max and min from the expression (if they exist)
+            - If min is 1 or greater, statements are required
+            - if max is 0, statements are not allowed
+            - Otherwise, statements are optional
+        :param expression: The schema expression to be evaluated
+        :return: necessity (required, optional or not allowed)
+        """
         necessity_result: str = Constants.Necessities.required
         if "min" in expression and expression["min"] == 0:
             necessity_result = Constants.Necessities.optional
@@ -218,23 +261,28 @@ class CompareJSONLD2:
 
 
 class Constants:
+    """Constants used within the entityshape api"""
     class Prefixes:
+        """Prefixes used in entityschemas"""
         wdt: str = "http://www.wikidata.org/prop/direct/"
         wd: str = "http://www.wikidata.org/entity/"
         p: str = "http://www.wikidata.org/prop/"
 
     class Responses:
+        """allowed responses by the api"""
         absent: str = "absent"
         allowed: str = "allowed"
         correct: str = "correct"
         incorrect: str = "incorrect"
         missing: str = "missing"
+        not_allowed: str = "not allowed"
         not_enough: str = "not enough statements"
         not_in_schema: str = "not in schema"
         present: str = "present"
         too_many: str = "too many statements"
 
     class Necessities:
+        """allowed necessity values"""
         required: str = "required"
         optional: str = "optional"
         not_allowed: str = "not allowed"
@@ -260,24 +308,52 @@ class SetupResponse:
         self._get_statements()
 
     def get_response(self) -> dict:
+        """
+
+        :return: A dict containing each property in the schema and entity being checked
+        """
         return self._responses
 
     def get_start_shape(self) -> dict:
+        """
+
+        :return: The shape matching the start value of the schema
+        """
         return self._start_shape
 
     def get_entity(self) -> str:
+        """
+
+        :return: the entity being checked
+        """
         return self._entity
 
     def get_names(self) -> dict:
+        """
+
+        :return: A list of names of properties localised into the supplied language
+        """
         return self._names
 
     def get_entities(self) -> dict:
+        """
+
+        :return: The dict of claims in the entity being checked
+        """
         return self._entities
 
     def get_shapes(self) -> dict:
+        """
+
+        :return: A dict of shapes in the schema
+        """
         return self._shapes
 
     def get_statements(self) -> dict:
+        """
+
+        :return: A dict containing each statement in the entity being checked
+        """
         return self._statements
 
     def _add_claims_to_response(self) -> None:
@@ -344,11 +420,12 @@ class SetupResponse:
             response: Response = requests.get(url)
             json_text: dict = response.json()
             for item in element:
-                entity: dict = json_text["entities"][item]
-                if "labels" in entity and self._language in entity["labels"]:
-                    self._names[entity["id"]] = entity["labels"][self._language]["value"]
-                else:
-                    self._names[entity["id"]] = ""
+                if "entities" in json_text:
+                    entity: dict = json_text["entities"][item]
+                    if "labels" in entity and self._language in entity["labels"]:
+                        self._names[entity["id"]] = entity["labels"][self._language]["value"]
+                    else:
+                        self._names[entity["id"]] = ""
 
     def _get_entity_json(self) -> None:
         """
