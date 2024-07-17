@@ -218,14 +218,12 @@ class MyTestCase(unittest.TestCase):
 
         responses should be identical
         """
-        response = self.app.get('/api/v2?entityschema=E236&entity=Q185272&language=en',
-                                follow_redirects=True)
-        response2 = self.app.get('/api/v3?entityschema=E236&entity=Q185272&language=en',
-                                 follow_redirects=True)
-        self.assertEqual(response2.status_code, response.status_code)
-        self.assertEqual(response2.json["general"][0], response.json["general"][0])
-        self.assertEqual(response2.json["properties"][0], response.json["properties"][0])
-        self.assertEqual(response2.json["statements"][0], response.json["statements"][0])
+        response1 = self.app.get('/api/v2?entityschema=E236&entity=Q185272&language=en', follow_redirects=True)
+        response2 = self.app.get('/api/v3?entityschema=E236&entity=Q185272&language=en', follow_redirects=True)
+        self.assertEqual(response2.status_code, response1.status_code)
+        self.assertEqual(response2.json["general"][0], response1.json["general"][0])
+        self.assertEqual(response2.json["properties"][0], response1.json["properties"][0])
+        self.assertEqual(response2.json["statements"][0], response1.json["statements"][0])
 
     def test_entityschema_e239(self):
         """
