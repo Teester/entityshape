@@ -1,6 +1,8 @@
 """
 A class to compare a wikidata entity with a JSON-LD representation of an entityschema
 """
+from operator import countOf
+
 import requests
 from requests import Response
 
@@ -153,8 +155,17 @@ class CompareJSONLD2:
         return Constants.Responses.incorrect
 
     def _process_responses(self) -> None:
+        print(self._responses)
         responses: dict = {}
         for expression in self._start_shape["expression"]["expressions"]:
+            response: str = Constants.Responses.missing
+            print(self._responses[expression["predicate"]])
+            true = countOf(self._responses[expression["predicate"]].values(), Constants.Responses.correct)
+            print(true)
+            if Constants.Responses.correct in self._responses[expression["predicate"]].values():
+                response = Constants.Responses.correct
+            elif Constants.Responses.present in self._responses[expression["predicate"]].values():
+                response = Constants.Responses.present
             cardinality: str = self._process_cardinality(expression)
             necessity: str = self.get_necessity(expression)
             if "extra" in self._start_shape:
@@ -162,10 +173,13 @@ class CompareJSONLD2:
                     cardinality = Constants.Responses.correct
             predicate: str = expression["predicate"].removeprefix(Constants.Prefixes.wdt)
             predicate = predicate.removeprefix(Constants.Prefixes.p)
-            if expression["predicate"] not in responses:
+            if predicate not in responses:
                 responses[predicate] = {}
             responses[predicate]["necessity"] = necessity
-            responses[predicate]["response"] = cardinality
+            if cardinality == Constants.Responses.correct:
+                responses[predicate]["response"] = response
+            else:
+                responses[predicate]["response"] = cardinality
         for claim in self._entities["entities"][self._entity]["claims"]:
             if claim not in responses:
                 responses[claim] = {}
