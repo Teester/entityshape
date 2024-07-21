@@ -32,8 +32,11 @@ class CompareJSONLD2:
         self._shapes: dict = self.response.get_shapes()
         self._start_shape: dict = self.response.get_start_shape()
         self._statements: dict = self.response.get_statements()
+        self._language_response = {}
+        self._general = {}
 
         self._check_props_for_claims()
+        self._get_general_properties(self._start_shape)
 
     def get_properties(self) -> dict:
         """
@@ -55,18 +58,34 @@ class CompareJSONLD2:
 
         :return: json for general properties of the comparison
         """
-        general: dict = {}
-        properties: list = ["lexicalCategory", "language"]
-        for item in properties:
-            if "shapes" in self._shape:
-                data_string: str = self._shape["shapes"]
-                if item in data_string and item in self._entities["entities"][self._entity]:
-                    general[item] = "incorrect"
-                    expected: list = self._shape["shapes"]
-                    actual: str = self._entities["entities"][self._entity][item]
-                    if actual in expected:
-                        general[item] = "correct"
-        return general
+        return self._general
+
+    def _get_general_properties(self, shape):
+        for property_wanted in ["language", "lexicalCategory"]:
+            if "type" in shape:
+                if shape["type"] != "TripleConstraint":
+                    self._check_expression_for_language(shape)
+                else:
+                    if property_wanted in self._entities["entities"][self._entity]:
+                        language: str = self._entities["entities"][self._entity][property_wanted]
+                    predicate = Constants.Prefixes.language
+                    if property_wanted == "lexicalCategory":
+                        predicate = Constants.Prefixes.lexical_category
+                    if shape["predicate"] == predicate:
+                        if f"{Constants.Prefixes.wd}{language}" in shape["valueExpr"]["values"]:
+                            self._general[property_wanted] = Constants.Responses.correct
+                        else:
+                            self._general[property_wanted] = Constants.Responses.incorrect
+
+    def _check_expression_for_language(self, shape):
+        if "shapeExprs" in shape:
+            for expression in shape["shapeExprs"]:
+                self._get_general_properties(expression)
+        elif "expressions" in shape:
+            for expression in shape["expressions"]:
+                self._get_general_properties(expression)
+        else:
+            self._get_general_properties(shape["expression"])
 
     def _check_props_for_claims(self) -> None:
         self._process_expression(self._start_shape)
@@ -204,7 +223,7 @@ class CompareJSONLD2:
                     responses[claim] = {}
                     responses[claim]["necessity"] = Constants.Necessities.absent
                     if cardinality == Constants.Responses.not_allowed:
-                        responses[claim]["necessity"] = Constants.Responses.not_allowed
+                        responses[claim]["necessity"] = Constants.Responses.absent
             for response in responses:
                 responses[response]["name"] = self._names[response]
         self._properties = responses
@@ -267,6 +286,8 @@ class Constants:
         wdt: str = "http://www.wikidata.org/prop/direct/"
         wd: str = "http://www.wikidata.org/entity/"
         p: str = "http://www.wikidata.org/prop/"
+        language: str = "http://purl.org/dc/terms/language"
+        lexical_category: str = "http://wikiba.se/ontology#lexicalCategory"
 
     class Responses:
         """allowed responses by the api"""
