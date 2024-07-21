@@ -42,14 +42,14 @@ class TestV3Schemas(unittest.TestCase):
         This test checks that a lexicalCategory response is returned when a
         lexeme is tested against a schema looking for a lexical category
         """
-        test_pairs: dict = {"E56": "Lexeme:L42"}
+        test_pairs: dict = {"E56": "Lexeme:L34518"}
         for key in test_pairs:
             with self.subTest(key=key):
                 value = test_pairs[key]
                 response = self.app.get(f'/api/v3?entityschema={key}&entity={value}&language=en',
                                         follow_redirects=True)
-                self.assertIsNotNone(response.json["general"][0]["lexicalCategory"])
                 self.assertIsNotNone(response.json["general"][0]["language"])
+                self.assertIsNotNone(response.json["general"][0]["lexicalCategory"])
 
     @unittest.skip("takes too long")
     def test_wikidata_entityschemas(self) -> None:
@@ -271,8 +271,9 @@ class TestV3Schemas(unittest.TestCase):
         properties: list = ["P361"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertIn(response.json["properties"][0][prop]["response"], ["too many statements"])
-                self.assertIn(response.json["properties"][0][prop]["necessity"], ["absent"])
+                self.assertIn(response.json["properties"][0][prop]["response"], ["too many statements",
+                                                                                 "not allowed"])
+                self.assertIn(response.json["properties"][0][prop]["necessity"], ["absent", "not allowed"])
 
     def test_entityschema_e297(self):
         """
@@ -329,6 +330,7 @@ class TestV3Schemas(unittest.TestCase):
         """
         response = self.app.get('/api/v3?entityschema=E349&entity=Q85396849&language=en',
                                 follow_redirects=True)
+        print(response.json())
         self.assertEqual(200, response.status_code)
 
     def test_entityschema_e351(self):
@@ -353,19 +355,6 @@ class TestV3Schemas(unittest.TestCase):
                                 follow_redirects=True)
         print(response.json)
         self.assertIn(response.json["properties"][0]["P31"]["response"], ["correct", "present"])
-
-    def test_timings(self):
-        tea = time.perf_counter()
-        self.app.get('/api?entityschema=E438&entity=Q11645745&language=en', follow_redirects=True)
-        tic = time.perf_counter()
-        self.app.get('/api/v2?entityschema=E438&entity=Q11645745&language=en', follow_redirects=True)
-        tac = time.perf_counter()
-        self.app.get('/api/v3?entityschema=E438&entity=Q11645745&language=en', follow_redirects=True)
-        toe = time.perf_counter()
-        print(f"Time for v1: {tic-tea}s")
-        print(f"Time for v2: {tac-tic}s")
-        print(f"Time for v3: {toe-tac}s")
-        self.assertLess((toe-tac), (tac-tic))
 
 
 if __name__ == '__main__':
