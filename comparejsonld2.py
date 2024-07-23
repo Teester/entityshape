@@ -66,16 +66,22 @@ class CompareJSONLD2:
                 if shape["type"] != "TripleConstraint":
                     self._check_expression_for_language(shape)
                 else:
-                    if property_wanted in self._entities["entities"][self._entity]:
-                        language: str = self._entities["entities"][self._entity][property_wanted]
-                    predicate = Constants.Prefixes.language
-                    if property_wanted == "lexicalCategory":
-                        predicate = Constants.Prefixes.lexical_category
-                    if shape["predicate"] == predicate:
-                        if f"{Constants.Prefixes.wd}{language}" in shape["valueExpr"]["values"]:
-                            self._general[property_wanted] = Constants.Responses.correct
-                        else:
-                            self._general[property_wanted] = Constants.Responses.incorrect
+                    self._process_general_triple_constraint(property_wanted, shape)
+
+    def _process_general_triple_constraint(self, property_wanted, shape):
+        entity: dict = self._entities["entities"][self._entity]
+        if property_wanted not in entity:
+            return
+        language: str = entity[property_wanted]
+        predicate: str = Constants.Prefixes.language
+        if property_wanted == "lexicalCategory":
+            predicate = Constants.Prefixes.lexical_category
+        if shape["predicate"] != predicate:
+            return
+        if f"{Constants.Prefixes.wd}{language}" in shape["valueExpr"]["values"]:
+            self._general[property_wanted] = Constants.Responses.correct
+        else:
+            self._general[property_wanted] = Constants.Responses.incorrect
 
     def _check_expression_for_language(self, shape):
         if "shapeExprs" in shape:
