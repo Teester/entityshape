@@ -15,10 +15,9 @@
     let item_list = [];
     let entityID = mw.config.get( 'wbEntityId' );
 
-    $(document).ready(function(){
-
-        let entityschema_conditions = ["/wiki/Q", "/wiki/P", "/wiki/L"];
-        if (entityschema_conditions.some(el => document.location.pathname.includes(el))) {
+    mw.hook( 'wikibase.entityPage.entityLoaded' ).add( function ( data ) {
+        let valid_values = ['item', 'lexeme', 'property']
+        if (valid_values.includes(data["type"])) {
             let entityschema_entity_html = `<div><span id="entityschema-simpleSearch">
                                             <span>
                                             <input type="text" id="entityschema-entityToCheck"
@@ -31,7 +30,13 @@
                                             </span><input type="checkbox" id="entityschema-checkbox">
                                             <label for="entityschema-checkbox"><small>Automatically check schema</small></label>
                                             <span id="entityschemaResponse"></span></div>`;
-            mw.util.addSubtitle(entityschema_entity_html);
+
+            let widget = new OO.ui.ActionFieldLayout( new OO.ui.TextInputWidget(),
+                                                      new OO.ui.ButtonWidget( {	label: 'Check' } ),
+                                                      { align: 'top' } )
+            let outer_container = $("<details open><summary>Check entity against an entityschema</summary></details>").append(widget.$element);
+            mw.util.addSubtitle(outer_container.prop("outerHTML"))
+
             if (value == "true") {
                 $("#entityschema-checkbox").prop('checked', true);
             } else {
@@ -40,9 +45,7 @@
             $("#entityschema-schemaSearchButton").click(function(){ entityschema_update(); });
             $("#entityschema-checkbox").click(function() { entityschema_checkbox(); });
         }
-    });
 
-    mw.hook( 'wikibase.entityPage.entityLoaded' ).add( function ( data ) {
         let claims = data["claims"];
         for (let claim in claims) {
             property_list.push(claim);
@@ -115,7 +118,9 @@
             mw.storage.set("entityschema", entityschema_entitySchema);
         }
         if (entityschema_entitySchema.length == 0) {
-            $("#entityschemaResponse").append( '<br/><span>No schemas entered and could not automatically determine schemas to check</span>' );
+            let message = new OO.ui.MessageWidget( {type: 'error', inline: true,
+                          	label: 'No schemas entered and could not automatically determine schemas to check'} );
+            $("#entityschemaResponse").append( message.$element );
         } else {
             let entityschema_entityName = document.location.pathname.substring(6);
             let lang = mw.config.get( 'wgUserLanguage' );
@@ -146,7 +151,6 @@
                 $(".entityshape-spinner").show();
             },
             success: function(data){
-                let html = "";
                 for (let i = 0; i < data.schema.length; i++ ) {
                     if (data.properties[i]) {
                         entityschema_add_to_properties(data.properties[i], data.schema[i], data.name[i]);
@@ -161,17 +165,22 @@
 
                 const combined_properties = entityschema_combine_properties(data.properties, data.schema);
 
-                html += "<br/>Checking against <b>";
+                let message = "Checking against ";
                 for (let schema in data.schema) {
-                    html += `<a href='https://www.wikidata.org/wiki/EntitySchema:${data.schema[schema]}'>${data.schema[schema]}: ${data.name[schema]}</a> `;
+                    message += `<a href='https://www.wikidata.org/wiki/EntitySchema:${data.schema[schema]}'>${data.schema[schema]}: ${data.name[schema]}</a> `;
                 }
-                html += `</b>:
-                         <div style="overflow-y: scroll; max-height:200px;">
-                         <table style="width:100%;">
-                         <th class="entityschema_table" title="Properties in this item which must be present">Required properties</th>
-                         <th class="entityschema_table" title="Properties in this item which can be present but do not have to be">Optional properties</th>
-                         <th class="entityschema_table" title="Properties in this item which are not allowed to be present or not mentioned in the entityschema">Other properties</th>
-                         <tr>`;
+                message += ":"
+
+                let message_widget = new OO.ui.MessageWidget( {type: 'notice', inline: true,
+                                                        label: new OO.ui.HtmlSnippet( message )} );
+                $("#entityschemaResponse" ).append( message_widget.$element );
+
+                let html =  `<div style="overflow-y: scroll; max-height:200px;">
+                             <table style="width:100%;">
+                             <th class="entityschema_table" title="Properties in this item which must be present">Required properties</th>
+                             <th class="entityschema_table" title="Properties in this item which can be present but do not have to be">Optional properties</th>
+                             <th class="entityschema_table" title="Properties in this item which are not allowed to be present or not mentioned in the entityschema">Other properties</th>
+                             <tr>`;
 
                 html += entityschema_process_combined_properties(combined_properties);
 
