@@ -31,7 +31,7 @@
                                             </span><input type="checkbox" id="entityschema-checkbox">
                                             <label for="entityschema-checkbox"><small>Automatically check schema</small></label>
                                             <span id="entityschemaResponse"></span></div>`;
-            $(entityschema_entity_html).insertAfter("#siteSub");
+            mw.util.addSubtitle(entityschema_entity_html);
             if (value == "true") {
                 $("#entityschema-checkbox").prop('checked', true);
             } else {
