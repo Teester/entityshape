@@ -9,8 +9,8 @@
 (function() {
     mw.util.addCSS(entityschema_getStylesheet());
     let entityschema_list = [];
-    let value = window.localStorage.getItem("entityschema-auto");
-    let schema = window.localStorage.getItem("entityschema");
+    let value = mw.storage.get("entityschema-auto");
+    let schema = mw.storage.get("entityschema");
     let property_list = [];
     let item_list = [];
     let entityID = mw.config.get( 'wbEntityId' );
@@ -110,9 +110,9 @@
         let entityschema_entitySchema = $("#entityschema-entityToCheck")[0].value.toUpperCase();
         if (entityschema_entitySchema.length == 0) {
             entityschema_entitySchema = entityschema_list.join(", ");
-            window.localStorage.setItem("entityschema", "");
+            mw.storage.remove("entityschema");
         } else {
-            window.localStorage.setItem("entityschema", entityschema_entitySchema);
+            mw.storage.set("entityschema", entityschema_entitySchema);
         }
         if (entityschema_entitySchema.length == 0) {
             $("#entityschemaResponse").append( '<br/><span>No schemas entered and could not automatically determine schemas to check</span>' );
@@ -125,9 +125,9 @@
 
     function entityschema_checkbox() {
         if ($('#entityschema-checkbox').is(":checked")) {
-            window.localStorage.setItem("entityschema-auto", true);
+            mw.storage.set("entityschema-auto", true);
         } else {
-            window.localStorage.setItem("entityschema-auto", false);
+            mw.storage.set("entityschema-auto", false);
         }
     }
 
