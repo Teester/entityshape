@@ -34,9 +34,16 @@
             let widget = new OO.ui.ActionFieldLayout( new OO.ui.TextInputWidget(),
                                                       new OO.ui.ButtonWidget( {	label: 'Check' } ),
                                                       { align: 'top' } )
+            console.log(widget)
+            console.log(widget.buttonWidget)
+            console.log(widget.getData())
+            widget.buttonWidget.on("click",  function() {
+                console.log(widget.fieldWidget.value)
+                console.log("Clicked!");
+            });
             let outer_container = $("<details open><summary>Check entity against an entityschema</summary></details>").append(widget.$element);
-            mw.util.addSubtitle(outer_container.prop("outerHTML"))
-
+            //mw.util.addSubtitle(widget.$element[0])
+            $( '#mw-content-text' ).prepend( widget.$element );
             if (value == "true") {
                 $("#entityschema-checkbox").prop('checked', true);
             } else {
