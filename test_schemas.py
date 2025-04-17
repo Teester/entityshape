@@ -1,6 +1,7 @@
 """
 Tests to test wikidata entityschemas against wikidata items
 """
+import time
 import unittest
 
 import requests
@@ -15,11 +16,12 @@ class MyTestCase(unittest.TestCase):
 
     def setUp(self) -> None:
         app.config["TESTING"] = True
+        app.config['DEBUG'] = False
         self.app = app.test_client()
 
     def tearDown(self) -> None:
-        # We don't need to tear anything down after the test
-        pass
+        # Wait before performing the next test to avoid running into Wikidata's request limits when using Github Actions
+        time.sleep(4)
 
     def test_specific_wikidata_item_against_schema(self):
         """
@@ -73,8 +75,12 @@ class MyTestCase(unittest.TestCase):
             with self.subTest(schema=schema):
                 if schema in skips:
                     self.skipTest(f"Schema {schema} not supported")
+                # Wait before performing the next test to avoid running into Wikidata's request limits when using Github Actions
+                time.sleep(4)
                 response = self.app.get(f'/api/v2?entityschema={schema}&entity=Q100532807&language=en',
                                         follow_redirects=True)
+                if response.status_code == 429:
+                    self.skipTest("Wikidata is giving a 429 (too many requests) response")
                 self.assertEqual(response.status_code, 200)
 
     def test_specific_entityschema(self) -> None:
