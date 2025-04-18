@@ -387,50 +387,50 @@
     }
 
     function entityschema_getStylesheet() {
-        let stylesheet = "#entityschema-schemaSearchButton { background-position: center center; background-repeat: no-repeat; position: relative !important; top: 0; right: 0; overflow: hidden; height: 100%; background-color: #1E90FF !important; color: #FFFFFF !important; padding: 0.5em; text-indent: 0px !important; margin-left: 5px; width: 50px; margin-right: 5px;}";
-        stylesheet += "#entityschema-entityToCheck { padding: 0.5em; margin: 0; width: 33%;}";
-        stylesheet += "#entityschema-response { padding:5px; display: block; }";
-        stylesheet += "a.is_entityschema-present { color: #008800; }";
-        stylesheet += "a.is_entityschema-allowed { color: #008800; }";
-        stylesheet += "a.is_entityschema-correct { color: #00CC00; }";
-        stylesheet += "a.is_entityschema-missing { color: #FF5500; }";
-        stylesheet += "a.is_entityschema-notinschema { color: #FF5500; }";
-        stylesheet += "a.is_entityschema-wrong { color: #CC0000; }";
-        stylesheet += "a.is_entityschema-wrong_amount { color: #CC0000; }";
-        stylesheet += "a.is_entityschema-incorrect { color: #CC0000; }";
-        stylesheet += ".entityschema_table {vertical-align: top; width: 33%;} ";
-        stylesheet += ".entityschema-missing { background-color: #FF8C00; }";
-        stylesheet += ".entityschema-notinschema { background-color: #FF8C00; }";
-        stylesheet += ".entityschema-wrong { background-color: #CC0000; }";
-        stylesheet += ".entityschema-incorrect { background-color: #CC0000; }";
-        stylesheet += ".entityschema-wrong_amount { background-color: #CC0000; }";
-        stylesheet += ".entityschema-excess { background-color: #CC0000; }";
-        stylesheet += ".entityschema-deficit { background-color: #CC0000; }";
-        stylesheet += ".entityschema-present { background-color: #008800; }";
-        stylesheet += ".entityschema-allowed { background-color: #008800; }";
-        stylesheet += ".entityschema-correct { background-color: #00CC00; }";
-        stylesheet += ".required .entityschema-missing { background-color: #FF0000;}";
-        stylesheet += ".required a.is_entityschema-missing { color: #FF0000;}";
-        stylesheet += ".absent .entityschema-missing { display: none;}";
-        stylesheet += ".absent a.is_entityschema-missing { display: none;}";
-        stylesheet += ".entityschema-span { color: #ffffff; padding:2px; margin: 2px; font-size:75%; border-radius:2px; }";
-        stylesheet += ".entityshape-spinner,.entityshape-spinner div,.entityshape-spinner div:after {box-sizing: border-box;}";
-        stylesheet += ".entityshape-spinner { padding-top:5px; padding-bottom:5px; color: currentColor; display: inline-block; position: relative; width: 20px; height: 20px;}";
-        stylesheet += ".entityshape-spinner div { transform-origin: 10px 10px; animation: entityshape-spinner 1.2s linear infinite;}";
-        stylesheet += '.entityshape-spinner div:after { content: " "; display: block; position: absolute; top: 0.8px; left: 9.2px; width: 1.6px; height: 4.4px; border-radius: 20%; background: currentColor;}';
-        stylesheet += ".entityshape-spinner div:nth-child(1) { transform: rotate(0deg); animation-delay: -1.1s;}";
-        stylesheet += ".entityshape-spinner div:nth-child(2) { transform: rotate(30deg); animation-delay: -1s;}";
-        stylesheet += ".entityshape-spinner div:nth-child(3) { transform: rotate(60deg); animation-delay: -0.9s;}";
-        stylesheet += ".entityshape-spinner div:nth-child(4) { transform: rotate(90deg); animation-delay: -0.8s;}";
-        stylesheet += ".entityshape-spinner div:nth-child(5) { transform: rotate(120deg); animation-delay: -0.7s;}";
-        stylesheet += ".entityshape-spinner div:nth-child(6) { transform: rotate(150deg); animation-delay: -0.6s;}";
-        stylesheet += ".entityshape-spinner div:nth-child(7) { transform: rotate(180deg); animation-delay: -0.5s;}";
-        stylesheet += ".entityshape-spinner div:nth-child(8) { transform: rotate(210deg); animation-delay: -0.4s;}";
-        stylesheet += ".entityshape-spinner div:nth-child(9) { transform: rotate(240deg); animation-delay: -0.3s;}";
-        stylesheet += ".entityshape-spinner div:nth-child(10) { transform: rotate(270deg); animation-delay: -0.2s;}";
-        stylesheet += ".entityshape-spinner div:nth-child(11) { transform: rotate(300deg); animation-delay: -0.1s;}";
-        stylesheet += ".entityshape-spinner div:nth-child(12) { transform: rotate(330deg); animation-delay: 0s;}";
-        stylesheet += "@keyframes entityshape-spinner { 0% { opacity: 1; } 100% { opacity: 0; }}";
+        let stylesheet = `#entityschema-schemaSearchButton { background-position: center center; background-repeat: no-repeat; position: relative !important; top: 0; right: 0; overflow: hidden; height: 100%; background-color: #1E90FF !important; color: #FFFFFF !important; padding: 0.5em; text-indent: 0px !important; margin-left: 5px; width: 50px; margin-right: 5px;}
+                          #entityschema-entityToCheck { padding: 0.5em; margin: 0; width: 33%;}
+                          #entityschema-response { padding:5px; display: block; }
+                          a.is_entityschema-present { color: #008800; }
+                          a.is_entityschema-allowed { color: #008800; }
+                          a.is_entityschema-correct { color: #00CC00; }
+                          a.is_entityschema-missing { color: #FF5500; }
+                          a.is_entityschema-notinschema { color: #FF5500; }
+                          a.is_entityschema-wrong { color: #CC0000; }
+                          a.is_entityschema-wrong_amount { color: #CC0000; }
+                          a.is_entityschema-incorrect { color: #CC0000; }
+                          .entityschema_table {vertical-align: top; width: 33%;}
+                          .entityschema-missing { background-color: #FF8C00; }
+                          .entityschema-notinschema { background-color: #FF8C00; }
+                          .entityschema-wrong { background-color: #CC0000; }
+                          .entityschema-incorrect { background-color: #CC0000; }
+                          .entityschema-wrong_amount { background-color: #CC0000; }
+                          .entityschema-excess { background-color: #CC0000; }
+                          .entityschema-deficit { background-color: #CC0000; }
+                          .entityschema-present { background-color: #008800; }
+                          .entityschema-allowed { background-color: #008800; }
+                          .entityschema-correct { background-color: #00CC00; }
+                          .required .entityschema-missing { background-color: #FF0000;}
+                          .required a.is_entityschema-missing { color: #FF0000;}
+                          .absent .entityschema-missing { display: none;}
+                          .absent a.is_entityschema-missing { display: none;}
+                          .entityschema-span { color: #ffffff; padding:2px; margin: 2px; font-size:75%; border-radius:2px; }
+                          .entityshape-spinner,.entityshape-spinner div,.entityshape-spinner div:after {box-sizing: border-box;}
+                          .entityshape-spinner { padding-top:5px; padding-bottom:5px; color: currentColor; display: inline-block; position: relative; width: 20px; height: 20px;}
+                          .entityshape-spinner div { transform-origin: 10px 10px; animation: entityshape-spinner 1.2s linear infinite;}
+                          .entityshape-spinner div:after { content: " "; display: block; position: absolute; top: 0.8px; left: 9.2px; width: 1.6px; height: 4.4px; border-radius: 20%; background: currentColor;}
+                          .entityshape-spinner div:nth-child(1) { transform: rotate(0deg); animation-delay: -1.1s;}
+                          .entityshape-spinner div:nth-child(2) { transform: rotate(30deg); animation-delay: -1s;}
+                          .entityshape-spinner div:nth-child(3) { transform: rotate(60deg); animation-delay: -0.9s;}
+                          .entityshape-spinner div:nth-child(4) { transform: rotate(90deg); animation-delay: -0.8s;}
+                          .entityshape-spinner div:nth-child(5) { transform: rotate(120deg); animation-delay: -0.7s;}
+                          .entityshape-spinner div:nth-child(6) { transform: rotate(150deg); animation-delay: -0.6s;}
+                          .entityshape-spinner div:nth-child(7) { transform: rotate(180deg); animation-delay: -0.5s;}
+                          .entityshape-spinner div:nth-child(8) { transform: rotate(210deg); animation-delay: -0.4s;}
+                          .entityshape-spinner div:nth-child(9) { transform: rotate(240deg); animation-delay: -0.3s;}
+                          .entityshape-spinner div:nth-child(10) { transform: rotate(270deg); animation-delay: -0.2s;}
+                          .entityshape-spinner div:nth-child(11) { transform: rotate(300deg); animation-delay: -0.1s;}
+                          .entityshape-spinner div:nth-child(12) { transform: rotate(330deg); animation-delay: 0s;}
+                          @keyframes entityshape-spinner { 0% { opacity: 1; } 100% { opacity: 0; }}`
         return stylesheet;
     }
 }());
