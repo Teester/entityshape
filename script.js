@@ -14,6 +14,8 @@
     let property_list = [];
     let item_list = [];
     let entityID = mw.config.get( 'wbEntityId' );
+    let mediawiki_script_url = `https:${mw.config.get('wgServer')}${mw.config.get('wgScriptPath')}`;
+    let mediawiki_base_url = `https:${mw.config.get('wgServer')}/wiki`;
 
     mw.hook( 'wikibase.entityPage.entityLoaded' ).add( function ( data ) {
         let valid_values = ['item', 'lexeme', 'property']
@@ -21,25 +23,20 @@
             let widget = new OO.ui.HorizontalLayout( {items: [new OO.ui.ActionFieldLayout( new OO.ui.TextInputWidget(),
                                                                                   new OO.ui.ButtonWidget( {	label: 'Check' } ),
                                                                                   { align: 'top' } ),
-                                                              new OO.ui.FieldLayout( new OO.ui.CheckboxInputWidget({selected: true}),
+                                                              new OO.ui.FieldLayout( new OO.ui.CheckboxInputWidget(),
                                                                                    { label: "Automatically check schema", align:'inline'})] });
             widget.items[0].buttonWidget.on("click",  function() {
-                console.log(widget.items[0].fieldWidget.value);
-                console.log("Clicked!");
+                console.log("Click!")
                 entityschema_update(widget.items[0].fieldWidget.value);
             });
+            widget.items[1].fieldWidget.checkIcon.on("change", function() {
+                console.log("Click!");
+                entityschema_checkbox( widget.items[1].fieldWidget.checkIcon.value );
+            });
             let outer_container = $("<details open><summary>Check entity against an entityschema</summary><span id='entityschemaResponse' style='margin:1px;'></span></details>").prepend(widget.$element);
-            mw.util.addSubtitle(outer_container.prop("outerHTML"))
-            //$( '#mw-content-text' ).prepend( outer_container );
-            if (value == "true") {
-                widget.items[1].fieldWidget.checkIcon.value = "True";
-                $("#entityschema-checkbox").prop('checked', true);
-            } else {
-                widget.items[1].fieldWidget.checkIcon.value = "False";
-                $("#entityschema-checkbox").prop('checked', false);
-            }
-            //$("#entityschema-schemaSearchButton").click(function(){ entityschema_update(); });
-            //$("#entityschema-checkbox").click(function() { entityschema_checkbox(); });
+            //mw.util.addSubtitle(outer_container.prop("outerHTML"))
+            $( '#mw-content-text' ).prepend( outer_container );
+            widget.items[1].fieldWidget.checkIcon.value = value;
         }
 
         let claims = data["claims"];
@@ -72,8 +69,9 @@
     });
 
     function check_entity_for_schemas(entity_list) {
+        console.log(mediawiki_script_url)
         for (let item in entity_list) {
-            let url = "https://www.wikidata.org/w/api.php?action=wbgetclaims&property=P12861&format=json&entity=" + entity_list[item];
+            let url = `${mediawiki_script_url}/api.php?action=wbgetclaims&property=P12861&format=json&entity=${entity_list[item]}`;
             $.ajax({
                 type: "GET",
                 dataType: "json",
@@ -129,8 +127,11 @@
         }
     }
 
-    function entityschema_checkbox() {
-        if ($('#entityschema-checkbox').is(":checked")) {
+    /*
+        Stores the checkbox value in local storage
+    */
+    function entityschema_checkbox( value ) {
+        if (value) {
             mw.storage.set("entityschema-auto", true);
         } else {
             mw.storage.set("entityschema-auto", false);
@@ -168,7 +169,7 @@
 
                 let message_data = [];
                 for (let schema in data.schema) {
-                    message_data.push(`<a href='https://www.wikidata.org/wiki/EntitySchema:${data.schema[schema]}'>${data.name[schema]} <small>(${data.schema[schema]})</small></a>`);
+                    message_data.push(`<a href='${mediawiki_base_url}/EntitySchema:${data.schema[schema]}'>${data.name[schema]} <small>(${data.schema[schema]})</small></a>`);
                 }
                 let message = `Checking against ${message_data.join(', ')}:`;
 
@@ -232,14 +233,14 @@
             }
             if (response1 == null) {
                 response1 = "";
-                shape_html += `<a href="https://www.wikidata.org/wiki/Property:${key}">${key} - <small>${properties[key].name}</small></a><br/>`;
+                shape_html += `<a href='${mediawiki_base_url}Property:${key}'>${key} - <small>${properties[key].name}</small></a><br/>`;
             } else if (response1 == "Not in schema") {
                 other_array.push(key);
                 other_array_names.push(properties[key].name);
             } else {
                 shape_html += `<li class="is_entityschema-${response_class}">
                                <span class="entityschema-span entityschema-${response_class}">${response1}</span>
-                               <a href="https://www.wikidata.org/wiki/Property:${key}"
+                               <a href="${mediawiki_base_url}/Property:${key}"
                                   class="is_entityschema-${response_class}">
                                ${key} - <small>${properties[key].name}</small></a></li>`
             }
@@ -259,7 +260,7 @@
                           <ul style='list-style-type:none';>`;
         for (let item in other_array) {
             other_html += `<li><span class="entityschema-span entityschema-notinschema">Not in schema</span>
-                               <a href="https://www.wikidata.org/wiki/Property:${other_array[item]}"
+                               <a href="${mediawiki_base_url}Property:${other_array[item]}"
                                   class="is_entityschema-notinschema">${other_array[item]} - <small>${other_array_names[item]}</small></a></li>`;
         }
         other_html += "</ul></details>";
@@ -321,7 +322,7 @@
                             <span class='entityschema-span entityschema-property entityschema-${response}'
                                   title='${schema}: ${name}'>${schema}: ${response}
                             </span>`;
-                $(`div[id='${statement}'] .wikibase-toolbar-button-edit`).append(html);
+                $("div[id='${statement}'] .wikibase-toolbar-button-edit").append(html);
             }
         }
     }
