@@ -115,7 +115,9 @@
             mw.storage.set("entityschema", entityschema_entitySchema);
         }
         if (entityschema_entitySchema.length == 0) {
-            $("#entityschemaResponse").append( '<br/><span>No schemas entered and could not automatically determine schemas to check</span>' );
+            let message = new OO.ui.MessageWidget( {type: 'error', inline: true,
+                label: 'No schemas entered and could not automatically determine schemas to check'} );
+            $("#entityschemaResponse").empty().prepend( message.$element );
         } else {
             let entityschema_entityName = document.location.pathname.substring(6);
             let lang = mw.config.get( 'wgUserLanguage' );
