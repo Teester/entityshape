@@ -30,7 +30,7 @@
                                             </span>
                                             </span><input type="checkbox" id="entityschema-checkbox">
                                             <label for="entityschema-checkbox"><small>Automatically check schema</small></label>
-                                            <span id="entityschemaResponse"></span></div>`;
+                                            <span id="entityschema-response"></span></div>`;
             mw.util.addSubtitle(entityschema_entity_html);
             if (value == "true") {
                 $("#entityschema-checkbox").prop('checked', true);
@@ -117,7 +117,7 @@
         if (entityschema_entitySchema.length == 0) {
             let message = new OO.ui.MessageWidget( {type: 'error', inline: true,
                 label: 'No schemas entered and could not automatically determine schemas to check'} );
-            $("#entityschemaResponse").empty().prepend( message.$element );
+            $("#entityschema-response").empty().prepend( message.$element );
         } else {
             let entityschema_entityName = document.location.pathname.substring(6);
             let lang = mw.config.get( 'wgUserLanguage' );
@@ -134,7 +134,7 @@
     }
 
     function entityschema_checkEntity(entity, entitySchema, language) {
-        $("#entityschemaResponse").contents().remove();
+        $("#entityschema-response").contents().remove();
         $(".entityschema-property").remove();
         $(".entityschema-span").remove();
 
@@ -171,7 +171,7 @@
 
                 let message_widget = new OO.ui.MessageWidget( {type: 'notice', inline: true,
                                                         label: new OO.ui.HtmlSnippet( message )} );
-                $("#entityschemaResponse" ).append( message_widget.$element );
+                $("#entityschema-response" ).append( message_widget.$element );
 
                 let html = `<div style="overflow-y: scroll; max-height:200px;">
                             <table style="width:100%;">
@@ -182,11 +182,11 @@
 
                 html += entityschema_process_combined_properties(combined_properties);
 
-                $("#entityschemaResponse" ).append( html );
+                $("#entityschema-response" ).append( html );
                 $(".entityshape-spinner").hide();
             },
             error: function(data) {
-                $("#entityschemaResponse").append( '<br/><span>Unable to validate schema</span>' );
+                $("#entityschema-response").append( '<br/><span>Unable to validate schema</span>' );
             }
         });
     }
@@ -389,7 +389,7 @@
     function entityschema_getStylesheet() {
         let stylesheet = "#entityschema-schemaSearchButton { background-position: center center; background-repeat: no-repeat; position: relative !important; top: 0; right: 0; overflow: hidden; height: 100%; background-color: #1E90FF !important; color: #FFFFFF !important; padding: 0.5em; text-indent: 0px !important; margin-left: 5px; width: 50px; margin-right: 5px;}";
         stylesheet += "#entityschema-entityToCheck { padding: 0.5em; margin: 0; width: 33%;}";
-        stylesheet += ".response { padding: 2px;}";
+        stylesheet += "#entityschema-response { padding:5px; display: block; }";
         stylesheet += "a.is_entityschema-present { color: #008800; }";
         stylesheet += "a.is_entityschema-allowed { color: #008800; }";
         stylesheet += "a.is_entityschema-correct { color: #00CC00; }";
