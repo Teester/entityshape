@@ -18,39 +18,28 @@
     mw.hook( 'wikibase.entityPage.entityLoaded' ).add( function ( data ) {
         let valid_values = ['item', 'lexeme', 'property']
         if (valid_values.includes(data["type"])) {
-            let entityschema_entity_html = `<div><span id="entityschema-simpleSearch">
-                                            <span>
-                                            <input type="text" id="entityschema-entityToCheck"
-                                                   placeholder="Enter schema to check against e.g. E234"
-                                                   title="Enter 1 or more schemas to check against separated by commas e.g. E10, E236 or press Check to auto-determine schemas to check">
-                                            <input type="submit" id="entityschema-schemaSearchButton"
-                                                   class="searchButton" name="check" value="Check">
-                                            <div class="entityshape-spinner" style="display:none"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
-                                            </span>
-                                            </span><input type="checkbox" id="entityschema-checkbox">
-                                            <label for="entityschema-checkbox"><small>Automatically check schema</small></label>
-                                            <span id="entityschemaResponse"></span></div>`;
-
-            let widget = new OO.ui.ActionFieldLayout( new OO.ui.TextInputWidget(),
-                                                      new OO.ui.ButtonWidget( {	label: 'Check' } ),
-                                                      { align: 'top' } )
-            console.log(widget)
-            console.log(widget.buttonWidget)
-            console.log(widget.getData())
-            widget.buttonWidget.on("click",  function() {
-                console.log(widget.fieldWidget.value)
+            let widget = new OO.ui.HorizontalLayout( {items: [new OO.ui.ActionFieldLayout( new OO.ui.TextInputWidget(),
+                                                                                  new OO.ui.ButtonWidget( {	label: 'Check' } ),
+                                                                                  { align: 'top' } ),
+                                                              new OO.ui.FieldLayout( new OO.ui.CheckboxInputWidget({selected: true}),
+                                                                                   { label: "Automatically check schema", align:'inline'})] });
+            widget.items[0].buttonWidget.on("click",  function() {
+                console.log(widget.items[0].fieldWidget.value);
                 console.log("Clicked!");
+                entityschema_update(widget.items[0].fieldWidget.value);
             });
-            let outer_container = $("<details open><summary>Check entity against an entityschema</summary></details>").append(widget.$element);
-            //mw.util.addSubtitle(widget.$element[0])
-            $( '#mw-content-text' ).prepend( widget.$element );
+            let outer_container = $("<details open><summary>Check entity against an entityschema</summary><span id='entityschemaResponse' style='margin:1px;'></span></details>").prepend(widget.$element);
+            mw.util.addSubtitle(outer_container.prop("outerHTML"))
+            //$( '#mw-content-text' ).prepend( outer_container );
             if (value == "true") {
+                widget.items[1].fieldWidget.checkIcon.value = "True";
                 $("#entityschema-checkbox").prop('checked', true);
             } else {
+                widget.items[1].fieldWidget.checkIcon.value = "False";
                 $("#entityschema-checkbox").prop('checked', false);
             }
-            $("#entityschema-schemaSearchButton").click(function(){ entityschema_update(); });
-            $("#entityschema-checkbox").click(function() { entityschema_checkbox(); });
+            //$("#entityschema-schemaSearchButton").click(function(){ entityschema_update(); });
+            //$("#entityschema-checkbox").click(function() { entityschema_checkbox(); });
         }
 
         let claims = data["claims"];
@@ -116,15 +105,20 @@
         }
     });
 
-    function entityschema_update() {
-        let entityschema_entitySchema = $("#entityschema-entityToCheck")[0].value.toUpperCase();
-        if (entityschema_entitySchema.length == 0) {
+    function entityschema_update( value = "" ) {
+        let entityschema_entitySchema = ""
+        if (!value) {
+            entityschema_entitySchema = value.toUpperCase();
+        } else {
+            entityschema_entitySchema = $("#entityschema-entityToCheck")[0].value.toUpperCase();
+        }
+        if (!entityschema_entitySchema) {
             entityschema_entitySchema = entityschema_list.join(", ");
             mw.storage.remove("entityschema");
         } else {
             mw.storage.set("entityschema", entityschema_entitySchema);
         }
-        if (entityschema_entitySchema.length == 0) {
+        if (!entityschema_entitySchema) {
             let message = new OO.ui.MessageWidget( {type: 'error', inline: true,
                           	label: 'No schemas entered and could not automatically determine schemas to check'} );
             $("#entityschemaResponse").append( message.$element );
@@ -172,11 +166,11 @@
 
                 const combined_properties = entityschema_combine_properties(data.properties, data.schema);
 
-                let message = "Checking against ";
+                let message_data = [];
                 for (let schema in data.schema) {
-                    message += `<a href='https://www.wikidata.org/wiki/EntitySchema:${data.schema[schema]}'>${data.schema[schema]}: ${data.name[schema]}</a> `;
+                    message_data.push(`<a href='https://www.wikidata.org/wiki/EntitySchema:${data.schema[schema]}'>${data.name[schema]} <small>(${data.schema[schema]})</small></a>`);
                 }
-                message += ":"
+                let message = `Checking against ${message_data.join(', ')}:`;
 
                 let message_widget = new OO.ui.MessageWidget( {type: 'notice', inline: true,
                                                         label: new OO.ui.HtmlSnippet( message )} );
