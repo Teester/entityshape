@@ -148,7 +148,6 @@
                 $(".entityshape-spinner").show();
             },
             success: function(data){
-                let html = "";
                 for (let i = 0; i < data.schema.length; i++ ) {
                     if (data.properties[i]) {
                         entityschema_add_to_properties(data.properties[i], data.schema[i], data.name[i]);
@@ -163,17 +162,23 @@
 
                 const combined_properties = entityschema_combine_properties(data.properties, data.schema);
 
-                html += "<br/>Checking against <b>";
+                let message_data = [];
                 for (let schema in data.schema) {
-                    html += `<a href='https://www.wikidata.org/wiki/EntitySchema:${data.schema[schema]}'>${data.schema[schema]}: ${data.name[schema]}</a> `;
+                    message_data.push(`<a href='https://www.wikidata.org/wiki/EntitySchema:${data.schema[schema]}'>
+                                      ${data.name[schema]} <small>(${data.schema[schema]})</small></a>`);
                 }
-                html += `</b>:
-                         <div style="overflow-y: scroll; max-height:200px;">
-                         <table style="width:100%;">
-                         <th class="entityschema_table" title="Properties in this item which must be present">Required properties</th>
-                         <th class="entityschema_table" title="Properties in this item which can be present but do not have to be">Optional properties</th>
-                         <th class="entityschema_table" title="Properties in this item which are not allowed to be present or not mentioned in the entityschema">Other properties</th>
-                         <tr>`;
+                let message = `Checking against ${message_data.join(', ')}:`;
+
+                let message_widget = new OO.ui.MessageWidget( {type: 'notice', inline: true,
+                                                        label: new OO.ui.HtmlSnippet( message )} );
+                $("#entityschemaResponse" ).append( message_widget.$element );
+
+                let html = `<div style="overflow-y: scroll; max-height:200px;">
+                            <table style="width:100%;">
+                            <th class="entityschema_table" title="Properties in this item which must be present">Required properties</th>
+                            <th class="entityschema_table" title="Properties in this item which can be present but do not have to be">Optional properties</th>
+                            <th class="entityschema_table" title="Properties in this item which are not allowed to be present or not mentioned in the entityschema">Other properties</th>
+                            <tr>`;
 
                 html += entityschema_process_combined_properties(combined_properties);
 
