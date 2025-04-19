@@ -32,11 +32,7 @@
                                             <label for="entityschema-checkbox"><small>Automatically check schema</small></label>
                                             <span id="entityschema-response"></span></div>`;
             mw.util.addSubtitle(entityschema_entity_html);
-            if (value == "true") {
-                $("#entityschema-checkbox").prop('checked', true);
-            } else {
-                $("#entityschema-checkbox").prop('checked', false);
-            }
+            $("#entityschema-checkbox").prop('checked', value);
             $("#entityschema-schemaSearchButton").click(function(){ entityschema_update(); });
             $("#entityschema-checkbox").click(function() { entityschema_checkbox(); });
         }
