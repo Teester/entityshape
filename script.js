@@ -84,11 +84,15 @@
     }
 
     $(document).ajaxStop(function () {
-      if (value == "true" && mw.config.get( 'wbEntityId' )) {
-         entityschema_update();
-      }
-      $("#entityschema-entityToCheck:text").val(schema);
-      $(this).unbind('ajaxStop');
+        console.log(entityschema_list)
+        if (entityschema_list.length != 0) {
+            $('#entityschema-entityToCheck').attr("placeholder", `Check against ${entityschema_list.join(", ")}`);
+        }
+        if (value == "true" && mw.config.get( 'wbEntityId' )) {
+            entityschema_update();
+        }
+        $("#entityschema-entityToCheck:text").val(schema);
+        $(this).unbind('ajaxStop');
     });
 
     $("#entityschema-entityToCheck").on("keyup", function(event){
