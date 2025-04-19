@@ -17,19 +17,45 @@
     mw.hook( 'wikibase.entityPage.entityLoaded' ).add( function ( data ) {
         let valid_values = ['item', 'lexeme', 'property']
         if (valid_values.includes(data["type"])) {
-            let entityschema_entity_html = `<div><span id="entityschema-simpleSearch">
-                                            <span>
-                                            <input type="text" id="entityschema-entityToCheck"
-                                                   placeholder="Enter schema to check against e.g. E234"
-                                                   title="Enter 1 or more schemas to check against separated by commas e.g. E10, E236 or press Check to auto-determine schemas to check">
-                                            <input type="submit" id="entityschema-schemaSearchButton"
-                                                   class="searchButton" name="check" value="Check">
-                                            <div class="entityshape-spinner" style="display:none"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
-                                            </span>
-                                            </span><input type="checkbox" id="entityschema-checkbox">
-                                            <label for="entityschema-checkbox"><small>Automatically check schema</small></label>
-                                            <span id="entityschema-response"></span></div>`;
-            let outer_container = `<details open><summary class='entityschema-summary'>Check against entityschema</summary>${entityschema_entity_html}</details>`;
+            let entityschema_entity_html = `
+                <div class="oo-ui-layout oo-ui-horizontalLayout">
+                    <div class="oo-ui-layout oo-ui-fieldLayout oo-ui-fieldLayout-align-top oo-ui-actionFieldLayout">
+                        <div class="oo-ui-fieldLayout-body">
+                            <div id="entityschema-simpleSearch" class="oo-ui-fieldLayout-field">
+                                <div class="oo-ui-actionFieldLayout-input">
+                                    <div class="oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-textInputWidget oo-ui-textInputWidget-type-text">
+                                        <input type="text" tabindex="0" class="oo-ui-inputWidget-input" value="" id="entityschema-entityToCheck" placeholder="Enter schema to check against e.g. E234">
+                                    </div>
+                                </div>
+                                <span class="oo-ui-actionFieldLayout-button" id="entityschema-schemaSearchButton">
+                                    <span class="oo-ui-widget oo-ui-widget-enabled oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-labelElement oo-ui-buttonWidget">
+                                        <a class="oo-ui-buttonElement-button" role="button" tabindex="0" rel="nofollow">
+                                            <span class="oo-ui-labelElement-label">Check</span>
+                                        </a>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="entityshape-spinner" style="display:none"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                    <div class="oo-ui-layout oo-ui-labelElement oo-ui-fieldLayout oo-ui-fieldLayout-align-inline">
+                        <div class="oo-ui-fieldLayout-body">
+                            <span class="oo-ui-fieldLayout-field">
+                                <span class="oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-checkboxInputWidget">
+                                    <input type="checkbox" tabindex="0" class="oo-ui-inputWidget-input" value="" id="entityschema-checkbox">
+                                    <span class="oo-ui-checkboxInputWidget-checkIcon oo-ui-widget oo-ui-widget-enabled oo-ui-iconElement oo-ui-iconElement-icon oo-ui-icon-check oo-ui-labelElement-invisible oo-ui-iconWidget oo-ui-image-invert">
+                                    </span>
+                                </span>
+                            </span>
+                            <span class="oo-ui-fieldLayout-header">
+                                <label class="oo-ui-labelElement-label">Automatically check schema</label>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <span id="entityschema-response"></span>`
+
+            let outer_container = `<details open style='box-shadow: 0 1px var(--border-color-subtle,#c8ccd1);'><summary class='entityschema-summary'>Check against entityschema</summary>${entityschema_entity_html}</details>`;
             mw.util.addSubtitle(outer_container);
             $("#entityschema-checkbox").prop('checked', value);
             $("#entityschema-schemaSearchButton").click(function(){ entityschema_update(); });
@@ -384,8 +410,7 @@
     }
 
     function entityschema_getStylesheet() {
-        let stylesheet = `#entityschema-schemaSearchButton { background-position: center center; background-repeat: no-repeat; position: relative !important; top: 0; right: 0; overflow: hidden; height: 100%; background-color: #1E90FF !important; color: #FFFFFF !important; padding: 0.5em; text-indent: 0px !important; margin-left: 5px; width: 50px; margin-right: 5px;}
-                          #entityschema-entityToCheck { padding: 0.5em; margin: 0; width: 33%; }
+        let stylesheet = `#entityschema-simpleSearch { width:500px; }
                           #entityschema-response { padding:5px; display: block; }
                           .entityschema-summary  { color: var(--color-progressive,#0645ad); }
                           a.is_entityschema-present { color: #008800; }
