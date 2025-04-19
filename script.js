@@ -13,7 +13,6 @@
     let schema = mw.storage.get("entityschema");
     let property_list = [];
     let item_list = [];
-    let entityID = mw.config.get( 'wbEntityId' );
 
     mw.hook( 'wikibase.entityPage.entityLoaded' ).add( function ( data ) {
         let valid_values = ['item', 'lexeme', 'property']
@@ -30,27 +29,28 @@
                                             </span><input type="checkbox" id="entityschema-checkbox">
                                             <label for="entityschema-checkbox"><small>Automatically check schema</small></label>
                                             <span id="entityschema-response"></span></div>`;
-            mw.util.addSubtitle(entityschema_entity_html);
+            let outer_container = `<details open><summary class='entityschema-summary'>Check against entityschema</summary>${entityschema_entity_html}</details>`;
+            mw.util.addSubtitle(outer_container);
             $("#entityschema-checkbox").prop('checked', value);
             $("#entityschema-schemaSearchButton").click(function(){ entityschema_update(); });
             $("#entityschema-checkbox").click(function() { entityschema_checkbox(); });
-        }
 
-        let claims = data["claims"];
-        for (let claim in claims) {
-            property_list.push(claim);
-            let statements = claims[claim];
-            for (let statement in statements) {
-                let mainsnak = statements[statement]["mainsnak"];
-                if (mainsnak["datavalue"] && mainsnak["datatype"] == "wikibase-item") {
-                    if (!item_list.includes(mainsnak["datavalue"]["value"]["id"])) {
-                        item_list.push(mainsnak["datavalue"]["value"]["id"]);
+            let claims = data["claims"];
+            for (let claim in claims) {
+                property_list.push(claim);
+                let statements = claims[claim];
+                for (let statement in statements) {
+                    let mainsnak = statements[statement]["mainsnak"];
+                    if (mainsnak["datavalue"] && mainsnak["datatype"] == "wikibase-item") {
+                        if (!item_list.includes(mainsnak["datavalue"]["value"]["id"])) {
+                            item_list.push(mainsnak["datavalue"]["value"]["id"]);
+                        }
                     }
                 }
             }
+            check_entity_for_schemas(item_list);
+            check_entity_for_schemas(property_list);
         }
-        check_entity_for_schemas(item_list);
-        check_entity_for_schemas(property_list);
     });
 
     mw.hook( 'wikibase.statement.saved' ).add( function ( data ) {
@@ -381,8 +381,9 @@
 
     function entityschema_getStylesheet() {
         let stylesheet = `#entityschema-schemaSearchButton { background-position: center center; background-repeat: no-repeat; position: relative !important; top: 0; right: 0; overflow: hidden; height: 100%; background-color: #1E90FF !important; color: #FFFFFF !important; padding: 0.5em; text-indent: 0px !important; margin-left: 5px; width: 50px; margin-right: 5px;}
-                          #entityschema-entityToCheck { padding: 0.5em; margin: 0; width: 33%;}
+                          #entityschema-entityToCheck { padding: 0.5em; margin: 0; width: 33%; }
                           #entityschema-response { padding:5px; display: block; }
+                          .entityschema-summary  { color: var(--color-progressive,#0645ad); }
                           a.is_entityschema-present { color: #008800; }
                           a.is_entityschema-allowed { color: #008800; }
                           a.is_entityschema-correct { color: #00CC00; }
@@ -391,7 +392,7 @@
                           a.is_entityschema-wrong { color: #CC0000; }
                           a.is_entityschema-wrong_amount { color: #CC0000; }
                           a.is_entityschema-incorrect { color: #CC0000; }
-                          .entityschema_table {vertical-align: top; width: 33%;}
+                          .entityschema_table {vertical-align: top; width: 33%; }
                           .entityschema-missing { background-color: #FF8C00; }
                           .entityschema-notinschema { background-color: #FF8C00; }
                           .entityschema-wrong { background-color: #CC0000; }
