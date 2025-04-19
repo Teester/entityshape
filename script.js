@@ -209,7 +209,10 @@
                 $(".entityshape-spinner").hide();
             },
             error: function(data) {
-                $("#entityschema-response").append( '<br/><span>Unable to validate schema</span>' );
+                let message = new OO.ui.MessageWidget( {type: 'error', inline: true,
+                                label: 'Unable to validate schema'} );
+                $("#entityschema-response" ).append( message.$element );
+                $(".entityshape-spinner").hide();
             }
         });
     }
