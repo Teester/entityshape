@@ -15,10 +15,9 @@
     let item_list = [];
     let entityID = mw.config.get( 'wbEntityId' );
 
-    $(document).ready(function(){
-
-        let entityschema_conditions = ["/wiki/Q", "/wiki/P", "/wiki/L"];
-        if (entityschema_conditions.some(el => document.location.pathname.includes(el))) {
+    mw.hook( 'wikibase.entityPage.entityLoaded' ).add( function ( data ) {
+        let valid_values = ['item', 'lexeme', 'property']
+        if (valid_values.includes(data["type"])) {
             let entityschema_entity_html = `<div><span id="entityschema-simpleSearch">
                                             <span>
                                             <input type="text" id="entityschema-entityToCheck"
@@ -36,9 +35,7 @@
             $("#entityschema-schemaSearchButton").click(function(){ entityschema_update(); });
             $("#entityschema-checkbox").click(function() { entityschema_checkbox(); });
         }
-    });
 
-    mw.hook( 'wikibase.entityPage.entityLoaded' ).add( function ( data ) {
         let claims = data["claims"];
         for (let claim in claims) {
             property_list.push(claim);
