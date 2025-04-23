@@ -20,50 +20,7 @@
         let valid_values = ['item', 'lexeme', 'property']
         if (!valid_values.includes(data["type"])) { return; }
 
-        let entityschema_entity_html = `
-            <div class="oo-ui-layout oo-ui-horizontalLayout">
-                <div class="oo-ui-layout oo-ui-fieldLayout oo-ui-fieldLayout-align-top oo-ui-actionFieldLayout">
-                    <div class="oo-ui-fieldLayout-body">
-                        <div id="entityschema-simpleSearch" class="oo-ui-fieldLayout-field">
-                            <div class="oo-ui-actionFieldLayout-input">
-                                <div class="oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-textInputWidget oo-ui-textInputWidget-type-text">
-                                    <input type="text" tabindex="0" class="oo-ui-inputWidget-input" value="" id="entityschema-entityToCheck" placeholder="Enter schema to check against e.g. E234">
-                                </div>
-                            </div>
-                            <span class="oo-ui-actionFieldLayout-button" id="entityschema-schemaSearchButton">
-                                <span class="oo-ui-widget oo-ui-widget-enabled oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-labelElement oo-ui-buttonWidget">
-                                    <a class="oo-ui-buttonElement-button" role="button" tabindex="0" rel="nofollow">
-                                        <span class="oo-ui-labelElement-label">Check</span>
-                                    </a>
-                                </span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div class="entityshape-spinner" style="display:none"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
-                <div class="oo-ui-layout oo-ui-labelElement oo-ui-fieldLayout oo-ui-fieldLayout-align-inline">
-                    <div class="oo-ui-fieldLayout-body">
-                        <span class="oo-ui-fieldLayout-field">
-                            <span class="oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-checkboxInputWidget">
-                                <input type="checkbox" tabindex="0" class="oo-ui-inputWidget-input" value="" id="entityschema-checkbox">
-                                <span class="oo-ui-checkboxInputWidget-checkIcon oo-ui-widget oo-ui-widget-enabled oo-ui-iconElement oo-ui-iconElement-icon oo-ui-icon-check oo-ui-labelElement-invisible oo-ui-iconWidget oo-ui-image-invert">
-                                </span>
-                            </span>
-                        </span>
-                        <span class="oo-ui-fieldLayout-header">
-                            <label class="oo-ui-labelElement-label">Automatically check schema</label>
-                        </span>
-                    </div>
-                </div>
-            </div>
-            <span id="entityschema-response"></span>`
-
-        let outer_container = `
-            <details open style='box-shadow: 0 1px var(--border-color-subtle,#c8ccd1);'>
-                <summary class='entityschema-summary'>Check against entityschema</summary>
-                ${entityschema_entity_html}
-            </details>`;
-        mw.util.addSubtitle(outer_container);
+        mw.util.addSubtitle(entityschema_getHTML());
         $("#entityschema-checkbox").prop('checked', value);
         $("#entityschema-schemaSearchButton").click(function(){ entityschema_update(); });
         $("#entityschema-checkbox").click(function() { entityschema_checkbox(); });
@@ -75,13 +32,12 @@
             for (let statement in statements) {
                 let mainsnak = statements[statement]["mainsnak"];
                 if (mainsnak["datavalue"] && mainsnak["datatype"] == "wikibase-item") {
-                    if (!item_list.includes(mainsnak["datavalue"]["value"]["id"])) {
-                        item_list.push(mainsnak["datavalue"]["value"]["id"]);
+                    if (!property_list.includes(mainsnak["datavalue"]["value"]["id"])) {
+                        property_list.push(mainsnak["datavalue"]["value"]["id"]);
                     }
                 }
             }
         }
-        check_entity_for_schemas(item_list);
         check_entity_for_schemas(property_list);
     });
 
@@ -98,8 +54,8 @@
     });
 
     function check_entity_for_schemas(entity_list) {
+        const api = new mw.Api({'User-Agent': 'Userscript Entityshape by User:Teester'});
         for (let item in entity_list) {
-            const api = new mw.Api({'User-Agent': 'Userscript Entityshape by User:Teester'});
             api.get({
                 action: 'wbgetclaims',
                 property: 'P12861',
@@ -420,50 +376,92 @@
     }
 
     function entityschema_getStylesheet() {
-        let stylesheet = `#entityschema-simpleSearch { width:500px; }
-                          #entityschema-response { padding:5px; display: block; }
-                          .entityschema-summary  { color: var(--color-progressive,#0645ad); }
-                          a.is_entityschema-present { color: #008800; }
-                          a.is_entityschema-allowed { color: #008800; }
-                          a.is_entityschema-correct { color: #00CC00; }
-                          a.is_entityschema-missing { color: #FF5500; }
-                          a.is_entityschema-notinschema { color: #FF5500; }
-                          a.is_entityschema-wrong { color: #CC0000; }
-                          a.is_entityschema-wrong_amount { color: #CC0000; }
-                          a.is_entityschema-incorrect { color: #CC0000; }
-                          .entityschema_table {vertical-align: top; width: 33%; }
-                          .entityschema-missing { background-color: #FF8C00; }
-                          .entityschema-notinschema { background-color: #FF8C00; }
-                          .entityschema-wrong { background-color: #CC0000; }
-                          .entityschema-incorrect { background-color: #CC0000; }
-                          .entityschema-wrong_amount { background-color: #CC0000; }
-                          .entityschema-excess { background-color: #CC0000; }
-                          .entityschema-deficit { background-color: #CC0000; }
-                          .entityschema-present { background-color: #008800; }
-                          .entityschema-allowed { background-color: #008800; }
-                          .entityschema-correct { background-color: #00CC00; }
-                          .required .entityschema-missing { background-color: #FF0000;}
-                          .required a.is_entityschema-missing { color: #FF0000;}
-                          .absent .entityschema-missing { display: none;}
-                          .absent a.is_entityschema-missing { display: none;}
-                          .entityschema-span { color: #ffffff; padding:2px; margin: 2px; font-size:75%; border-radius:2px; }
-                          .entityshape-spinner,.entityshape-spinner div,.entityshape-spinner div:after {box-sizing: border-box;}
-                          .entityshape-spinner { padding-top:5px; padding-bottom:5px; color: currentColor; display: inline-block; position: relative; width: 20px; height: 20px;}
-                          .entityshape-spinner div { transform-origin: 10px 10px; animation: entityshape-spinner 1.2s linear infinite;}
-                          .entityshape-spinner div:after { content: " "; display: block; position: absolute; top: 0.8px; left: 9.2px; width: 1.6px; height: 4.4px; border-radius: 20%; background: currentColor;}
-                          .entityshape-spinner div:nth-child(1) { transform: rotate(0deg); animation-delay: -1.1s;}
-                          .entityshape-spinner div:nth-child(2) { transform: rotate(30deg); animation-delay: -1s;}
-                          .entityshape-spinner div:nth-child(3) { transform: rotate(60deg); animation-delay: -0.9s;}
-                          .entityshape-spinner div:nth-child(4) { transform: rotate(90deg); animation-delay: -0.8s;}
-                          .entityshape-spinner div:nth-child(5) { transform: rotate(120deg); animation-delay: -0.7s;}
-                          .entityshape-spinner div:nth-child(6) { transform: rotate(150deg); animation-delay: -0.6s;}
-                          .entityshape-spinner div:nth-child(7) { transform: rotate(180deg); animation-delay: -0.5s;}
-                          .entityshape-spinner div:nth-child(8) { transform: rotate(210deg); animation-delay: -0.4s;}
-                          .entityshape-spinner div:nth-child(9) { transform: rotate(240deg); animation-delay: -0.3s;}
-                          .entityshape-spinner div:nth-child(10) { transform: rotate(270deg); animation-delay: -0.2s;}
-                          .entityshape-spinner div:nth-child(11) { transform: rotate(300deg); animation-delay: -0.1s;}
-                          .entityshape-spinner div:nth-child(12) { transform: rotate(330deg); animation-delay: 0s;}
-                          @keyframes entityshape-spinner { 0% { opacity: 1; } 100% { opacity: 0; }}`
-        return stylesheet;
+        const entityschema_stylesheet = `#entityschema-simpleSearch { width:500px; }
+                                         #entityschema-response { padding:5px; display: block; }
+                                         .entityschema-summary  { color: var(--color-progressive,#0645ad); }
+                                         a.is_entityschema-present { color: #008800; }
+                                         a.is_entityschema-allowed { color: #008800; }
+                                         a.is_entityschema-correct { color: #00CC00; }
+                                         a.is_entityschema-missing { color: #FF5500; }
+                                         a.is_entityschema-notinschema { color: #FF5500; }
+                                         a.is_entityschema-wrong { color: #CC0000; }
+                                         a.is_entityschema-wrong_amount { color: #CC0000; }
+                                         a.is_entityschema-incorrect { color: #CC0000; }
+                                         .entityschema_table {vertical-align: top; width: 33%; }
+                                         .entityschema-missing { background-color: #FF8C00; }
+                                         .entityschema-notinschema { background-color: #FF8C00; }
+                                         .entityschema-wrong { background-color: #CC0000; }
+                                         .entityschema-incorrect { background-color: #CC0000; }
+                                         .entityschema-wrong_amount { background-color: #CC0000; }
+                                         .entityschema-excess { background-color: #CC0000; }
+                                         .entityschema-deficit { background-color: #CC0000; }
+                                         .entityschema-present { background-color: #008800; }
+                                         .entityschema-allowed { background-color: #008800; }
+                                         .entityschema-correct { background-color: #00CC00; }
+                                         .required .entityschema-missing { background-color: #FF0000;}
+                                         .required a.is_entityschema-missing { color: #FF0000;}
+                                         .absent .entityschema-missing { display: none;}
+                                         .absent a.is_entityschema-missing { display: none;}
+                                         .entityschema-span { color: #ffffff; padding:2px; margin: 2px; font-size:75%; border-radius:2px; }
+                                         .entityshape-spinner,.entityshape-spinner div,.entityshape-spinner div:after {box-sizing: border-box;}
+                                         .entityshape-spinner { padding-top:5px; padding-bottom:5px; color: currentColor; display: inline-block; position: relative; width: 20px; height: 20px;}
+                                         .entityshape-spinner div { transform-origin: 10px 10px; animation: entityshape-spinner 1.2s linear infinite;}
+                                         .entityshape-spinner div:after { content: " "; display: block; position: absolute; top: 0.8px; left: 9.2px; width: 1.6px; height: 4.4px; border-radius: 20%; background: currentColor;}
+                                         .entityshape-spinner div:nth-child(1) { transform: rotate(0deg); animation-delay: -1.1s;}
+                                         .entityshape-spinner div:nth-child(2) { transform: rotate(30deg); animation-delay: -1s;}
+                                         .entityshape-spinner div:nth-child(3) { transform: rotate(60deg); animation-delay: -0.9s;}
+                                         .entityshape-spinner div:nth-child(4) { transform: rotate(90deg); animation-delay: -0.8s;}
+                                         .entityshape-spinner div:nth-child(5) { transform: rotate(120deg); animation-delay: -0.7s;}
+                                         .entityshape-spinner div:nth-child(6) { transform: rotate(150deg); animation-delay: -0.6s;}
+                                         .entityshape-spinner div:nth-child(7) { transform: rotate(180deg); animation-delay: -0.5s;}
+                                         .entityshape-spinner div:nth-child(8) { transform: rotate(210deg); animation-delay: -0.4s;}
+                                         .entityshape-spinner div:nth-child(9) { transform: rotate(240deg); animation-delay: -0.3s;}
+                                         .entityshape-spinner div:nth-child(10) { transform: rotate(270deg); animation-delay: -0.2s;}
+                                         .entityshape-spinner div:nth-child(11) { transform: rotate(300deg); animation-delay: -0.1s;}
+                                         .entityshape-spinner div:nth-child(12) { transform: rotate(330deg); animation-delay: 0s;}
+                                         @keyframes entityshape-spinner { 0% { opacity: 1; } 100% { opacity: 0; }}`
+        return entityschema_stylesheet;
+    }
+
+    function entityschema_getHTML() {
+        const entityschema_results_html = `<details open style='box-shadow: 0 1px var(--border-color-subtle,#c8ccd1);'>
+                                           <summary class='entityschema-summary'>Check against entityschema</summary>
+                                           <div class="oo-ui-layout oo-ui-horizontalLayout">
+                                              <div class="oo-ui-layout oo-ui-fieldLayout oo-ui-fieldLayout-align-top oo-ui-actionFieldLayout">
+                                                  <div class="oo-ui-fieldLayout-body">
+                                                      <div id="entityschema-simpleSearch" class="oo-ui-fieldLayout-field">
+                                                          <div class="oo-ui-actionFieldLayout-input">
+                                                              <div class="oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-textInputWidget oo-ui-textInputWidget-type-text">
+                                                                  <input type="text" tabindex="0" class="oo-ui-inputWidget-input" value="" id="entityschema-entityToCheck" placeholder="Enter schema to check against e.g. E234">
+                                                              </div>
+                                                          </div>
+                                                          <span class="oo-ui-actionFieldLayout-button" id="entityschema-schemaSearchButton">
+                                                              <span class="oo-ui-widget oo-ui-widget-enabled oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-labelElement oo-ui-buttonWidget">
+                                                                  <a class="oo-ui-buttonElement-button" role="button" tabindex="0" rel="nofollow">
+                                                                      <span class="oo-ui-labelElement-label">Check</span>
+                                                                  </a>
+                                                              </span>
+                                                          </span>
+                                                      </div>
+                                                  </div>
+                                              </div>
+                                              <div class="entityshape-spinner" style="display:none"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                                              <div class="oo-ui-layout oo-ui-labelElement oo-ui-fieldLayout oo-ui-fieldLayout-align-inline">
+                                                  <div class="oo-ui-fieldLayout-body">
+                                                      <span class="oo-ui-fieldLayout-field">
+                                                          <span class="oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-checkboxInputWidget">
+                                                              <input type="checkbox" tabindex="0" class="oo-ui-inputWidget-input" value="" id="entityschema-checkbox">
+                                                              <span class="oo-ui-checkboxInputWidget-checkIcon oo-ui-widget oo-ui-widget-enabled oo-ui-iconElement oo-ui-iconElement-icon oo-ui-icon-check oo-ui-labelElement-invisible oo-ui-iconWidget oo-ui-image-invert">
+                                                              </span>
+                                                          </span>
+                                                      </span>
+                                                      <span class="oo-ui-fieldLayout-header">
+                                                          <label class="oo-ui-labelElement-label">Automatically check schema</label>
+                                                      </span>
+                                                  </div>
+                                              </div>
+                                          </div>
+                                          <span id="entityschema-response"></span></details>`
+        return entityschema_results_html;
     }
 }());
