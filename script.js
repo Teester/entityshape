@@ -7,6 +7,8 @@
  **/
 
 (function() {
+    "use strict";
+
     mw.util.addCSS(entityschema_getStylesheet());
     let entityschema_list = [];
     let value = mw.storage.get("entityschema-auto");
@@ -16,67 +18,71 @@
 
     mw.hook( 'wikibase.entityPage.entityLoaded' ).add( function ( data ) {
         let valid_values = ['item', 'lexeme', 'property']
-        if (valid_values.includes(data["type"])) {
-            let entityschema_entity_html = `
-                <div class="oo-ui-layout oo-ui-horizontalLayout">
-                    <div class="oo-ui-layout oo-ui-fieldLayout oo-ui-fieldLayout-align-top oo-ui-actionFieldLayout">
-                        <div class="oo-ui-fieldLayout-body">
-                            <div id="entityschema-simpleSearch" class="oo-ui-fieldLayout-field">
-                                <div class="oo-ui-actionFieldLayout-input">
-                                    <div class="oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-textInputWidget oo-ui-textInputWidget-type-text">
-                                        <input type="text" tabindex="0" class="oo-ui-inputWidget-input" value="" id="entityschema-entityToCheck" placeholder="Enter schema to check against e.g. E234">
-                                    </div>
+        if (!valid_values.includes(data["type"])) { return; }
+
+        let entityschema_entity_html = `
+            <div class="oo-ui-layout oo-ui-horizontalLayout">
+                <div class="oo-ui-layout oo-ui-fieldLayout oo-ui-fieldLayout-align-top oo-ui-actionFieldLayout">
+                    <div class="oo-ui-fieldLayout-body">
+                        <div id="entityschema-simpleSearch" class="oo-ui-fieldLayout-field">
+                            <div class="oo-ui-actionFieldLayout-input">
+                                <div class="oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-textInputWidget oo-ui-textInputWidget-type-text">
+                                    <input type="text" tabindex="0" class="oo-ui-inputWidget-input" value="" id="entityschema-entityToCheck" placeholder="Enter schema to check against e.g. E234">
                                 </div>
-                                <span class="oo-ui-actionFieldLayout-button" id="entityschema-schemaSearchButton">
-                                    <span class="oo-ui-widget oo-ui-widget-enabled oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-labelElement oo-ui-buttonWidget">
-                                        <a class="oo-ui-buttonElement-button" role="button" tabindex="0" rel="nofollow">
-                                            <span class="oo-ui-labelElement-label">Check</span>
-                                        </a>
-                                    </span>
-                                </span>
                             </div>
-                        </div>
-                    </div>
-                    <div class="entityshape-spinner" style="display:none"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
-                    <div class="oo-ui-layout oo-ui-labelElement oo-ui-fieldLayout oo-ui-fieldLayout-align-inline">
-                        <div class="oo-ui-fieldLayout-body">
-                            <span class="oo-ui-fieldLayout-field">
-                                <span class="oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-checkboxInputWidget">
-                                    <input type="checkbox" tabindex="0" class="oo-ui-inputWidget-input" value="" id="entityschema-checkbox">
-                                    <span class="oo-ui-checkboxInputWidget-checkIcon oo-ui-widget oo-ui-widget-enabled oo-ui-iconElement oo-ui-iconElement-icon oo-ui-icon-check oo-ui-labelElement-invisible oo-ui-iconWidget oo-ui-image-invert">
-                                    </span>
+                            <span class="oo-ui-actionFieldLayout-button" id="entityschema-schemaSearchButton">
+                                <span class="oo-ui-widget oo-ui-widget-enabled oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-labelElement oo-ui-buttonWidget">
+                                    <a class="oo-ui-buttonElement-button" role="button" tabindex="0" rel="nofollow">
+                                        <span class="oo-ui-labelElement-label">Check</span>
+                                    </a>
                                 </span>
-                            </span>
-                            <span class="oo-ui-fieldLayout-header">
-                                <label class="oo-ui-labelElement-label">Automatically check schema</label>
                             </span>
                         </div>
                     </div>
                 </div>
-                <span id="entityschema-response"></span>`
+                <div class="entityshape-spinner" style="display:none"><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                <div class="oo-ui-layout oo-ui-labelElement oo-ui-fieldLayout oo-ui-fieldLayout-align-inline">
+                    <div class="oo-ui-fieldLayout-body">
+                        <span class="oo-ui-fieldLayout-field">
+                            <span class="oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-checkboxInputWidget">
+                                <input type="checkbox" tabindex="0" class="oo-ui-inputWidget-input" value="" id="entityschema-checkbox">
+                                <span class="oo-ui-checkboxInputWidget-checkIcon oo-ui-widget oo-ui-widget-enabled oo-ui-iconElement oo-ui-iconElement-icon oo-ui-icon-check oo-ui-labelElement-invisible oo-ui-iconWidget oo-ui-image-invert">
+                                </span>
+                            </span>
+                        </span>
+                        <span class="oo-ui-fieldLayout-header">
+                            <label class="oo-ui-labelElement-label">Automatically check schema</label>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <span id="entityschema-response"></span>`
 
-            let outer_container = `<details open style='box-shadow: 0 1px var(--border-color-subtle,#c8ccd1);'><summary class='entityschema-summary'>Check against entityschema</summary>${entityschema_entity_html}</details>`;
-            mw.util.addSubtitle(outer_container);
-            $("#entityschema-checkbox").prop('checked', value);
-            $("#entityschema-schemaSearchButton").click(function(){ entityschema_update(); });
-            $("#entityschema-checkbox").click(function() { entityschema_checkbox(); });
+        let outer_container = `
+            <details open style='box-shadow: 0 1px var(--border-color-subtle,#c8ccd1);'>
+                <summary class='entityschema-summary'>Check against entityschema</summary>
+                ${entityschema_entity_html}
+            </details>`;
+        mw.util.addSubtitle(outer_container);
+        $("#entityschema-checkbox").prop('checked', value);
+        $("#entityschema-schemaSearchButton").click(function(){ entityschema_update(); });
+        $("#entityschema-checkbox").click(function() { entityschema_checkbox(); });
 
-            let claims = data["claims"];
-            for (let claim in claims) {
-                property_list.push(claim);
-                let statements = claims[claim];
-                for (let statement in statements) {
-                    let mainsnak = statements[statement]["mainsnak"];
-                    if (mainsnak["datavalue"] && mainsnak["datatype"] == "wikibase-item") {
-                        if (!item_list.includes(mainsnak["datavalue"]["value"]["id"])) {
-                            item_list.push(mainsnak["datavalue"]["value"]["id"]);
-                        }
+        let claims = data["claims"];
+        for (let claim in claims) {
+            property_list.push(claim);
+            let statements = claims[claim];
+            for (let statement in statements) {
+                let mainsnak = statements[statement]["mainsnak"];
+                if (mainsnak["datavalue"] && mainsnak["datatype"] == "wikibase-item") {
+                    if (!item_list.includes(mainsnak["datavalue"]["value"]["id"])) {
+                        item_list.push(mainsnak["datavalue"]["value"]["id"]);
                     }
                 }
             }
-            check_entity_for_schemas(item_list);
-            check_entity_for_schemas(property_list);
         }
+        check_entity_for_schemas(item_list);
+        check_entity_for_schemas(property_list);
     });
 
     mw.hook( 'wikibase.statement.saved' ).add( function ( data ) {
@@ -93,24 +99,25 @@
 
     function check_entity_for_schemas(entity_list) {
         for (let item in entity_list) {
-            let url = "https://www.wikidata.org/w/api.php?action=wbgetclaims&property=P12861&format=json&entity=" + entity_list[item];
-            $.ajax({
-                type: "GET",
-                dataType: "json",
-                url: url,
-                success: function(data) {
+            const api = new mw.Api({'User-Agent': 'Userscript Entityshape by User:Teester'});
+            api.get({
+                action: 'wbgetclaims',
+                property: 'P12861',
+                entity: entity_list[item],
+                format: 'json'})
+                .fail(function() { console.log("failed to get schemas") })
+                .done(function(data) {
                     if (data["claims"].hasOwnProperty("P12861")) {
-                        for (let claim in data["claims"]["P12861"]) {
-                            entityschema_list.push(data["claims"]["P12861"][claim]["mainsnak"]["datavalue"]["value"]["id"]);
+                        let claims = data["claims"]["P12861"];
+                        for (let claim in claims) {
+                            entityschema_list.push(claims[claim]["mainsnak"]["datavalue"]["value"]["id"]);
                         }
                     }
-                },
-            });
+                });
         }
     }
 
     $(document).ajaxStop(function () {
-        console.log(entityschema_list)
         if (entityschema_list.length != 0) {
             $('#entityschema-entityToCheck').attr("placeholder", `Check against ${entityschema_list.join(", ")}`);
         }
@@ -290,7 +297,7 @@
         required_html += "</ul></td>";
         optional_html += "</ul></td>";
         absent_html += "</td>";
-        html = required_html + optional_html + absent_html + '</tr></table></div>';
+        let html = required_html + optional_html + absent_html + '</tr></table></div>';
         return html;
     }
 
