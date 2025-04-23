@@ -14,7 +14,6 @@
     let value = mw.storage.get("entityschema-auto");
     let schema = mw.storage.get("entityschema");
     let property_list = [];
-    let item_list = [];
 
     mw.hook( 'wikibase.entityPage.entityLoaded' ).add( function ( data ) {
         let valid_values = ['item', 'lexeme', 'property']
