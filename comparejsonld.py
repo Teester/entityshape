@@ -305,6 +305,9 @@ class CompareStatements:
 
         :return: statements
         """
+        if "entities" not in self._entities:
+            return {}
+
         statements: dict = {}
         claims: dict = self._entities["entities"][self._entity]['claims']
         for claim in claims:
