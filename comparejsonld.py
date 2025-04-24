@@ -295,10 +295,10 @@ class CompareProperties:
         """
         if "property" not in statement:
             return allowed
+        if "predicate" not in expression:
+            return allowed
 
-        statement_property: str = statement["property"]
-        if "predicate" in expression and \
-                expression["predicate"].endswith(statement_property):
+        if expression["predicate"].endswith(statement["property"]):
             allowed = "present"
             try:
                 if expression["valueExpr"]["type"] == "NodeConstraint":
