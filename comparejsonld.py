@@ -167,6 +167,13 @@ class CompareProperties:
 
         :return:
         """
+        if "entities" not in self._entities:
+            return {}
+        if self._entity not in self._entities["entities"]:
+            return {}
+        if "claims" not in self._entities["entities"][self._entity]:
+            return {}
+
         claims: dict = self._entities["entities"][self._entity]["claims"]
         properties: dict = {}
         if self._start_shape is None:
