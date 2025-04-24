@@ -3,7 +3,7 @@ import unittest
 from comparejsonld import CompareStatements
 
 
-class compare_statements(unittest.TestCase):
+class TestCompareStatements(unittest.TestCase):
     def setUp(self):
         entities = {'entities':
                         {'Q1':

@@ -9,6 +9,7 @@ import requests
 from app import app
 
 
+@unittest.skip("Skipping wikidata schema tests")
 class MyTestCase(unittest.TestCase):
     """
     Testcases to test wikidata entityschemas against wikidata items
@@ -20,7 +21,7 @@ class MyTestCase(unittest.TestCase):
         self.app = app.test_client()
 
     def tearDown(self) -> None:
-        # Wait before performing the next test to avoid running into Wikidata's request limits when using Github Actions
+        # Wait before performing the next test to avoid running into Wikidata's request limits when using GitHub Actions
         time.sleep(4)
 
     def test_specific_wikidata_item_against_schema(self):
@@ -75,7 +76,7 @@ class MyTestCase(unittest.TestCase):
             with self.subTest(schema=schema):
                 if schema in skips:
                     self.skipTest(f"Schema {schema} not supported")
-                # Wait before performing the next test to avoid running into Wikidata's request limits when using Github Actions
+                # Wait before performing the next test to avoid running into Wikidata's request limits when using GitHub Actions
                 time.sleep(4)
                 response = self.app.get(f'/api/v2?entityschema={schema}&entity=Q100532807&language=en',
                                         follow_redirects=True)

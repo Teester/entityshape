@@ -3,7 +3,7 @@ A class to compare a wikidata entity with a JSON-LD representation of an entitys
 """
 import json
 import re
-from typing import Tuple, Any
+from typing import Any
 
 import requests
 from requests import Response
