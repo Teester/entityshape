@@ -67,8 +67,10 @@ class TestCompareStatements(unittest.TestCase):
 
     def test_process_expressions_with_nothing(self):
         expression = {}
+        shape = {}
         statement = {}
-        self.assertEqual("", self.compare_statements.process_expressions(expression, statement))
+        allowed = ""
+        self.assertEqual("", self.compare_statements.process_expressions(expression, shape, statement, allowed))
 
     def test_process_expressions_with_values(self):
         expression = {"type": "TripleConstraint",
