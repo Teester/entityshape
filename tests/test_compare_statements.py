@@ -67,7 +67,21 @@ class TestCompareStatements(unittest.TestCase):
                                        {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
                                    'type': 'wikibase-entityid'},
                      'datatype': 'wikibase-item'}
-        self.assertEqual("allowed", self.compare_statements._process_shape(statement))
+        shape = {"type": "Shape",
+                 "id": "test",
+                 "expression": {
+                     "type": "EachOf",
+                     "expressions": [
+                         {
+                             "type": "TripleConstraint",
+                             "predicate": "http://www.wikidata.org/prop/direct/P31"
+                         }
+                     ]
+                 }}
+        child = {}
+        child, allowed = self.compare_statements._process_shape(statement, shape, child)
+        self.assertEqual({"response": "allowed"}, child)
+        self.assertEqual("allowed", allowed)
 
     def test_process_expressions_with_nothing(self):
         expression = {}
