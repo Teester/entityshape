@@ -213,6 +213,9 @@ class CompareProperties:
         return response
 
     def _get_allowed_list(self, claims: dict, prop: str, expression: dict) -> list:
+        if prop not in claims:
+            return []
+
         allowed_list: list = []
         for statement in claims[prop]:
             is_it_allowed: str = ""
