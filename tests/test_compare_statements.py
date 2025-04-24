@@ -118,7 +118,8 @@ class TestCompareStatements(unittest.TestCase):
     def test_process_triple_constraint_with_nothing(self):
         statement = {}
         expression = {}
-        self.assertEqual("", self.compare_statements._process_triple_constraint(statement, expression))
+        allowed = ""
+        self.assertEqual("", self.compare_statements._process_triple_constraint(statement, expression, allowed))
 
     def test_process_triple_constraint_with_values(self):
         expression = {"type": "TripleConstraint",
@@ -131,7 +132,8 @@ class TestCompareStatements(unittest.TestCase):
                                        {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
                                    'type': 'wikibase-entityid'},
                      'datatype': 'wikibase-item'}
-        self.assertEqual("allowed", self.compare_statements._process_triple_constraint(statement, expression))
+        allowed = "allowed"
+        self.assertEqual("allowed", self.compare_statements._process_triple_constraint(statement, expression, allowed))
 
 
 if __name__ == '__main__':
