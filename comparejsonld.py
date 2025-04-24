@@ -372,6 +372,9 @@ class CompareStatements:
         :param allowed: Whether the statement is allowed by the expression or not currently
         :return: allowed
         """
+        if "property" not in statement:
+            return allowed
+
         statement_property: str = statement["property"]
         if "predicate" in expression and \
                 expression["predicate"].endswith(statement_property):
