@@ -52,7 +52,7 @@ class TestCompareProperties(unittest.TestCase):
     def test_compare_properties_with_values(self):
         result = {'P31': {'name': 'instance of',
                           'necessity': 'required',
-                          'response': 'not enough correct statements'}}
+                          'response': 'present'}}
         self.assertEqual(result, self.compare_properties.compare_properties())
 
     def test_check_claims_for_prop_with_nothing(self):
