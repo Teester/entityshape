@@ -345,6 +345,13 @@ class CompareStatements:
         return child, allowed
 
     def process_expressions(self, expression: dict, shape: dict, statement: dict, allowed: str) -> str:
+        if "type" not in expression:
+            return allowed
+        if "predicate" not in expression:
+            return allowed
+        if "property" not in statement:
+            return allowed
+
         if expression["type"] == "TripleConstraint" and expression["predicate"].endswith(statement["property"]):
             allowed = self._process_triple_constraint(statement,
                                                       expression,
