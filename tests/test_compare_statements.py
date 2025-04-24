@@ -76,6 +76,17 @@ class TestCompareStatements(unittest.TestCase):
         expression = {"type": "TripleConstraint",
                       "predicate": "http://www.wikidata.org/prop/direct/P31"
                       }
+        shape = {"type": "Shape",
+                 "id": "test",
+                 "expression": {
+                     "type": "EachOf",
+                     "expressions": [
+                         {
+                             "type": "TripleConstraint",
+                             "predicate": "http://www.wikidata.org/prop/direct/P31"
+                         }
+                     ]
+                 }}
         statement = {'snaktype': 'value',
                      'property': 'P31',
                      'hash': '1',
@@ -83,7 +94,8 @@ class TestCompareStatements(unittest.TestCase):
                                        {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
                                    'type': 'wikibase-entityid'},
                      'datatype': 'wikibase-item'}
-        self.assertEqual("allowed", self.compare_statements.process_expressions(expression, statement))
+        allowed = "allowed"
+        self.assertEqual("allowed", self.compare_statements.process_expressions(expression, shape, statement, allowed))
 
     def test_process_triple_constraint_with_nothing(self):
         statement = {}
