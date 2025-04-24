@@ -392,10 +392,10 @@ class CompareStatements:
         """
         if "property" not in statement:
             return allowed
+        if "predicate" not in expression:
+            return allowed
 
-        statement_property: str = statement["property"]
-        if "predicate" in expression and \
-                expression["predicate"].endswith(statement_property):
+        if expression["predicate"].endswith(statement["property"]):
             allowed = "allowed"
             Utilities.process_cardinalities(expression, {"mainsnak": statement})
             try:
