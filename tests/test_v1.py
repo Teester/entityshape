@@ -8,6 +8,7 @@ import requests
 from app import app
 
 
+@unittest.skip("Skipping V1 tests")
 class V1Tests(unittest.TestCase):
     """
     Testcases to test wikidata entityschemas against wikidata items

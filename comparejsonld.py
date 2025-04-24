@@ -157,10 +157,16 @@ class CompareProperties:
     def compare_properties(self) -> dict:
         """
         Compares the properties in the start shape with the properties in the entity
-        :return: a dict containind the responses for each property mentioned in the start shape
+        :return: a dict containing the responses for each property mentioned in the start shape
         """
         # if there's no start shape, return an empty dict
         if self._start_shape is None:
+            return {}
+        if "entities" not in self._entities:
+            return {}
+        if self._entity not in self._entities["entities"]:
+            return {}
+        if "claims" not in self._entities["entities"][self._entity]:
             return {}
 
         claims: dict = self._entities["entities"][self._entity]["claims"]
@@ -185,7 +191,6 @@ class CompareProperties:
 
         :return:
         """
-
         if "expression" not in self._start_shape:
             return "present"
         if "expressions" not in self._start_shape["expression"]:
@@ -208,6 +213,9 @@ class CompareProperties:
         return response
 
     def _get_allowed_list(self, claims: dict, prop: str, expression: dict) -> list:
+        if prop not in claims:
+            return []
+
         allowed_list: list = []
         for statement in claims[prop]:
             is_it_allowed: str = ""
@@ -227,8 +235,8 @@ class CompareProperties:
             return ""
         if not expression["predicate"].endswith(prop):
             return ""
-        occurrences: int = allowed_list.count("correct")
-        occurrences += allowed_list.count("present")
+
+        occurrences: int = allowed_list.count(["correct", "present"])
         cardinality: str = "correct"
         for expression in shape["expression"]["expressions"]:
             if "predicate" in expression and expression["predicate"].endswith(prop):
@@ -273,9 +281,13 @@ class CompareProperties:
         :param str allowed: Whether the statement is allowed by the expression or not currently
         :return: allowed
         """
+        if "property" not in statement:
+            return allowed
+        if "predicate" not in expression:
+            return allowed
+
         statement_property: str = statement["property"]
-        if "predicate" in expression and \
-                expression["predicate"].endswith(statement_property):
+        if expression["predicate"].endswith(statement_property):
             allowed = "present"
             try:
                 if expression["valueExpr"]["type"] == "NodeConstraint":
@@ -306,66 +318,80 @@ class CompareStatements:
 
         :return: statements
         """
+        if "entities" not in self._entities:
+            return {}
+        if self._entity not in self._entities["entities"]:
+            return {}
+        if "claims" not in self._entities["entities"][self._entity]:
+            return {}
+
         statements: dict = {}
+        utilities: Utilities = Utilities()
+
         claims: dict = self._entities["entities"][self._entity]['claims']
         for claim in claims:
-            property_statement_results: list = []
             for statement in claims[claim]:
                 child: dict = {"property": claim}
-                utilities: Utilities = Utilities()
                 necessity = utilities.calculate_necessity(statement["mainsnak"]["property"], self.start_shape)
                 if necessity != "absent":
                     child["necessity"] = necessity
-                child, allowed = self._process_shape(statement["mainsnak"], self.start_shape, child)
+                child["response"] = self._process_shape(statement["mainsnak"])
                 statements[statement["id"]] = child
-                if allowed.startswith("missing"):
-                    allowed = "incorrect"
-                property_statement_results.append(allowed)
         return statements
 
-    def _process_shape(self, statement: dict, shape: dict, child: dict) -> Tuple[Any, str]:
+    def _process_shape(self, statement: dict) -> str:
         """
-        Processes a full shape
+        Processes a statement against a shape
 
         :param statement: The entity's statement to be assessed
-        :param shape: The shape to be assessed against
-        :param child: The current response from the assessment
-        :return: child and allowed
+        :return: child
         """
-        expressions: dict = {}
-        if "expression" in shape and "expressions" in shape["expression"]:
-            expressions = shape["expression"]["expressions"]
         allowed: str = "not in schema"
-        for expression in expressions:
-            allowed = self.process_expressions(expression, shape, statement, allowed)
-        if allowed != "":
-            child["response"] = allowed
-        return child, allowed
 
-    def process_expressions(self, expression: dict, shape: dict, statement: dict, allowed: str) -> str:
+        if "expression" not in self.start_shape:
+            return allowed
+        if "expressions" not in self.start_shape["expression"]:
+            return allowed
+
+        expressions: dict = self.start_shape["expression"]["expressions"]
+        for expression in expressions:
+            allowed = self.process_expressions(expression, statement)
+        return allowed
+
+    def process_expressions(self, expression: dict, statement: dict) -> str:
+        allowed: str = ""
+        if "type" not in expression:
+            return allowed
+        if "predicate" not in expression:
+            return allowed
+        if "property" not in statement:
+            return allowed
+
         if expression["type"] == "TripleConstraint" and expression["predicate"].endswith(statement["property"]):
-            allowed = self._process_triple_constraint(statement,
-                                                      expression,
-                                                      allowed)
-            if "extra" in shape:
-                for extra in shape["extra"]:
+            allowed = self._process_triple_constraint(statement, expression)
+            if "extra" in self.start_shape:
+                for extra in self.start_shape["extra"]:
                     if extra.endswith(statement["property"]) and allowed == "incorrect":
                         allowed = "allowed"
         return allowed
 
     @staticmethod
-    def _process_triple_constraint(statement: dict, expression: dict, allowed: str) -> str:
+    def _process_triple_constraint(statement: dict, expression: dict) -> str:
         """
         Processes triple constraint expression types in the shape
 
         :param statement: The entity's statement to be assessed
         :param expression: The expression from the shape to be assessed against
-        :param allowed: Whether the statement is allowed by the expression or not currently
         :return: allowed
         """
+        allowed: str = ""
+        if "property" not in statement:
+            return allowed
+        if "predicate" not in expression:
+            return allowed
+
         statement_property: str = statement["property"]
-        if "predicate" in expression and \
-                expression["predicate"].endswith(statement_property):
+        if expression["predicate"].endswith(statement_property):
             allowed = "allowed"
             Utilities.process_cardinalities(expression, {"mainsnak": statement})
             try:
@@ -454,12 +480,12 @@ class Utilities:
         :param str allowed: Whether the statement is allowed by the expression or not currently
         :return: allowed
         """
-        if statement["snaktype"] == "value" and \
-                statement["datavalue"]["type"] == "wikibase-entityid":
-            obj = f'http://www.wikidata.org/entity/{statement["datavalue"]["value"]["id"]}'
-            if "values" in expression:
-                if obj in expression["values"]:
-                    allowed = "correct"
-                else:
-                    allowed = "incorrect"
+        if "snaktype" in statement:
+            if statement["snaktype"] == "value" and statement["datavalue"]["type"] == "wikibase-entityid":
+                obj = f'http://www.wikidata.org/entity/{statement["datavalue"]["value"]["id"]}'
+                if "values" in expression:
+                    if obj in expression["values"]:
+                        allowed = "correct"
+                    else:
+                        allowed = "incorrect"
         return allowed

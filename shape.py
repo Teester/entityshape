@@ -59,7 +59,7 @@ class Shape:
         Gets the JSON_LD form of the Schema
         """
         try:
-            # print(json.dumps(json.loads(as_json(parse(self._json_text["schemaText"]))), indent=2))
+            print(json.dumps(json.loads(as_json(parse(self._json_text["schemaText"]))), indent=2))
 
             return json.loads(as_json(parse(self._json_text["schemaText"])))
         except (KeyError, IndexError, AttributeError, ValueError):
