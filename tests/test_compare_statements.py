@@ -53,7 +53,11 @@ class TestCompareStatements(unittest.TestCase):
 
     def test_process_shape_with_nothing(self):
         statement = {}
-        self.assertEqual("", self.compare_statements._process_shape(statement))
+        shape = {}
+        child = {}
+        child, allowed = self.compare_statements._process_shape(statement, shape, child)
+        self.assertEqual({"response": "not in schema"}, child)
+        self.assertEqual("not in schema", allowed)
 
     def test_process_shape_with_values(self):
         statement = {'snaktype': 'value',
