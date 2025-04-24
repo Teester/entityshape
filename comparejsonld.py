@@ -74,7 +74,8 @@ class CompareJSONLD:
         Downloads the entity from wikidata and assigns the json to self._entities
         """
         url: str = f"https://www.wikidata.org/wiki/Special:EntityData/{self._entity}.json"
-        response: Response = requests.get(url)
+        response: Response = requests.get(url = url,
+                                          headers = {'User-Agent': 'Userscript Entityshape by User:Teester'})
         self._entities = response.json()
 
     def _get_props(self, claims: dict) -> None:
@@ -108,9 +109,13 @@ class CompareJSONLD:
                                         for i in range((len(self._props) + 48) // 48)]
         for element in wikidata_property_list:
             required_properties: str = "|".join(element)
-            url: str = f"https://www.wikidata.org/w/api.php?action=wbgetentities&ids=" \
-                       f"{required_properties}&props=labels&languages={language}&format=json"
-            response: Response = requests.get(url)
+            response: Response = requests.get(url = "https://www.wikidata.org/w/api.php",
+                                              params = {"action": "wbgetentities",
+                                                        "ids": required_properties,
+                                                        "props": "labels",
+                                                        "languages": language,
+                                                        "format": "json"},
+                                              headers = {'User-Agent': 'Entityshape API by User:Teester'})
             json_text: dict = response.json()
             for item in element:
                 try:
