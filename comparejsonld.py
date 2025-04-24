@@ -453,6 +453,13 @@ class Utilities:
         :param str allowed: Whether the statement is allowed by the expression or not currently
         :return: allowed
         """
+        if "snaktype" not in statement:
+            return allowed
+        if "datavalue" not in  statement:
+            return allowed
+        if "type" not in statement["datavalue"]:
+            return allowed
+
         if statement["snaktype"] == "value" and \
                 statement["datavalue"]["type"] == "wikibase-entityid":
             obj = f'http://www.wikidata.org/entity/{statement["datavalue"]["value"]["id"]}'
