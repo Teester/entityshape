@@ -73,8 +73,8 @@ class CompareJSONLD:
         """
         Downloads the entity from wikidata and assigns the json to self._entities
         """
-        url: str = f"https://www.wikidata.org/wiki/Special:EntityData/{self._entity}.json"
-        response: Response = requests.get(url)
+        response: Response = requests.get(url=f"https://www.wikidata.org/wiki/Special:EntityData/{self._entity}.json",
+                                          headers={'User-Agent': 'Entityshape API by User:Teester'})
         self._entities = response.json()
 
     def _get_props(self, claims: dict) -> None:
@@ -83,18 +83,19 @@ class CompareJSONLD:
 
         :param claims: The claims in the entity
         """
-        self._props: list = []
+        props: set = set()
+
         # Get properties from the entity
         for claim in claims:
-            if claim not in self._props:
-                self._props.append(claim)
-        # Get properties from the shape
-        if "shapes" in self._shape:
-            for shape in self._shape["shapes"]:
-                properties: list = re.findall(r'P\d+', json.dumps(shape))
-                for prop in properties:
-                    if prop not in self._props and prop.startswith("P") and len(prop) > 1:
-                        self._props.append(prop)
+            props.add(claim)
+
+        # Get properties from the start shape
+        # TODO: there must be a more elegant way to do this than just grabbing any Pxx string from the json
+        properties: list = re.findall(r'P\d+', json.dumps(self._get_start_shape()))
+        for prop in properties:
+            props.add(prop)
+
+        self._props: list = list(props)
 
     def _get_property_names(self, language: str) -> None:
         """
@@ -104,53 +105,44 @@ class CompareJSONLD:
         :return: Nothing
         """
         self._names: dict = {}
+        # Max number of properties to query in a wikidata api query is 50, so split the list of properties up into
+        # chunks of no more than 50 each
         wikidata_property_list: list = [self._props[i * 49:(i + 1) * 49]
                                         for i in range((len(self._props) + 48) // 48)]
+        # process each chunk separately
         for element in wikidata_property_list:
             required_properties: str = "|".join(element)
-            url: str = f"https://www.wikidata.org/w/api.php?action=wbgetentities&ids=" \
-                       f"{required_properties}&props=labels&languages={language}&format=json"
-            response: Response = requests.get(url)
+            response: Response = requests.get(url='https://www.wikidata.org/w/api.php',
+                                              params={'action': 'wbgetentities',
+                                                      'ids': required_properties,
+                                                      'props': 'labels',
+                                                      'languages': language,
+                                                      'format': 'json'},
+                                              headers={'User-Agent': 'Entityshape API by User:Teester'})
             json_text: dict = response.json()
-            for item in element:
-                try:
-                    self._names[json_text["entities"][item]["id"]] = \
-                        json_text["entities"][item]["labels"][language]["value"]
-                except KeyError:
-                    self._names[json_text["entities"][item]["id"]] = ""
 
-    def _get_start_shape(self) -> dict:
+            for item in element:
+                item_id: dict = json_text["entities"][item]
+                try:
+                    self._names[item_id['id']] = item_id["labels"][language]["value"]
+                except KeyError:
+                    self._names[item_id['id']] = ""
+
+    def _get_start_shape(self) -> dict[Any, Any] | None | Any:
         """
         Gets the shape associated with the start parameter of the entityschema
 
         :return: the start shape
         """
-        if "start" in self._shape:
-            start: dict = self._shape['start']
-            start_shape: dict = {}
-            if "shapes" in self._shape:
-                for shape in self._shape['shapes']:
-                    if shape["id"] == start:
-                        start_shape = shape
-            return start_shape
-        else:
+        if "start" not in self._shape:
             return {}
 
-    def _process_one_of(self) -> None:
-        """
-        Processes one of expression types in the shape
+        if "shapes" not in self._shape:
+            return {}
 
-        :return:
-        """
-        pass
-
-    def _process_each_of(self) -> None:
-        """
-       Processes each of expression types in the shape
-
-       :return:
-       """
-        pass
+        for shape in self._shape['shapes']:
+            if shape["id"] == self._shape['start']:
+                return shape
 
 
 class CompareProperties:
@@ -164,26 +156,27 @@ class CompareProperties:
 
     def compare_properties(self) -> dict:
         """
-
-        :return:
+        Compares the properties in the start shape with the properties in the entity
+        :return: a dict containind the responses for each property mentioned in the start shape
         """
+        # if there's no start shape, return an empty dict
+        if self._start_shape is None:
+            return {}
+
         claims: dict = self._entities["entities"][self._entity]["claims"]
         properties: dict = {}
-        if self._start_shape is None:
-            return properties
         utilities: Utilities = Utilities()
+
         for prop in self._props:
-            child: dict = {"name": self._names[prop],
-                           "necessity": utilities.calculate_necessity(prop, self._start_shape)}
+            name: str = self._names[prop]
+            necessity: str = utilities.calculate_necessity(prop, self._start_shape)
+            response: str = "missing"
             if prop in claims:
-                response: str = self.check_claims_for_props(claims, prop)
-            else:
-                response: str = "missing"
-            if child["necessity"] != "absent":
-                if response != "":
-                    child["response"] = response
-            elif response != "present":
-                child["response"] = response
+                response = self.check_claims_for_props(claims, prop)
+
+            child: dict = {"name": name,
+                           "necessity": necessity,
+                           "response": response}
             properties[prop] = child
         return properties
 
@@ -192,12 +185,14 @@ class CompareProperties:
 
         :return:
         """
-        cardinality: str = "correct"
-        allowed: str = "present"
+
         if "expression" not in self._start_shape:
             return "present"
         if "expressions" not in self._start_shape["expression"]:
             return "present"
+
+        cardinality: str = "correct"
+        allowed: str = "present"
         for expression in self._start_shape["expression"]["expressions"]:
             if "predicate" in expression and expression["predicate"].endswith(prop):
                 allowed_list = self._get_allowed_list(claims, prop, expression)
@@ -290,6 +285,12 @@ class CompareProperties:
             except (KeyError, TypeError):
                 pass
         return allowed
+
+    def _process_each_of(self):
+        return
+
+    def _process_one_of(self):
+        return
 
 
 class CompareStatements:

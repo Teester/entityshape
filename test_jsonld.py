@@ -15,7 +15,7 @@ class JSONLDCase(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         language: str = "en"
-        schema: str = "E236"
+        schema: str = "E228"
         entity: str = "Q1728820"
         shape: Shape = Shape(schema, language)
         cls.comparison: CompareShape = CompareShape(shape.get_schema_shape(), entity, language)

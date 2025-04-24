@@ -59,6 +59,8 @@ class Shape:
         Gets the JSON_LD form of the Schema
         """
         try:
+            # print(json.dumps(json.loads(as_json(parse(self._json_text["schemaText"]))), indent=2))
+
             return json.loads(as_json(parse(self._json_text["schemaText"])))
         except (KeyError, IndexError, AttributeError, ValueError):
             return {}
@@ -163,8 +165,8 @@ class Shape:
 
         :param schema: the entityschema to be downloaded
         """
-        url: str = f"https://www.wikidata.org/wiki/EntitySchema:{schema}?action=raw"
-        response = requests.get(url)
+        response = requests.get(url=f"https://www.wikidata.org/wiki/EntitySchema:{schema}?action=raw",
+                                headers={'User-Agent': 'Entityshape API by User:Teester'})
         self._json_text: dict = response.json()
 
     def _strip_schema_comments(self) -> None:
