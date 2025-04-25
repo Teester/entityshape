@@ -74,7 +74,8 @@ class CompareJSONLD:
         Downloads the entity from wikidata and assigns the json to self._entities
         """
         url: str = f"https://www.wikidata.org/wiki/Special:EntityData/{self._entity}.json"
-        response: Response = requests.get(url)
+        response: Response = requests.get(url=url,
+                                          headers={'User-Agent': 'Userscript Entityshape by User:Teester'})
         self._entities = response.json()
 
     def _get_props(self, claims: dict) -> None:
@@ -108,9 +109,13 @@ class CompareJSONLD:
                                         for i in range((len(self._props) + 48) // 48)]
         for element in wikidata_property_list:
             required_properties: str = "|".join(element)
-            url: str = f"https://www.wikidata.org/w/api.php?action=wbgetentities&ids=" \
-                       f"{required_properties}&props=labels&languages={language}&format=json"
-            response: Response = requests.get(url)
+            response: Response = requests.get(url="https://www.wikidata.org/w/api.php",
+                                              params={"action": "wbgetentities",
+                                                      "ids": required_properties,
+                                                      "props": "labels",
+                                                      "languages": language,
+                                                      "format": "json"},
+                                              headers={'User-Agent': 'Entityshape API by User:Teester'})
             json_text: dict = response.json()
             for item in element:
                 try:
@@ -167,6 +172,13 @@ class CompareProperties:
 
         :return:
         """
+        if "entities" not in self._entities:
+            return {}
+        if self._entity not in self._entities["entities"]:
+            return {}
+        if "claims" not in self._entities["entities"][self._entity]:
+            return {}
+
         claims: dict = self._entities["entities"][self._entity]["claims"]
         properties: dict = {}
         if self._start_shape is None:
@@ -213,6 +225,9 @@ class CompareProperties:
         return response
 
     def _get_allowed_list(self, claims: dict, prop: str, expression: dict) -> list:
+        if prop not in claims:
+            return []
+
         allowed_list: list = []
         for statement in claims[prop]:
             is_it_allowed: str = ""
@@ -278,9 +293,12 @@ class CompareProperties:
         :param str allowed: Whether the statement is allowed by the expression or not currently
         :return: allowed
         """
-        statement_property: str = statement["property"]
-        if "predicate" in expression and \
-                expression["predicate"].endswith(statement_property):
+        if "property" not in statement:
+            return allowed
+        if "predicate" not in expression:
+            return allowed
+
+        if expression["predicate"].endswith(statement["property"]):
             allowed = "present"
             try:
                 if expression["valueExpr"]["type"] == "NodeConstraint":
@@ -305,6 +323,9 @@ class CompareStatements:
 
         :return: statements
         """
+        if "entities" not in self._entities:
+            return {}
+
         statements: dict = {}
         claims: dict = self._entities["entities"][self._entity]['claims']
         for claim in claims:
@@ -342,6 +363,13 @@ class CompareStatements:
         return child, allowed
 
     def process_expressions(self, expression: dict, shape: dict, statement: dict, allowed: str) -> str:
+        if "type" not in expression:
+            return allowed
+        if "predicate" not in expression:
+            return allowed
+        if "property" not in statement:
+            return allowed
+
         if expression["type"] == "TripleConstraint" and expression["predicate"].endswith(statement["property"]):
             allowed = self._process_triple_constraint(statement,
                                                       expression,
@@ -362,9 +390,12 @@ class CompareStatements:
         :param allowed: Whether the statement is allowed by the expression or not currently
         :return: allowed
         """
-        statement_property: str = statement["property"]
-        if "predicate" in expression and \
-                expression["predicate"].endswith(statement_property):
+        if "property" not in statement:
+            return allowed
+        if "predicate" not in expression:
+            return allowed
+
+        if expression["predicate"].endswith(statement["property"]):
             allowed = "allowed"
             Utilities.process_cardinalities(expression, {"mainsnak": statement})
             try:
@@ -453,6 +484,13 @@ class Utilities:
         :param str allowed: Whether the statement is allowed by the expression or not currently
         :return: allowed
         """
+        if "snaktype" not in statement:
+            return allowed
+        if "datavalue" not in statement:
+            return allowed
+        if "type" not in statement["datavalue"]:
+            return allowed
+
         if statement["snaktype"] == "value" and \
                 statement["datavalue"]["type"] == "wikibase-entityid":
             obj = f'http://www.wikidata.org/entity/{statement["datavalue"]["value"]["id"]}'

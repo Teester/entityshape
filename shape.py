@@ -164,7 +164,8 @@ class Shape:
         :param schema: the entityschema to be downloaded
         """
         url: str = f"https://www.wikidata.org/wiki/EntitySchema:{schema}?action=raw"
-        response = requests.get(url)
+        response = requests.get(url=url,
+                                headers={'User-Agent': 'Userscript Entityshape by User:Teester'})
         self._json_text: dict = response.json()
 
     def _strip_schema_comments(self) -> None:

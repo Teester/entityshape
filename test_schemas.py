@@ -19,10 +19,6 @@ class MyTestCase(unittest.TestCase):
         app.config['DEBUG'] = False
         self.app = app.test_client()
 
-    def tearDown(self) -> None:
-        # Wait before performing the next test to avoid running into Wikidata's request limits when using Github Actions
-        time.sleep(4)
-
     def test_specific_wikidata_item_against_schema(self):
         """
         Tests a specific entity against a certain schema and checks that
@@ -52,6 +48,7 @@ class MyTestCase(unittest.TestCase):
                 self.assertIsNotNone(response.json["general"][0]["lexicalCategory"])
                 self.assertIsNotNone(response.json["general"][0]["language"])
 
+    @unittest.skip("Not running check on all wikidata schemas as they take too long")
     def test_wikidata_entityschemas(self) -> None:
         """
         Tests all wikidata entityschemas return 200
@@ -75,7 +72,8 @@ class MyTestCase(unittest.TestCase):
             with self.subTest(schema=schema):
                 if schema in skips:
                     self.skipTest(f"Schema {schema} not supported")
-                # Wait before performing the next test to avoid running into Wikidata's request limits when using Github Actions
+                # Wait before performing the next test to avoid running into Wikidata's request limits
+                # when using GitHub Actions
                 time.sleep(4)
                 response = self.app.get(f'/api/v2?entityschema={schema}&entity=Q100532807&language=en',
                                         follow_redirects=True)

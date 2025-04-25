@@ -49,6 +49,7 @@ class V1Tests(unittest.TestCase):
                 self.assertIsNotNone(response.json["general"]["lexicalCategory"])
                 self.assertIsNotNone(response.json["general"]["language"])
 
+    @unittest.skip("Not running check on all wikidata schemas as they take too long")
     def test_wikidata_entityschemas(self) -> None:
         """
         Tests all wikidata entityschemas return 200
