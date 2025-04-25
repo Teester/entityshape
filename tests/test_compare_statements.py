@@ -1,6 +1,6 @@
 import unittest
 
-from comparejsonld import CompareStatements
+from src.comparejsonld import CompareStatements
 
 
 class TestCompareStatements(unittest.TestCase):
