@@ -3,9 +3,9 @@ Tests to test results from comparejsonld.py match those from comparejson.py
 """
 import unittest
 
-from comparejsonld import CompareJSONLD
-from compareshape import CompareShape
-from shape import Shape
+from src.comparejsonld import CompareJSONLD
+from src.compareshape import CompareShape
+from src.shape import Shape
 
 
 class JSONLDCase(unittest.TestCase):
