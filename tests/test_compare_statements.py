@@ -5,23 +5,24 @@ from comparejsonld import CompareStatements
 
 class TestCompareStatements(unittest.TestCase):
     def setUp(self):
-        entities = {'Q1':
-                        {'title': 'Q1',
-                         'type': 'item',
-                         'id': 'Q1',
-                         'claims': {'P31': [{'mainsnak':
-                                                 {'snaktype': 'value',
-                                                  'property': 'P31',
-                                                  'hash': '1',
-                                                  'datavalue': {'value':
-                                                                    {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
-                                                                'type': 'wikibase-entityid'},
-                                                  'datatype': 'wikibase-item'},
-                                             'type': 'statement',
-                                             'id': '1',
-                                             'rank': 'normal'}],
-                                    },
-                         'sitelinks': {}}}
+        entities = {"entities":
+                        {'Q1':
+                            {'title': 'Q1',
+                             'type': 'item',
+                             'id': 'Q1',
+                             'claims': {'P31': [{'mainsnak':
+                                                     {'snaktype': 'value',
+                                                      'property': 'P31',
+                                                      'hash': '1',
+                                                      'datavalue': {'value':
+                                                                        {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
+                                                                    'type': 'wikibase-entityid'},
+                                                      'datatype': 'wikibase-item'},
+                                                 'type': 'statement',
+                                                 'id': '1',
+                                                 'rank': 'normal'}],
+                                        },
+                             'sitelinks': {}}}}
         entity = "Q1"
         statement = {"type": "Shape",
                      "id": "test",
