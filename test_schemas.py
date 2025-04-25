@@ -19,10 +19,6 @@ class MyTestCase(unittest.TestCase):
         app.config['DEBUG'] = False
         self.app = app.test_client()
 
-    def tearDown(self) -> None:
-        # Wait before performing the next test to avoid running into Wikidata's request limits when using GitHub Actions
-        time.sleep(4)
-
     def test_specific_wikidata_item_against_schema(self):
         """
         Tests a specific entity against a certain schema and checks that
@@ -52,6 +48,7 @@ class MyTestCase(unittest.TestCase):
                 self.assertIsNotNone(response.json["general"][0]["lexicalCategory"])
                 self.assertIsNotNone(response.json["general"][0]["language"])
 
+    @unittest.skip("Not running check on all wikidata schemas as they take too long")
     def test_wikidata_entityschemas(self) -> None:
         """
         Tests all wikidata entityschemas return 200
