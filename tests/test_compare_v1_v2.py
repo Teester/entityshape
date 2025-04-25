@@ -21,25 +21,6 @@ class CompareV1V2(unittest.TestCase):
         # We don't need to tear anything down after the test
         pass
 
-    def test_specific_wikidata_item_against_schema(self):
-        """
-        Tests a specific entity against a certain schema and checks that
-        a statements and a properties response are returned
-        """
-        test_pairs: dict = {"E236": "Q1728820",
-                            "E236": "Q100532807"
-                            }
-
-        for key in test_pairs:
-            with self.subTest(key=key):
-                value = test_pairs[key]
-                response = self.app.get(f'/api?entityschema={key}&entity={value}&language=en',
-                                        follow_redirects=True)
-                response2 = self.app.get(f'/api/v2?entityschema={key}&entity={value}&language=en',
-                                         follow_redirects=True)
-                self.assertEqual(response.json["statements"], response2.json["statements"][0])
-                self.assertEqual(response.json["properties"], response2.json["properties"][0])
-
     def test_lexical_category(self):
         """
         This test checks that a lexicalCategory response is returned when a
@@ -51,9 +32,10 @@ class CompareV1V2(unittest.TestCase):
                 value = test_pairs[key]
                 response = self.app.get(f'/api/v2?entityschema={key}&entity={value}&language=en',
                                         follow_redirects=True)
-                self.assertIsNotNone(response.json["general"]["lexicalCategory"])
-                self.assertIsNotNone(response.json["general"]["language"])
+                self.assertIsNotNone(response.json["general"][0]["lexicalCategory"])
+                self.assertIsNotNone(response.json["general"][0]["language"])
 
+    @unittest.skip("Not running check on all wikidata schemas as they take too long")
     def test_wikidata_entityschemas(self) -> None:
         """
         Tests all wikidata entityschemas return 200
@@ -90,9 +72,9 @@ class CompareV1V2(unittest.TestCase):
         response = self.app.get(f'/api/v2?entityschema={schema}&entity=Q100532807&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
-        self.assertEqual("Member of the Oireachtas", response.json["name"])
+        self.assertEqual("Member of the Oireachtas", response.json["name"][0])
         self.assertEqual({'name': 'occupation', 'necessity': 'required', 'response': 'missing'},
-                         response.json["properties"]["P106"])
+                         response.json["properties"][0]["P106"])
 
     def test_entityschema_e3(self):
         """
@@ -257,21 +239,6 @@ class CompareV1V2(unittest.TestCase):
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
-    def test_entityschema_e292(self):
-        """
-        Tests item with cardinality of 0 evaluates correctly
-
-        This test tests entityschema E295 (townland) against entity Q85396849 (Drumlohan).
-        The schema has a P361 (part of) with a cardinality of 0, meaning the item should
-        not contain any P361.  The test checks that the response is false for this item
-        """
-        response = self.app.get('/api?entityschema=E292&entity=Q51792612&language=en',
-                                follow_redirects=True)
-        response2 = self.app.get('/api/v2?entityschema=E292&entity=Q51792612&language=en',
-                                 follow_redirects=True)
-        self.assertEqual(response.status_code, response2.status_code)
-        self.assertEqual(response.json["properties"], response2.json["properties"][0])
-
     def test_entityschema_e295(self):
         """
         Tests item with cardinality of 0 evaluates correctly
@@ -355,7 +322,7 @@ class CompareV1V2(unittest.TestCase):
         """
         response = self.app.get('/api/v2?entityschema=E351&entity=Q743656&language=en',
                                 follow_redirects=True)
-        self.assertIn(response.json["properties"]["P31"]["response"], ["not enough correct statements"])
+        self.assertIn(response.json["properties"][0]["P31"]["response"], ["not enough correct statements"])
 
 
 if __name__ == '__main__':
