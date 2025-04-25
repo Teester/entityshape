@@ -16,54 +16,54 @@ class UtilitiesTests(unittest.TestCase):
 
     def test_calculate_necessity_with_values_with_required(self):
         prop = "P31"
-        shape = {  "type": "Shape",
-                   "id": "test",
-                   "expression": {
-                       "type": "EachOf",
-                       "expressions": [
-                           {
-                               "type": "TripleConstraint",
-                               "predicate": "http://www.wikidata.org/prop/direct/P31"
-                           }
-                       ]
-                   }
-                   }
+        shape = {"type": "Shape",
+                 "id": "test",
+                 "expression": {
+                     "type": "EachOf",
+                     "expressions": [
+                         {
+                             "type": "TripleConstraint",
+                             "predicate": "http://www.wikidata.org/prop/direct/P31"
+                         }
+                     ]
+                 }
+                 }
         necessity = self.utilities.calculate_necessity(prop, shape)
         self.assertEqual("required", necessity)
 
     def test_calculate_necessity_with_values_with_optional(self):
         prop = "P31"
-        shape = {  "type": "Shape",
-                   "id": "test",
-                   "expression": {
-                       "type": "EachOf",
-                       "expressions": [
-                           {
-                               "type": "TripleConstraint",
-                               "predicate": "http://www.wikidata.org/prop/direct/P31",
-                               "min": 0
-                           }
-                       ]
-                   }
-                   }
+        shape = {"type": "Shape",
+                 "id": "test",
+                 "expression": {
+                     "type": "EachOf",
+                     "expressions": [
+                         {
+                             "type": "TripleConstraint",
+                             "predicate": "http://www.wikidata.org/prop/direct/P31",
+                             "min": 0
+                         }
+                     ]
+                 }
+                 }
         test_method = self.utilities.calculate_necessity(prop, shape)
         self.assertEqual("optional", test_method)
 
     def test_calculate_necessity_with_values_with_absent(self):
         prop = "P32"
-        shape = {  "type": "Shape",
-                   "id": "test",
-                   "expression": {
-                       "type": "EachOf",
-                       "expressions": [
-                           {
-                               "type": "TripleConstraint",
-                               "predicate": "http://www.wikidata.org/prop/direct/P31",
-                               "min": 0
-                           }
-                       ]
-                   }
-                   }
+        shape = {"type": "Shape",
+                 "id": "test",
+                 "expression": {
+                     "type": "EachOf",
+                     "expressions": [
+                         {
+                             "type": "TripleConstraint",
+                             "predicate": "http://www.wikidata.org/prop/direct/P31",
+                             "min": 0
+                         }
+                     ]
+                 }
+                 }
         test_method = self.utilities.calculate_necessity(prop, shape)
         self.assertEqual("absent", test_method)
 
@@ -109,11 +109,11 @@ class UtilitiesTests(unittest.TestCase):
                       'max': 0,
                       }
         claim = {'mainsnak':
-                     {'snaktype': 'value',
-                      'property': 'P31',
-                      'hash': '851b1c24539bd7aa725376baba4bcf0928099a66',
-                      'datatype': 'wikibase-item'
-                      }
+                    {'snaktype': 'value',
+                     'property': 'P31',
+                     'hash': '851b1c24539bd7aa725376baba4bcf0928099a66',
+                     'datatype': 'wikibase-item'
+                     }
                  }
 
         test_method = self.utilities.process_cardinalities(expression, claim)
@@ -125,11 +125,11 @@ class UtilitiesTests(unittest.TestCase):
                       'min': 0,
                       }
         claim = {'mainsnak':
-                     {'snaktype': 'value',
-                      'property': 'P31',
-                      'hash': '851b1c24539bd7aa725376baba4bcf0928099a66',
-                      'datatype': 'wikibase-item'
-                      }
+                    {'snaktype': 'value',
+                     'property': 'P31',
+                     'hash': '851b1c24539bd7aa725376baba4bcf0928099a66',
+                     'datatype': 'wikibase-item'
+                     }
                  }
         test_method = self.utilities.process_cardinalities(expression, claim)
         self.assertEqual("correct", test_method)
@@ -141,11 +141,11 @@ class UtilitiesTests(unittest.TestCase):
                       'max': 0
                       }
         claim = {'mainsnak':
-                     {'snaktype': 'value',
-                      'property': 'P31',
-                      'hash': '851b1c24539bd7aa725376baba4bcf0928099a66',
-                      'datatype': 'wikibase-item'
-                      }
+                    {'snaktype': 'value',
+                     'property': 'P31',
+                     'hash': '851b1c24539bd7aa725376baba4bcf0928099a66',
+                     'datatype': 'wikibase-item'
+                     }
                  }
         test_method = self.utilities.process_cardinalities(expression, claim)
         self.assertEqual("too many statements", test_method)

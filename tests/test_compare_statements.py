@@ -5,44 +5,42 @@ from comparejsonld import CompareStatements
 
 class TestCompareStatements(unittest.TestCase):
     def setUp(self):
-        entities = {'entities':
-                        {'Q1':
-                             {'title': 'Q1',
-                              'type': 'item',
-                              'id': 'Q1',
-                              'claims': {'P31': [{'mainsnak':
-                                                      {'snaktype': 'value',
-                                                       'property': 'P31',
-                                                       'hash': '1',
-                                                       'datavalue': {'value':
-                                                                         {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
-                                                                     'type': 'wikibase-entityid'},
-                                                       'datatype': 'wikibase-item'},
-                                                  'type': 'statement',
-                                                  'id': '1',
-                                                  'rank': 'normal'}],
-                                         },
-                              'sitelinks': {}}}}
+        entities = {'Q1':
+                        {'title': 'Q1',
+                         'type': 'item',
+                         'id': 'Q1',
+                         'claims': {'P31': [{'mainsnak':
+                                                 {'snaktype': 'value',
+                                                  'property': 'P31',
+                                                  'hash': '1',
+                                                  'datavalue': {'value':
+                                                                    {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
+                                                                'type': 'wikibase-entityid'},
+                                                  'datatype': 'wikibase-item'},
+                                             'type': 'statement',
+                                             'id': '1',
+                                             'rank': 'normal'}],
+                                    },
+                         'sitelinks': {}}}
         entity = "Q1"
-        statement = {  "type": "Shape",
-                       "id": "test",
-                       "expression": {
-                           "type": "EachOf",
-                           "expressions": [
-                               {
-                                   "type": "TripleConstraint",
-                                   "predicate": "http://www.wikidata.org/prop/direct/P31"
-                               }
-                           ]
-                       }
-                       }
-        self.compare_statements =  CompareStatements(entities, entity, statement)
+        statement = {"type": "Shape",
+                     "id": "test",
+                     "expression": {
+                         "type": "EachOf",
+                         "expressions": [
+                             {
+                                 "type": "TripleConstraint",
+                                 "predicate": "http://www.wikidata.org/prop/direct/P31"
+                             }
+                         ]
+                     }}
+        self.compare_statements = CompareStatements(entities, entity, statement)
 
     def test_compare_statements_with_nothing(self):
         entities = {}
         entity = ""
         statement = {}
-        test_method =  CompareStatements(entities, entity, statement)
+        test_method = CompareStatements(entities, entity, statement)
         self.assertEqual({}, test_method.compare_statements())
 
     def test_compare_statements(self):
@@ -64,7 +62,7 @@ class TestCompareStatements(unittest.TestCase):
                      'property': 'P31',
                      'hash': '1',
                      'datavalue': {'value':
-                                       {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
+                                      {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
                                    'type': 'wikibase-entityid'},
                      'datatype': 'wikibase-item'}
         shape = {"type": "Shape",
@@ -109,7 +107,7 @@ class TestCompareStatements(unittest.TestCase):
                      'property': 'P31',
                      'hash': '1',
                      'datavalue': {'value':
-                                       {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
+                                      {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
                                    'type': 'wikibase-entityid'},
                      'datatype': 'wikibase-item'}
         allowed = "allowed"
@@ -129,7 +127,7 @@ class TestCompareStatements(unittest.TestCase):
                      'property': 'P31',
                      'hash': '1',
                      'datavalue': {'value':
-                                       {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
+                                      {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
                                    'type': 'wikibase-entityid'},
                      'datatype': 'wikibase-item'}
         allowed = "allowed"

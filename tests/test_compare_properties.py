@@ -7,38 +7,37 @@ class TestCompareProperties(unittest.TestCase):
     def setUp(self):
         entity = {'entities':
                       {'Q1':
-                           {'title': 'Q1',
-                            'type': 'item',
-                            'id': 'Q1',
-                            'claims': {'P31': [{'mainsnak':
-                                                    {'snaktype': 'value',
-                                                     'property': 'P31',
-                                                     'hash': '1',
-                                                     'datavalue': {'value':
-                                                                       {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
-                                                                   'type': 'wikibase-entityid'},
-                                                     'datatype': 'wikibase-item'},
-                                                'type': 'statement',
-                                                'id': '1',
-                                                'rank': 'normal'}],
-                                       },
-                            'sitelinks': {}}}}
+                        {'title': 'Q1',
+                         'type': 'item',
+                         'id': 'Q1',
+                         'claims': {'P31': [{'mainsnak':
+                                                {'snaktype': 'value',
+                                                 'property': 'P31',
+                                                 'hash': '1',
+                                                 'datavalue': {'value':
+                                                                   {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
+                                                               'type': 'wikibase-entityid'},
+                                                 'datatype': 'wikibase-item'},
+                                            'type': 'statement',
+                                            'id': '1',
+                                            'rank': 'normal'}],
+                         },
+                         'sitelinks': {}}}}
         entities = "Q1"
-        statement = {  "type": "Shape",
-                       "id": "test",
-                       "expression": {
-                           "type": "EachOf",
-                           "expressions": [
-                               {
-                                   "type": "TripleConstraint",
-                                   "predicate": "http://www.wikidata.org/prop/direct/P31"
-                               }
-                           ]
-                       }
-                       }
+        statement = { "type": "Shape",
+                      "id": "test",
+                      "expression": {
+                          "type": "EachOf",
+                          "expressions": [
+                              {
+                                  "type": "TripleConstraint",
+                                  "predicate": "http://www.wikidata.org/prop/direct/P31"
+                              }
+                          ]
+                      }}
         props = ["P31"]
-        names = {"P31" : "instance of"}
-        self.compare_properties =  CompareProperties(entities, entity, props, names, statement)
+        names = {"P31": "instance of"}
+        self.compare_properties = CompareProperties(entities, entity, props, names, statement)
 
     def test_compare_properties_with_nothing(self):
         entity = {}
@@ -46,7 +45,7 @@ class TestCompareProperties(unittest.TestCase):
         statement = {}
         props = []
         names = {}
-        test_method =  CompareProperties(entities, entity, props, names, statement)
+        test_method = CompareProperties(entities, entity, props, names, statement)
         self.assertEqual({}, test_method.compare_properties())
 
     def test_compare_properties_with_values(self):
@@ -62,22 +61,22 @@ class TestCompareProperties(unittest.TestCase):
 
     def test_check_claims_for_prop_with_values(self):
         claims = {'Q1':
-                      {'title': 'Q1',
-                       'type': 'item',
-                       'id': 'Q1',
-                       'claims': {'P31': [{'mainsnak':
-                                               {'snaktype': 'value',
-                                                'property': 'P31',
-                                                'hash': '1',
-                                                'datavalue': {'value':
-                                                                  {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
-                                                              'type': 'wikibase-entityid'},
-                                                'datatype': 'wikibase-item'},
-                                           'type': 'statement',
-                                           'id': '1',
-                                           'rank': 'normal'}],
-                                  },
-                       'sitelinks': {}}}
+                     {'title': 'Q1',
+                      'type': 'item',
+                      'id': 'Q1',
+                      'claims': {'P31': [{'mainsnak':
+                                              {'snaktype': 'value',
+                                               'property': 'P31',
+                                               'hash': '1',
+                                               'datavalue': {'value':
+                                                                 {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
+                                                             'type': 'wikibase-entityid'},
+                                               'datatype': 'wikibase-item'},
+                                          'type': 'statement',
+                                          'id': '1',
+                                          'rank': 'normal'}],
+                      },
+                      'sitelinks': {}}}
         prop = "P31"
         self.assertEqual('not enough correct statements', self.compare_properties.check_claims_for_props(claims, prop))
 
@@ -103,7 +102,7 @@ class TestCompareProperties(unittest.TestCase):
                                            'type': 'statement',
                                            'id': '1',
                                            'rank': 'normal'}],
-                                  },
+                       },
                        'sitelinks': {}}}
         prop = "P31"
         expression = {'type': 'TripleConstraint',
@@ -123,7 +122,7 @@ class TestCompareProperties(unittest.TestCase):
                       'property': 'P31',
                       'hash': '1',
                       'datavalue': {'value':
-                                        {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
+                                       {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
                                     'type': 'wikibase-entityid'},
                       'datatype': 'wikibase-item'}
         shape = {'type': 'TripleConstraint',
@@ -144,7 +143,7 @@ class TestCompareProperties(unittest.TestCase):
                       'property': 'P31',
                       'hash': '1',
                       'datavalue': {'value':
-                                        {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
+                                       {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
                                     'type': 'wikibase-entityid'},
                       'datatype': 'wikibase-item'}
         self.assertEqual("correct", self.compare_properties._get_cardinalities(occurrences, expression))
@@ -160,7 +159,7 @@ class TestCompareProperties(unittest.TestCase):
                      'property': 'P31',
                      'hash': '1',
                      'datavalue': {'value':
-                                       {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
+                                      {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
                                    'type': 'wikibase-entityid'},
                      'datatype': 'wikibase-item'}
         expression = {'type': 'TripleConstraint',

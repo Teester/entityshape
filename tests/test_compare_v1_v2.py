@@ -186,11 +186,13 @@ class CompareV1V2(unittest.TestCase):
         response2 = self.app.get('/api?entityschema=E236&entity=Q185272&language=en',
                                  follow_redirects=True)
         self.assertEqual(200, response.status_code)
-        properties: list = ["P39","P106", "P18", "P4690"]
+        properties: list = ["P39", "P106", "P18", "P4690"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertIn(response.json["properties"][0][prop]["response"], ["correct", "present", "allowed"])
-                self.assertEqual(response.json["properties"][0][prop]["response"], response2.json["properties"][prop]["response"])
+                self.assertIn(response.json["properties"][0][prop]["response"],
+                              ["correct", "present", "allowed"])
+                self.assertEqual(response.json["properties"][0][prop]["response"],
+                                 response2.json["properties"][prop]["response"])
 
     def test_entityschema_e239(self):
         """
