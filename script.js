@@ -442,10 +442,9 @@
             }
         }
         if (!translations.hasOwnProperty(lang)) {
-            language = "en"
+            language = "en";
         }
-        console.log(translations[lang][phrase])
-        return translations[lang][phrase]
+        return translations[lang][phrase];
     }
 
     function entityschema_getStylesheet() {
