@@ -19,3 +19,9 @@ The API returns a JSON object containing the following:
 This repository also contains the source code for the user script at
 <https://www.wikidata.org/wiki/User:Teester/EntityShape.js>,
 which allows use of this API on Wikidata entity pages.
+
+## Translations
+
+The UI can be translated into multiple languages which will use the user's language to decide what language to display or fall back to english if the language is not available.
+At the moment, there are 2 languages available - *en* and *ga*.  
+Visit https://www.wikidata.org/wiki/User_talk:Teester/EntityShape.js for details on how to contribute translations to the project.

@@ -13,6 +13,7 @@
     let entityschema_list = [];
     let value = mw.storage.get("entityschema-auto");
     let schema = mw.storage.get("entityschema");
+    let lang = mw.config.get( 'wgUserLanguage' );
     let property_list = [];
 
     mw.hook( 'wikibase.entityPage.entityLoaded' ).add( function ( data ) {
@@ -74,7 +75,7 @@
 
     $(document).ajaxStop(function () {
         if (entityschema_list.length != 0) {
-            $('#entityschema-entityToCheck').attr("placeholder", `Check against ${entityschema_list.join(", ")}`);
+            $('#entityschema-entityToCheck').attr("placeholder", entityschema_translate("Check against", entityschema_list.join(', ') ) );
         }
         if (value == "true" && mw.config.get( 'wbEntityId' )) {
             entityschema_update();
@@ -101,11 +102,10 @@
         }
         if (entityschema_entitySchema.length == 0) {
             let message = new OO.ui.MessageWidget( {type: 'error', inline: true,
-                label: 'No schemas entered and could not automatically determine schemas to check'} );
+                label: entityschema_translate('No schemas entered and could not automatically determine schemas to check') } );
             $("#entityschema-response").empty().prepend( message.$element );
         } else {
             let entityschema_entityName = document.location.pathname.substring(6);
-            let lang = mw.config.get( 'wgUserLanguage' );
             entityschema_checkEntity(entityschema_entityName, entityschema_entitySchema, lang);
         }
     }
@@ -152,7 +152,7 @@
                     message_data.push(`<a href='https://www.wikidata.org/wiki/EntitySchema:${data.schema[schema]}'>
                                       ${data.name[schema]} <small>(${data.schema[schema]})</small></a>`);
                 }
-                let message = `Checking against ${message_data.join(', ')}:`;
+                let message = `${entityschema_translate('Checking against', message_data.join(', '))}:`;
 
                 let message_widget = new OO.ui.MessageWidget( {type: 'notice', inline: true,
                                                         label: new OO.ui.HtmlSnippet( message )} );
@@ -160,9 +160,9 @@
 
                 let html = `<div style="overflow-y: scroll; max-height:200px;">
                             <table style="width:100%;">
-                            <th class="entityschema_table" title="Properties in this item which must be present">Required properties</th>
-                            <th class="entityschema_table" title="Properties in this item which can be present but do not have to be">Optional properties</th>
-                            <th class="entityschema_table" title="Properties in this item which are not allowed to be present or not mentioned in the entityschema">Other properties</th>
+                            <th class="entityschema_table" title="${entityschema_translate('Properties in this item which must be present')}">${entityschema_translate("Required properties")}</th>
+                            <th class="entityschema_table" title="${entityschema_translate('Properties in this item which can be present but do not have to be')}">${entityschema_translate("Optional properties")}</th>
+                            <th class="entityschema_table" title="${entityschema_translate('Properties in this item which are not allowed to be present or not mentioned in the entityschema')}">${entityschema_translate("Other properties")}</th>
                             <tr>`;
 
                 html += entityschema_process_combined_properties(combined_properties);
@@ -189,30 +189,38 @@
             let shape_html = "";
             let response1 = properties[key].response.combined;
             let response_class  = "";
+            let response_string = properties[key].response.combined;;
             switch (response1) {
                 case "present":
                     response_class = "present";
+                    response_string = entityschema_translate("present");
                     break;
                 case "allowed":
                     response_class = "present";
+                    response_string = entityschema_translate("present");
                     break;
                 case "correct":
                     response_class = "correct";
+                    response_string = entityschema_translate("correct");
                     break;
                 case "missing":
                     response_class = "missing";
+                    response_string = entityschema_translate("missing");
                     break;
                 default:
                     response_class = "wrong";
+                    response_string = entityschema_translate("wrong");
                     break;
             }
             if (properties[key].necessity.combined == "absent") {
                 if (response1 == "too many statements") {
                     response1 = "not allowed";
+                    response_string = entityschema_translate("not allowed");
                 }
             }
             if (!response1) {
                 response1 = "Not in schema";
+                response_string = entityschema_translate("Not in schema");
                 response_class = "notinschema";
             }
             if (response1 == null) {
@@ -223,7 +231,7 @@
                 other_array_names.push(properties[key].name);
             } else {
                 shape_html += `<li class="is_entityschema-${response_class}">
-                               <span class="entityschema-span entityschema-${response_class}">${response1}</span>
+                               <span class="entityschema-span entityschema-${response_class}">${response_string}</span>
                                <a href="https://www.wikidata.org/wiki/Property:${key}"
                                   class="is_entityschema-${response_class}">
                                ${key} - <small>${properties[key].name}</small></a></li>`
@@ -240,10 +248,10 @@
                     break;
             }
         }
-        let other_html = `<details><summary>${other_array.length} properties not in any schema checked</summary>
+        let other_html = `<details><summary>${entityschema_translate("properties not in any schema checked", other_array.length)} </summary>
                           <ul style='list-style-type:none';>`;
         for (let item in other_array) {
-            other_html += `<li><span class="entityschema-span entityschema-notinschema">Not in schema</span>
+            other_html += `<li><span class="entityschema-span entityschema-notinschema">${entityschema_translate("Not in schema")}</span>
                                <a href="https://www.wikidata.org/wiki/Property:${other_array[item]}"
                                   class="is_entityschema-notinschema">${other_array[item]} - <small>${other_array_names[item]}</small></a></li>`;
         }
@@ -374,6 +382,71 @@
         return combined_properties;
     }
 
+    function entityschema_translate(phrase, variable="") {
+        const translations = {
+            "en": {
+                // Strings in the checking UI
+                "Enter schema to check against": "Enter schema to check against e.g. E234",
+                "Check against entityschema": "Check against entityschema",
+                "Check against" : `Check against ${variable}`,
+                "Checking against": `Checking against ${variable}`,
+                "Check": "Check",
+                "Automatically check schema": "Automatically check schema",
+                "Unable to validate schema": "Unable to validate schema",
+                "No schemas entered and could not automatically determine schemas to check": "No schemas entered and could not automatically determine schemas to check",
+                // Strings in the results section UI
+                "Properties in this item which must be present": "Properties in this item which must be present",
+                "Required properties": "Required properties",
+                "Properties in this item which can be present but do not have to be": "Properties in this item which can be present but do not have to be",
+                "Optional properties": "Optional properties",
+                "Properties in this item which are not allowed to be present or not mentioned in the entityschema": "Properties in this item which are not allowed to be present or not mentioned in the entityschema",
+                "Other properties": "Other properties",
+                "properties not in any schema checked": `${variable} properties not in any schema checked`,
+                // Strings for results
+                "present": "present",
+                "correct": "correct",
+                "missing": "missing",
+                "wrong": "wrong",
+                "absent": "absent",
+                "too many statements": "too many statements",
+                "not allowed": "not allowed",
+                "Not in schema": "Not in schema"
+            },
+            "ga": {
+                // Strings in the checking UI
+                "Enter schema to check against": "Cuir scéima isteach chun seiceáil m.sh. E234",
+                "Check against entityschema": "Seiceáil trí scéim eintitis",
+                "Check against" : `Seiceáil trí ${variable}`,
+                "Checking against": `Ag seiceáil trí ${variable}`,
+                "Check": "Seiceáil",
+                "Automatically check schema": "Seiceáil scéima go huathoibríoch",
+                "Unable to validate schema": "Ní féidir scéima bailíochtú",
+                "No schemas entered and could not automatically determine schemas to check": "Níor iontráladh aon scéimeanna agus níorbh fhéidir scéimeanna le seiceáil a chinneadh go huathoibríoch",
+                // Strings in the results section UI
+                "Properties in this item which must be present": "Airíonna sa mhír seo nach mór a bheith i láthair",
+                "Required properties": "Airíonna riachtanacha",
+                "Properties in this item which can be present but do not have to be": "Airíonna sa mhír seo a fhéadfaidh a bheith i láthair ach nach gá a bheith ann",
+                "Optional properties": "Airíonna roghnacha",
+                "Properties in this item which are not allowed to be present or not mentioned in the entityschema": "Airíonna sa mhír seo nach gceadaítear dóibh a bheith i láthair nó nach luaitear sa scéim eintitis",
+                "Other properties": "Airíonna eile",
+                "properties not in any schema checked": `Bhí ${variable} airíonna nach raibh in aon scéim seicáilte`,
+                // Strings for results
+                "present": "ann",
+                "correct": "ceart",
+                "missing": "ar iarraidh",
+                "wrong": "míceart",
+                "absent": "as lathair",
+                "too many statements": "an iomarca ráiteas",
+                "not allowed": "ní cheadaítear",
+                "Not in schema": "ní sa scéim"
+            }
+        }
+        if (!translations.hasOwnProperty(lang)) {
+            language = "en";
+        }
+        return translations[lang][phrase];
+    }
+
     function entityschema_getStylesheet() {
         const entityschema_stylesheet = `#entityschema-simpleSearch { width:500px; }
                                          #entityschema-response { padding:5px; display: block; }
@@ -424,20 +497,20 @@
 
     function entityschema_getHTML() {
         const entityschema_results_html = `<details open style='box-shadow: 0 1px var(--border-color-subtle,#c8ccd1);'>
-                                           <summary class='entityschema-summary'>Check against entityschema</summary>
+                                           <summary class='entityschema-summary'>${entityschema_translate("Check against entityschema")}</summary>
                                            <div class="oo-ui-layout oo-ui-horizontalLayout">
                                               <div class="oo-ui-layout oo-ui-fieldLayout oo-ui-fieldLayout-align-top oo-ui-actionFieldLayout">
                                                   <div class="oo-ui-fieldLayout-body">
                                                       <div id="entityschema-simpleSearch" class="oo-ui-fieldLayout-field">
                                                           <div class="oo-ui-actionFieldLayout-input">
                                                               <div class="oo-ui-widget oo-ui-widget-enabled oo-ui-inputWidget oo-ui-textInputWidget oo-ui-textInputWidget-type-text">
-                                                                  <input type="text" tabindex="0" class="oo-ui-inputWidget-input" value="" id="entityschema-entityToCheck" placeholder="Enter schema to check against e.g. E234">
+                                                                  <input type="text" tabindex="0" class="oo-ui-inputWidget-input" value="" id="entityschema-entityToCheck" placeholder="${entityschema_translate("Enter schema to check against")}">
                                                               </div>
                                                           </div>
                                                           <span class="oo-ui-actionFieldLayout-button" id="entityschema-schemaSearchButton">
                                                               <span class="oo-ui-widget oo-ui-widget-enabled oo-ui-buttonElement oo-ui-buttonElement-framed oo-ui-labelElement oo-ui-buttonWidget">
                                                                   <a class="oo-ui-buttonElement-button" role="button" tabindex="0" rel="nofollow">
-                                                                      <span class="oo-ui-labelElement-label">Check</span>
+                                                                      <span class="oo-ui-labelElement-label">${entityschema_translate("Check")}</span>
                                                                   </a>
                                                               </span>
                                                           </span>
@@ -455,7 +528,7 @@
                                                           </span>
                                                       </span>
                                                       <span class="oo-ui-fieldLayout-header">
-                                                          <label class="oo-ui-labelElement-label">Automatically check schema</label>
+                                                          <label class="oo-ui-labelElement-label">${entityschema_translate("Automatically check schema")}</label>
                                                       </span>
                                                   </div>
                                               </div>
