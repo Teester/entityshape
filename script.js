@@ -223,18 +223,19 @@
                 response_string = entityschema_translate("Not in schema");
                 response_class = "notinschema";
             }
+            let schema_link = `<span class="wb-itemlink"><span class="wb-itemlink-label" lang="en" dir="ltr">${properties[key].name}</span> <span class="wb-itemlink-id">(${key})</span></span>`
             if (response1 == null) {
                 response1 = "";
-                shape_html += `<a href="https://www.wikidata.org/wiki/Property:${key}">${key} - <small>${properties[key].name}</small></a><br/>`;
+                shape_html += `<a href="https://www.wikidata.org/wiki/Property:${key}">${schema_link}</a><br/>`;
             } else if (response1 == "Not in schema") {
                 other_array.push(key);
-                other_array_names.push(properties[key].name);
+                other_array_names.push(schema_link);
             } else {
                 shape_html += `<li class="is_entityschema-${response_class}">
                                <span class="entityschema-span entityschema-${response_class}">${response_string}</span>
                                <a href="https://www.wikidata.org/wiki/Property:${key}"
                                   class="is_entityschema-${response_class}">
-                               ${key} - <small>${properties[key].name}</small></a></li>`
+                               ${schema_link}</a></li>`
             }
             switch (properties[key].necessity.combined) {
                 case "required":
@@ -253,7 +254,7 @@
         for (let item in other_array) {
             other_html += `<li><span class="entityschema-span entityschema-notinschema">${entityschema_translate("Not in schema")}</span>
                                <a href="https://www.wikidata.org/wiki/Property:${other_array[item]}"
-                                  class="is_entityschema-notinschema">${other_array[item]} - <small>${other_array_names[item]}</small></a></li>`;
+                                  class="is_entityschema-notinschema">${other_array_names[item]}</a></li>`;
         }
         other_html += "</ul></details>";
         absent_html += "</ul>" + other_html;
