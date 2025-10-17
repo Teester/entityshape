@@ -17,7 +17,7 @@
     let property_list = [];
 
     mw.hook( 'wikibase.entityPage.entityLoaded' ).add( function ( data ) {
-        let valid_values = ['item', 'lexeme', 'property']
+        let valid_values = ['item', 'lexeme', 'property'];
         if (!valid_values.includes(data["type"])) { return; }
 
         mw.util.addSubtitle(entityschema_getHTML());
@@ -189,7 +189,7 @@
             let shape_html = "";
             let response1 = properties[key].response.combined;
             let response_class  = "";
-            let response_string = properties[key].response.combined;;
+            let response_string = properties[key].response.combined;
             switch (response1) {
                 case "present":
                     response_class = "present";
@@ -441,11 +441,12 @@
                 "not allowed": "ní cheadaítear",
                 "Not in schema": "ní sa scéim"
             }
+        };
+        let language = "en";
+        if (translations.hasOwnProperty(lang)) {
+            language = lang;
         }
-        if (!translations.hasOwnProperty(lang)) {
-            language = "en";
-        }
-        return translations[lang][phrase];
+        return translations[language][phrase];
     }
 
     function entityschema_getStylesheet() {
@@ -492,7 +493,7 @@
                                          .entityshape-spinner div:nth-child(10) { transform: rotate(270deg); animation-delay: -0.2s;}
                                          .entityshape-spinner div:nth-child(11) { transform: rotate(300deg); animation-delay: -0.1s;}
                                          .entityshape-spinner div:nth-child(12) { transform: rotate(330deg); animation-delay: 0s;}
-                                         @keyframes entityshape-spinner { 0% { opacity: 1; } 100% { opacity: 0; }}`
+                                         @keyframes entityshape-spinner { 0% { opacity: 1; } 100% { opacity: 0; }}`;
         return entityschema_stylesheet;
     }
 
@@ -534,7 +535,7 @@
                                                   </div>
                                               </div>
                                           </div>
-                                          <span id="entityschema-response"></span></details>`
+                                          <span id="entityschema-response"></span></details>`;
         return entityschema_results_html;
     }
 }());
