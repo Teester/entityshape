@@ -223,7 +223,7 @@
                 response_string = entityschema_translate("Not in schema");
                 response_class = "notinschema";
             }
-            let schema_link = `<span class="wb-itemlink"><span class="wb-itemlink-label" lang="en" dir="ltr">${properties[key].name}</span> <span class="wb-itemlink-id">(${key})</span></span>`;
+            let schema_link = `<span class="wb-itemlink"><span class="wb-itemlink-label" lang="en" dir="ltr">${properties[key].name}</span> <span class="wb-itemlink-id">(${key})</span></span>`
             if (response1 == null) {
                 response1 = "";
                 shape_html += `<a href="https://www.wikidata.org/wiki/Property:${key}">${schema_link}</a><br/>`;
@@ -235,7 +235,7 @@
                                <span class="entityschema-span entityschema-${response_class}">${response_string}</span>
                                <a href="https://www.wikidata.org/wiki/Property:${key}"
                                   class="is_entityschema-${response_class}">
-                               ${schema_link}</a></li>`;
+                               ${schema_link}</a></li>`
             }
             switch (properties[key].necessity.combined) {
                 case "required":
