@@ -17,7 +17,7 @@
     let property_list = [];
 
     mw.hook( 'wikibase.entityPage.entityLoaded' ).add( function ( data ) {
-        let valid_values = ['item', 'lexeme', 'property']
+        let valid_values = ['item', 'lexeme', 'property'];
         if (!valid_values.includes(data["type"])) { return; }
 
         mw.util.addSubtitle(entityschema_getHTML());
@@ -189,7 +189,7 @@
             let shape_html = "";
             let response1 = properties[key].response.combined;
             let response_class  = "";
-            let response_string = properties[key].response.combined;;
+            let response_string = properties[key].response.combined;
             switch (response1) {
                 case "present":
                     response_class = "present";
@@ -223,18 +223,19 @@
                 response_string = entityschema_translate("Not in schema");
                 response_class = "notinschema";
             }
+            let schema_link = `<span class="wb-itemlink"><span class="wb-itemlink-label" lang="en" dir="ltr">${properties[key].name}</span> <span class="wb-itemlink-id">(${key})</span></span>`;
             if (response1 == null) {
                 response1 = "";
-                shape_html += `<a href="https://www.wikidata.org/wiki/Property:${key}">${key} - <small>${properties[key].name}</small></a><br/>`;
+                shape_html += `<a href="https://www.wikidata.org/wiki/Property:${key}">${schema_link}</a><br/>`;
             } else if (response1 == "Not in schema") {
                 other_array.push(key);
-                other_array_names.push(properties[key].name);
+                other_array_names.push(schema_link);
             } else {
                 shape_html += `<li class="is_entityschema-${response_class}">
                                <span class="entityschema-span entityschema-${response_class}">${response_string}</span>
                                <a href="https://www.wikidata.org/wiki/Property:${key}"
                                   class="is_entityschema-${response_class}">
-                               ${key} - <small>${properties[key].name}</small></a></li>`
+                               ${schema_link}</a></li>`;
             }
             switch (properties[key].necessity.combined) {
                 case "required":
@@ -253,7 +254,7 @@
         for (let item in other_array) {
             other_html += `<li><span class="entityschema-span entityschema-notinschema">${entityschema_translate("Not in schema")}</span>
                                <a href="https://www.wikidata.org/wiki/Property:${other_array[item]}"
-                                  class="is_entityschema-notinschema">${other_array[item]} - <small>${other_array_names[item]}</small></a></li>`;
+                                  class="is_entityschema-notinschema">${other_array_names[item]}</a></li>`;
         }
         other_html += "</ul></details>";
         absent_html += "</ul>" + other_html;
@@ -440,11 +441,12 @@
                 "not allowed": "ní cheadaítear",
                 "Not in schema": "ní sa scéim"
             }
+        };
+        let language = "en";
+        if (translations.hasOwnProperty(lang)) {
+            language = lang;
         }
-        if (!translations.hasOwnProperty(lang)) {
-            language = "en";
-        }
-        return translations[lang][phrase];
+        return translations[language][phrase];
     }
 
     function entityschema_getStylesheet() {
@@ -491,7 +493,7 @@
                                          .entityshape-spinner div:nth-child(10) { transform: rotate(270deg); animation-delay: -0.2s;}
                                          .entityshape-spinner div:nth-child(11) { transform: rotate(300deg); animation-delay: -0.1s;}
                                          .entityshape-spinner div:nth-child(12) { transform: rotate(330deg); animation-delay: 0s;}
-                                         @keyframes entityshape-spinner { 0% { opacity: 1; } 100% { opacity: 0; }}`
+                                         @keyframes entityshape-spinner { 0% { opacity: 1; } 100% { opacity: 0; }}`;
         return entityschema_stylesheet;
     }
 
@@ -533,7 +535,7 @@
                                                   </div>
                                               </div>
                                           </div>
-                                          <span id="entityschema-response"></span></details>`
+                                          <span id="entityschema-response"></span></details>`;
         return entityschema_results_html;
     }
 }());
