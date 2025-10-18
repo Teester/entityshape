@@ -1,13 +1,10 @@
 """
 Converts entityschema to json suitable for comparing with a wikidata item
 """
-import json
 import os
 import re
 from typing import Optional, Match, Union, Pattern, Any
 
-from jsonasobj import as_json
-from pyshexc.parser_impl.generate_shexj import parse
 import requests
 
 
@@ -53,15 +50,6 @@ class Shape:
         if self._language in self._json_text["labels"]:
             return self._json_text["labels"][self._language]
         return ""
-
-    def get_json_ld(self) -> dict:
-        """
-        Gets the JSON_LD form of the Schema
-        """
-        try:
-            return json.loads(as_json(parse(self._json_text["schemaText"])))
-        except (KeyError, IndexError, AttributeError, ValueError):
-            return {}
 
     def _translate_schema(self) -> None:
         """
