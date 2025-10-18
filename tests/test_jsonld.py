@@ -6,7 +6,7 @@ import unittest
 from src.comparejsonld import CompareJSONLD
 from src.compareshape import CompareShape
 from src.shape import Shape
-from getjsonld import JSONLDShape
+from src.getjsonld import JSONLDShape
 
 
 class JSONLDCase(unittest.TestCase):

@@ -7,8 +7,8 @@ import re
 import requests
 from requests import Response
 
-from compareproperties import CompareProperties
-from comparestatements import CompareStatements
+from src.compareproperties import CompareProperties
+from src.comparestatements import CompareStatements
 
 
 class CompareJSONLD:
