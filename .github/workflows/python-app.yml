@@ -42,7 +42,7 @@ jobs:
         echo "PYTHONPATH=home/runner/work/entityshape" >> $GITHUB_ENV
     - name: Test with unittest
       run: |
-        coverage run -m unittest
+        coverage run -m xmlrunner
         coverage xml
     - name: SonarCloud Scan
       uses: SonarSource/sonarqube-scan-action@v6.0.0
