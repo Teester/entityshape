@@ -12,6 +12,7 @@ from requests import Response
 from src.comparejsonld import CompareJSONLD
 from src.compareshape import CompareShape
 from src.shape import Shape
+from getjsonld import JSONLDShape
 
 app = Flask(__name__)
 CORS(app)
@@ -77,7 +78,7 @@ def v2():
         properties: list = []
         statements: list = []
         for schema in schema_list:
-            shape: Shape = Shape(schema, language)
+            shape: JSONLDShape = JSONLDShape(schema, language)
             comparison: CompareJSONLD = CompareJSONLD(shape.get_json_ld(), entity, language)
             names.append(shape.get_name())
             general.append(comparison.get_general())
