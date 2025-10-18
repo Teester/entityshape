@@ -1,6 +1,6 @@
 import unittest
 
-from src.comparejsonld import Utilities
+from src.utilities import Utilities
 
 
 class UtilitiesTests(unittest.TestCase):
