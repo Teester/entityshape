@@ -1,6 +1,6 @@
 from typing import Tuple, Any
 
-from src.utilities import Utilities
+from entityshape.utilities import Utilities
 
 
 class CompareStatements:

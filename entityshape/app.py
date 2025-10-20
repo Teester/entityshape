@@ -9,10 +9,10 @@ from flask import Flask, request, json
 from flask_cors import CORS
 from requests import Response
 
-from src.comparejsonld import CompareJSONLD
-from src.compareshape import CompareShape
-from src.shape import Shape
-from src.getjsonld import JSONLDShape
+from entityshape.comparejsonld import CompareJSONLD
+from entityshape.compareshape import CompareShape
+from entityshape.shape import Shape
+from entityshape.getjsonld import JSONLDShape
 
 app = Flask(__name__)
 CORS(app)

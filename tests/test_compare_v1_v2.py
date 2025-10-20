@@ -5,7 +5,7 @@ import unittest
 
 import requests
 
-from src.app import app
+from entityshape.app import app
 
 
 class CompareV1V2(unittest.TestCase):

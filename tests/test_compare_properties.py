@@ -1,6 +1,6 @@
 import unittest
 
-from src.comparejsonld import CompareProperties
+from entityshape.comparejsonld import CompareProperties
 
 
 class TestCompareProperties(unittest.TestCase):

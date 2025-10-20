@@ -3,10 +3,10 @@ Tests to test results from comparejsonld.py match those from comparejson.py
 """
 import unittest
 
-from src.comparejsonld import CompareJSONLD
-from src.compareshape import CompareShape
-from src.shape import Shape
-from src.getjsonld import JSONLDShape
+from entityshape.comparejsonld import CompareJSONLD
+from entityshape.compareshape import CompareShape
+from entityshape.shape import Shape
+from entityshape.getjsonld import JSONLDShape
 
 
 class JSONLDCase(unittest.TestCase):
