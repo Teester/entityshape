@@ -6,7 +6,7 @@ import unittest
 
 import requests
 
-from src.app import app
+from entityshape.app import app
 
 
 class MyTestCase(unittest.TestCase):
