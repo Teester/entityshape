@@ -3,10 +3,10 @@ Tests to test results from comparejsonld.py match those from comparejson.py
 """
 import unittest
 
-from api_v2.comparejsonld import CompareJSONLD
-from api_v1.compareshape import CompareShape
-from api_v1.shape import Shape
-from api_v2.getjsonld import JSONLDShape
+from entityshape.api_v2.comparejsonld import CompareJSONLD
+from entityshape.api_v1.compareshape import CompareShape
+from entityshape.api_v1.shape import Shape
+from entityshape.api_v2.getjsonld import JSONLDShape
 
 
 class JSONLDCase(unittest.TestCase):

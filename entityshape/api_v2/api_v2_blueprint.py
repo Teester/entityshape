@@ -1,7 +1,7 @@
 from flask import Blueprint, request, json, Response
 
-from api_v2.getjsonld import JSONLDShape
-from api_v2.comparejsonld import CompareJSONLD
+from entityshape.api_v2.getjsonld import JSONLDShape
+from entityshape.api_v2.comparejsonld import CompareJSONLD
 
 
 api_v2 = Blueprint('api_v2', __name__,)
