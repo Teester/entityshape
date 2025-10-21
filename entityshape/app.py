@@ -4,8 +4,8 @@ A Flask app to compare entityschema with wikidata items without using SPARQL
 from flask import Flask
 from flask_cors import CORS
 
-from entityshape.api_v1_blueprint import api_v1
-from entityshape.api_v2_blueprint import api_v2
+from entityshape.api_v1.api_v1_blueprint import api_v1
+from entityshape.api_v2.api_v2_blueprint import api_v2
 
 app = Flask(__name__)
 CORS(app)

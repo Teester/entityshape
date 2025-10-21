@@ -7,8 +7,8 @@ import re
 import requests
 from requests import Response
 
-from entityshape.compareproperties import CompareProperties
-from entityshape.comparestatements import CompareStatements
+from entityshape.api_v2.compareproperties import CompareProperties
+from entityshape.api_v2.comparestatements import CompareStatements
 
 
 class CompareJSONLD:
