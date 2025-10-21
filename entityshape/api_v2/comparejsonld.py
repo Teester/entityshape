@@ -26,11 +26,12 @@ class CompareJSONLD:
         """
         self._entity: str = entity
         self._shape: dict = shape
-
+        self._entities: dict = {}
+        self._props: list = []
         self._property_responses: dict = {}
 
         self._get_entity_json()
-        if self._entities["entities"][self._entity]:
+        if "entities" in self._entities and self._entities["entities"][self._entity]:
             self._get_props(self._entities["entities"][self._entity]['claims'])
         self._get_property_names(language)
         self.start_shape: dict = self._get_start_shape()
@@ -58,17 +59,21 @@ class CompareJSONLD:
 
         :return: json for general properties of the comparison
         """
+        if "shapes" not in self._shape:
+            return {}
+        if "entities" not in self._entities:
+            return {}
+
         general: dict = {}
         properties: list = ["lexicalCategory", "language"]
         for item in properties:
-            if "shapes" in self._shape:
-                data_string: str = json.dumps(self._shape["shapes"])
-                if item in data_string and item in self._entities["entities"][self._entity]:
-                    general[item] = "incorrect"
-                    expected: list = self._shape["shapes"]
-                    actual: str = self._entities["entities"][self._entity][item]
-                    if actual in expected:
-                        general[item] = "correct"
+            data_string: str = json.dumps(self._shape["shapes"])
+            if item in data_string and item in self._entities["entities"][self._entity]:
+                general[item] = "incorrect"
+                expected: list = self._shape["shapes"]
+                actual: str = self._entities["entities"][self._entity][item]
+                if actual in expected:
+                    general[item] = "correct"
         return general
 
     def _get_entity_json(self) -> None:
@@ -78,7 +83,8 @@ class CompareJSONLD:
         url: str = f"https://www.wikidata.org/wiki/Special:EntityData/{self._entity}.json"
         response: Response = requests.get(url=url,
                                           headers={'User-Agent': 'Userscript Entityshape by User:Teester'})
-        self._entities = response.json()
+        if response.status_code == 200:
+            self._entities = response.json()
 
     def _get_props(self, claims: dict) -> None:
         """

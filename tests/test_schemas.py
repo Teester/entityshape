@@ -365,6 +365,17 @@ class MyTestCase(unittest.TestCase):
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
 
+    def test_non_existent_entity(self):
+        """
+        Tests that we get a correct response if the entityschema doesn't exist
+
+        This test tests entityschema E10 (human) against entity Q6, which has been deleted.
+        This should give a 200 response
+        """
+        response = self.app.get('/api/v2?entityschema=E10&entity=Q6&language=en',
+                                follow_redirects=True)
+        self.assertEqual(200, response.status_code)
+
 
 if __name__ == '__main__':
     unittest.main()
