@@ -1,6 +1,6 @@
 import unittest
 
-from entityshape.utilities import Utilities
+from api_v2.utilities import Utilities
 
 
 class UtilitiesTests(unittest.TestCase):

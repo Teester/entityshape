@@ -1,4 +1,4 @@
-from entityshape.utilities import Utilities
+from api_v2.utilities import Utilities
 
 
 class CompareProperties:
