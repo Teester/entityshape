@@ -132,29 +132,12 @@ class CompareJSONLD:
 
         :return: the start shape
         """
-        if "start" in self._shape:
-            start: dict = self._shape['start']
-            start_shape: dict = {}
-            if "shapes" in self._shape:
-                for shape in self._shape['shapes']:
-                    if shape["id"] == start:
-                        start_shape = shape
-            return start_shape
-        else:
+        if "start" not in self._shape:
+            return {}
+        if "shapes" not in self._shape:
             return {}
 
-    def _process_one_of(self) -> None:
-        """
-        Processes one of expression types in the shape
-
-        :return:
-        """
-        pass
-
-    def _process_each_of(self) -> None:
-        """
-       Processes each of expression types in the shape
-
-       :return:
-       """
-        pass
+        for shape in self._shape['shapes']:
+            if shape["id"] == self._shape["start"]:
+                return shape
+        return {}
