@@ -17,6 +17,7 @@ class JSONLDShape:
     """
     def __init__(self, schema: str, language: str) -> None:
         self._language: str = language
+        self._json_text: dict = {}
         self._get_schema_json(schema)
 
     def get_json_ld(self) -> dict:
@@ -37,7 +38,8 @@ class JSONLDShape:
         url: str = f"https://www.wikidata.org/wiki/EntitySchema:{schema}?action=raw"
         response = requests.get(url=url,
                                 headers={'User-Agent': 'Userscript Entityshape by User:Teester'})
-        self._json_text: dict = response.json()
+        if response.status_code == 200:
+            self._json_text = response.json()
 
     def get_name(self) -> str:
         """
@@ -45,6 +47,8 @@ class JSONLDShape:
 
         :return: the name of the schema
         """
+        if "labels" not in self._json_text:
+            return ""
         if self._language in self._json_text["labels"]:
             return self._json_text["labels"][self._language]
         return ""
