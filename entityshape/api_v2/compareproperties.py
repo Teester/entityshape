@@ -27,6 +27,7 @@ class CompareProperties:
         if self._start_shape is None:
             return properties
         utilities: Utilities = Utilities()
+
         for prop in self._props:
             child: dict = {"name": self._names[prop],
                            "necessity": utilities.calculate_necessity(prop, self._start_shape)}
@@ -150,4 +151,93 @@ class CompareProperties:
                                                                 allowed)
             except (KeyError, TypeError):
                 pass
+        return allowed
+
+    def _process_each_of(self, expression, statement) -> str:
+        # expression["type"] will be EachOf
+        # there will be expression[expressions], all of which must be satisfied to pass
+        allowed_list = []
+
+        for expr in expression:
+            if "type" not in expr:
+                return ""
+            if expr["type"]  == "TripleConstraint":
+                allowed_list.append(self._process_triple_constraint_2(statement, expr, ""))
+            elif expr["type"] == "NodeConstraint":
+                allowed_list.append(Utilities.process_node_constraint(statement, expr, ""))
+            else:
+                print(f"error: {expr['type']} not supported")
+                allowed_list.append("")
+
+        # return the lowest value
+        if "" in allowed_list:
+            return "error"
+        if any(item in allowed_list for item in ("incorrect", "not enough correct statements")):
+            return "incorrect"
+        if "present" in allowed_list:
+            return "present"
+        if "correct" in allowed_list:
+            return "correct"
+        return ""
+
+    def _process_shape(self, shape: dict, expression: dict):
+        if shape["type"] == "EachOf":
+            return self._process_each_of(shape["expressions"], expression)
+        if shape["type"] == "OneOf":
+            print("one of")
+            return ""
+        print("neither")
+        return ""
+
+
+    def _process_triple_constraint_2(self, entity: dict, expression: dict, allowed: str) -> str:
+        """
+        Processes a triple constraint
+
+        Method = Check the property in the triple constraint is in the entity
+                 Get the statements with the property from the entity
+                 if the triple constraint contains a node constraint - check those are correct
+                 Should we check the cardinality and necessity here too?
+
+        :param entity: a wikidata entity json without the initial QXXX
+        :param expression: part of an entityschema with type TripleConstraint
+        :allowed: a text value indicating whether the statement contains statements allowed by the entityschema
+
+        :return: allowed as it has been changed by the method
+        """
+        if "predicate" not in expression:
+            return allowed
+
+        # determine the property to be checked
+        property_name: str = expression["predicate"]
+        property_name = property_name.rsplit('/', 1)[1]
+
+        if property_name not in entity["claims"]:
+            return allowed
+
+        statements: dict = entity["claims"][property_name]
+        if len(statements) > 0:
+            allowed = "present"
+
+        if "valueExpr" not in expression:
+            return allowed
+        allowed_list: list = []
+        if expression["valueExpr"]["type"] == "NodeConstraint":
+            for statement in statements:
+                allowed_list.append(Utilities.process_node_constraint(statement["mainsnak"],
+                                                            expression["valueExpr"],
+                                                            ""))
+        if "correct" in allowed_list:
+            allowed = "correct"
+        utilities: Utilities = Utilities()
+        necessity: str = utilities.required_or_absent(expression)
+        occurrences: int = allowed_list.count("correct") + allowed_list.count("present")
+        cardinalities: str = self._get_cardinalities(occurrences, expression)
+        if cardinalities != "correct":
+            allowed = cardinalities
+
+        child: dict = {"name": property_name,
+                       "necessity": necessity,
+                       "response": allowed}
+        print(f"response = {child}")
         return allowed
