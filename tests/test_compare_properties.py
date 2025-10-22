@@ -168,6 +168,84 @@ class TestCompareProperties(unittest.TestCase):
         allowed = "Q2"
         self.assertEqual("correct", self.compare_properties._process_triple_constraint(statement, expression, allowed))
 
+    def test_process_triple_constraint_2_with_nothing(self):
+        statement = {}
+        expression = {}
+        allowed = ""
+        self.assertEqual("", self.compare_properties._process_triple_constraint_2(statement, expression, allowed))
+
+    def test_process_triple_constraint_2_with_values(self):
+        statement = {'title': 'Q1',
+                     'type': 'item',
+                     'id': 'Q1',
+                     'claims': {'P31': [{'mainsnak':
+                                             {'snaktype': 'value',
+                                              'property': 'P31',
+                                              'hash': '1',
+                                              'datavalue': {'value':
+                                                                {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
+                                                            'type': 'wikibase-entityid'},
+                                              'datatype': 'wikibase-item'},
+                                         'type': 'statement',
+                                         'id': '1',
+                                         'rank': 'normal'}],
+                                }
+                     }
+        expression = {'type': 'TripleConstraint',
+                      'predicate': 'http://www.wikidata.org/prop/direct/P31',
+                      'valueExpr': {'type': 'NodeConstraint', 'values': ['http://www.wikidata.org/entity/Q2']}}
+        allowed = "Q2"
+        self.assertEqual("correct", self.compare_properties._process_triple_constraint_2(statement, expression, allowed))
+
+
+    def test_each_of_without_each_of(self):
+        statement = {'title': 'Q1',
+                     'type': 'item',
+                     'id': 'Q1',
+                     'claims': {'P31': [{'mainsnak':
+                                             {'snaktype': 'value',
+                                              'property': 'P31',
+                                              'hash': '1',
+                                              'datavalue': {'value':
+                                                                {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
+                                                            'type': 'wikibase-entityid'},
+                                              'datatype': 'wikibase-item'},
+                                         'type': 'statement',
+                                         'id': '1',
+                                         'rank': 'normal'}],
+                                },
+                     'sitelinks': {}}
+        expression = [{'type': 'TripleConstraint',
+                      'predicate': 'http://www.wikidata.org/prop/direct/P31',
+                      'valueExpr': {'type': 'NodeConstraint', 'values': ['http://www.wikidata.org/entity/Q2']}}]
+        self.assertEqual("correct", self.compare_properties._process_each_of(expression, statement))
+
+    def test_each_of_with_each_of(self):
+        statement = {'title': 'Q1',
+                      'type': 'item',
+                      'id': 'Q1',
+                      'claims': {'P31': [{'mainsnak':
+                                              {'snaktype': 'value',
+                                               'property': 'P31',
+                                               'hash': '1',
+                                               'datavalue': {'value':
+                                                                 {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
+                                                             'type': 'wikibase-entityid'},
+                                               'datatype': 'wikibase-item'},
+                                          'type': 'statement',
+                                          'id': '1',
+                                          'rank': 'normal'}],
+                                 },
+                      'sitelinks': {}}
+        expression = [{'type': 'TripleConstraint',
+                        'predicate': 'http://www.wikidata.org/prop/direct/P31',
+                        'valueExpr': {'type': 'NodeConstraint', 'values': ['http://www.wikidata.org/entity/Q2']}},
+                      {'type': 'TripleConstraint',
+                       'predicate': 'http://www.wikidata.org/prop/direct/P31',
+                       'valueExpr': {'type': 'NodeConstraint', 'values': ['http://www.wikidata.org/entity/Q1']}}
+                      ]
+        self.assertEqual("incorrect", self.compare_properties._process_each_of(expression, statement))
+
 
 if __name__ == '__main__':
     unittest.main()
