@@ -6,12 +6,14 @@ from flask_cors import CORS
 
 from entityshape.api_v1.api_v1_blueprint import api_v1
 from entityshape.api_v2.api_v2_blueprint import api_v2
+from entityshape.api_v3.api_v3_blueprint import api_v3
 
 app = Flask(__name__)
 CORS(app)
 
 app.register_blueprint(api_v1, url_prefix="/api")
 app.register_blueprint(api_v2, url_prefix="/api/v2")
+app.register_blueprint(api_v3, url_prefix="/api/v3")
 
 
 if __name__ == '__main__':
