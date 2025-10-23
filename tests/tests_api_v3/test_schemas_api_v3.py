@@ -90,8 +90,8 @@ class MyTestCase(unittest.TestCase):
         response = self.app.get(f'/api/v3?entityschema={schema}&entity=Q100532807&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
-        self.assertEqual("Member of the Oireachtas", response.json["name"][0])
-        self.assertEqual({'name': 'occupation', 'necessity': 'required', 'response': 'missing'},
+        self.assertEqual("E236", response.json["name"][0])
+        self.assertEqual({'property': 'P106', 'necessity': 'required', 'response': 'missing'},
                          response.json["properties"][0]["P106"])
 
     def test_entityschema_e3(self):

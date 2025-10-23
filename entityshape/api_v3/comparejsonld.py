@@ -7,6 +7,7 @@ import re
 import requests
 from requests import Response
 
+from api_v3.utilities import Utilities
 from entityshape.api_v3.compareproperties import CompareProperties
 from entityshape.api_v3.comparestatements import CompareStatements
 
@@ -16,14 +17,14 @@ class CompareJSONLD:
     A class to compare a wikidata entity with a JSON-LD representation of an entityschema
     """
 
-    def __init__(self, shape: dict, entity: str, language: str) -> None:
+    def __init__(self, shape: dict, entity: str) -> None:
         """
         Compares json from a wikidata entity with the json-ld representation of an entityschema
 
         :param dict shape: The json-ld representation of the entityschema to be assessed against
         :param str entity: The Q number of the wikidata entity to be assessed
-        :param str language: The language to return the results in as a 2-letter code
         """
+        self._utilities = Utilities()
         self._entity: str = entity
         self._shape: dict = shape
         self._entities: dict = {}
@@ -33,16 +34,14 @@ class CompareJSONLD:
         self._get_entity_json()
         if "entities" in self._entities and self._entities["entities"][self._entity]:
             self._get_props(self._entities["entities"][self._entity]['claims'])
-        self._get_property_names(language)
-        self.start_shape: dict = self._get_start_shape()
+        self.start_shape: dict = self._utilities.get_start_shape(shape)
 
     def get_properties(self) -> dict:
         """
         Gets the result of comparison for each property with the schema
         :return: json for comparison of properties
         """
-        props: CompareProperties = CompareProperties(self._entity, self._entities,
-                                                     self._props, self._names, self.start_shape)
+        props: CompareProperties = CompareProperties(self._entity, self._entities, self._props, self._shape)
         return props.compare_properties()
 
     def get_statements(self) -> dict:
@@ -50,7 +49,7 @@ class CompareJSONLD:
         Gets the result of comparison of each statement with the schema
         :return: json for comparison of statements
         """
-        statements: CompareStatements = CompareStatements(self._entities, self._entity, self.start_shape)
+        statements: CompareStatements = CompareStatements(self._entities, self._entity, self._shape)
         return statements.compare_statements()
 
     def get_general(self) -> dict:
@@ -104,46 +103,3 @@ class CompareJSONLD:
                 for prop in properties:
                     if prop not in self._props and prop.startswith("P") and len(prop) > 1:
                         self._props.append(prop)
-
-    def _get_property_names(self, language: str) -> None:
-        """
-        Gets the names of properties from wikidata and assigns them as a dict to self._names
-
-        :param str language: The language in which to get the property names
-        :return: Nothing
-        """
-        self._names: dict = {}
-        wikidata_property_list: list = [self._props[i * 49:(i + 1) * 49]
-                                        for i in range((len(self._props) + 48) // 48)]
-        for element in wikidata_property_list:
-            required_properties: str = "|".join(element)
-            response: Response = requests.get(url="https://www.wikidata.org/w/api.php",
-                                              params={"action": "wbgetentities",
-                                                      "ids": required_properties,
-                                                      "props": "labels",
-                                                      "languages": language,
-                                                      "format": "json"},
-                                              headers={'User-Agent': 'Entityshape API by User:Teester'})
-            json_text: dict = response.json()
-            for item in element:
-                try:
-                    self._names[json_text["entities"][item]["id"]] = \
-                        json_text["entities"][item]["labels"][language]["value"]
-                except KeyError:
-                    self._names[json_text["entities"][item]["id"]] = ""
-
-    def _get_start_shape(self) -> dict:
-        """
-        Gets the shape associated with the start parameter of the entityschema
-
-        :return: the start shape
-        """
-        if "start" not in self._shape:
-            return {}
-        if "shapes" not in self._shape:
-            return {}
-
-        for shape in self._shape['shapes']:
-            if shape["id"] == self._shape["start"]:
-                return shape
-        return {}
