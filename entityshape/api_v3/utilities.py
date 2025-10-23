@@ -90,3 +90,21 @@ class Utilities:
                 else:
                     allowed = "incorrect"
         return allowed
+
+    @staticmethod
+    def get_start_shape(schema: dict) -> dict:
+        """
+        Gets the shape associated with the start parameter of the entityschema
+
+        :param schema: the entityschema being assessed
+        :return: the start shape
+        """
+        if "start" not in schema:
+            return {}
+        if "shapes" not in schema:
+            return {}
+
+        for shape in schema['shapes']:
+            if shape["id"] == schema["start"]:
+                return shape
+        return {}

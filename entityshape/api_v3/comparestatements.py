@@ -5,10 +5,11 @@ from entityshape.api_v3.utilities import Utilities
 
 class CompareStatements:
 
-    def __init__(self, entities: dict, entity: str, start_shape: dict) -> None:
+    def __init__(self, entities: dict, entity: str, shape: dict) -> None:
+        self._utilities = Utilities()
         self._entities: dict = entities
         self._entity: str = entity
-        self.start_shape: dict = start_shape
+        self.start_shape: dict = self._utilities.get_start_shape(shape)
 
     def compare_statements(self) -> dict:
         """
@@ -25,8 +26,7 @@ class CompareStatements:
             property_statement_results: list = []
             for statement in claims[claim]:
                 child: dict = {"property": claim}
-                utilities: Utilities = Utilities()
-                necessity = utilities.calculate_necessity(statement["mainsnak"]["property"], self.start_shape)
+                necessity = self._utilities.calculate_necessity(statement["mainsnak"]["property"], self.start_shape)
                 if necessity != "absent":
                     child["necessity"] = necessity
                 child, allowed = self._process_shape(statement["mainsnak"], self.start_shape, child)
@@ -73,8 +73,7 @@ class CompareStatements:
                         allowed = "allowed"
         return allowed
 
-    @staticmethod
-    def _process_triple_constraint(statement: dict, expression: dict, allowed: str) -> str:
+    def _process_triple_constraint(self, statement: dict, expression: dict, allowed: str) -> str:
         """
         Processes triple constraint expression types in the shape
 
@@ -93,9 +92,9 @@ class CompareStatements:
             Utilities.process_cardinalities(expression, {"mainsnak": statement})
             try:
                 if expression["valueExpr"]["type"] == "NodeConstraint":
-                    allowed = Utilities.process_node_constraint(statement,
-                                                                expression["valueExpr"],
-                                                                allowed)
+                    allowed = self._utilities.process_node_constraint(statement,
+                                                                      expression["valueExpr"],
+                                                                      allowed)
             except (KeyError, TypeError):
                 pass
         return allowed

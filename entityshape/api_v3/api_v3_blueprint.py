@@ -17,7 +17,6 @@ def v3():
     entity: str = request.args.get("entity", type=str)
     if "Lexeme" in entity:
         entity = entity[7:]
-    language: str = request.args.get("language", type=str)
     try:
         valid: dict = {}
         names: list = []
@@ -25,9 +24,9 @@ def v3():
         properties: list = []
         statements: list = []
         for schema in schema_list:
-            shape: JSONLDShape = JSONLDShape(schema, language)
-            comparison: CompareJSONLD = CompareJSONLD(shape.get_json_ld(), entity, language)
-            names.append(shape.get_name())
+            shape: JSONLDShape = JSONLDShape(schema)
+            comparison: CompareJSONLD = CompareJSONLD(shape.get_json_ld(), entity)
+            names.append(schema)
             general.append(comparison.get_general())
             properties.append(comparison.get_properties())
             statements.append(comparison.get_statements())

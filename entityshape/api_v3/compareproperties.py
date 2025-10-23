@@ -3,13 +3,12 @@ from entityshape.api_v3.utilities import Utilities
 
 class CompareProperties:
 
-    def __init__(self, entity: str, entities: dict, props: list, names: dict, start_shape: dict) -> None:
+    def __init__(self, entity: str, entities: dict, props: list, schema: dict) -> None:
+        self._utilities: Utilities = Utilities()
         self._entities: dict = entities
-        self._names: dict = names
         self._entity: str = entity
         self._props: list = props
-        self._start_shape: dict = start_shape
-        self.utilities: Utilities = Utilities()
+        self._start_shape: dict = self._utilities.get_start_shape(schema)
 
     def compare_properties(self) -> dict:
         """
@@ -34,8 +33,8 @@ class CompareProperties:
             return properties
 
         for prop in self._props:
-            child: dict = {"name": self._names[prop],
-                           "necessity": self.utilities.calculate_necessity(prop, self._start_shape)}
+            child: dict = {"property": prop,
+                           "necessity": self._utilities.calculate_necessity(prop, self._start_shape)}
             if prop in claims:
                 response: str = self.check_claims_for_props(claims, prop)
             else:
@@ -211,7 +210,7 @@ class CompareProperties:
             if expr["type"]  == "TripleConstraint":
                 allowed_list.append(self._process_triple_constraint_2(statement, expr, ""))
             elif expr["type"] == "NodeConstraint":
-                allowed_list.append(self.utilities.process_node_constraint(statement, expr, ""))
+                allowed_list.append(self._utilities.process_node_constraint(statement, expr, ""))
             else:
                 print(f"error: {expr['type']} not supported")
                 allowed_list.append("")
@@ -271,8 +270,8 @@ class CompareProperties:
         allowed_list: list = []
         if expression["valueExpr"]["type"] == "NodeConstraint":
             for statement in statements:
-                allowed_list.append(self.utilities.process_node_constraint(statement["mainsnak"],
-                                                            expression["valueExpr"],
+                allowed_list.append(self._utilities.process_node_constraint(statement["mainsnak"],
+                                                                            expression["valueExpr"],
                                                             ""))
         if "correct" in allowed_list:
             allowed = "correct"
