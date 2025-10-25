@@ -36,7 +36,6 @@ class TestCompareProperties(unittest.TestCase):
                           ]
                       }}
         props = ["P31"]
-        names = {"P31": "instance of"}
         self.compare_properties = CompareProperties(entities, entity, props, statement)
 
     def test_compare_properties_with_nothing(self):
@@ -44,7 +43,6 @@ class TestCompareProperties(unittest.TestCase):
         entities = ""
         statement = {}
         props = []
-        names = {}
         test_method = CompareProperties(entities, entity, props, statement)
         self.assertEqual({}, test_method.compare_properties())
 
