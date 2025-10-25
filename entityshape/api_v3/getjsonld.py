@@ -10,7 +10,6 @@ class JSONLDShape:
     Produces a shape in the form of a json for a wikidata entityschema (e.g. E10)
 
     :param schema: The identifier of the entityschema to be processed
-    :param language: The language to get the schema name in
 
     :return name: the name of the entityschema
     :return shape: a json representation of the entityschema
