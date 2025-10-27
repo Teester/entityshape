@@ -3,11 +3,12 @@ from entityshape.api_v3.utilities import Utilities
 
 class CompareProperties:
 
-    def __init__(self, entity: str, entities: dict, props: list, schema: dict) -> None:
+    def __init__(self, entity: str, entities: dict, props: list, schema: dict, names: dict) -> None:
         self._utilities: Utilities = Utilities()
         self._entities: dict = entities
         self._entity: str = entity
         self._props: list = props
+        self._names: dict = names
         self._start_shape: dict = self._utilities.get_start_shape(schema)
 
     def compare_properties(self) -> dict:
@@ -33,7 +34,7 @@ class CompareProperties:
             return properties
 
         for prop in self._props:
-            child: dict = {"property": prop,
+            child: dict = {"name": self._names[prop],
                            "necessity": self._utilities.calculate_necessity(prop, self._start_shape)}
             if prop in claims:
                 response: str = self.check_claims_for_props(claims, prop)
