@@ -38,18 +38,20 @@ class TestCompareProperties(unittest.TestCase):
                          }]
                      }
         props = ["P31"]
-        self.compare_properties = CompareProperties(entities, entity, props, statement)
+        names = {"P31": "instance of"}
+        self.compare_properties = CompareProperties(entities, entity, props, statement, names)
 
     def test_compare_properties_with_nothing(self):
         entity = {}
         entities = ""
         statement = {}
         props = []
-        test_method = CompareProperties(entities, entity, props, statement)
+        names = {}
+        test_method = CompareProperties(entities, entity, props, statement, names)
         self.assertEqual({}, test_method.compare_properties())
 
     def test_compare_properties_with_values(self):
-        result = {'P31': {'property': 'P31',
+        result = {'P31': {'name': 'instance of',
                           'necessity': 'required',
                           'response': 'present'}}
         self.assertEqual(result, self.compare_properties.compare_properties())
@@ -354,7 +356,8 @@ class TestCompareProperties(unittest.TestCase):
                              },
                   'sitelinks': {}}
         props = ["P31"]
-        compare_properties2 = CompareProperties(entity["id"], entity, props, schema)
+        names = {"P31": "instance of"}
+        compare_properties2 = CompareProperties(entity["id"], entity, props, schema, names)
         self.assertEqual("incorrect", compare_properties2._process_shape(schema, entity))
 
     def test_triple_constraint_against_process_shape2_which_fails(self):

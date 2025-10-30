@@ -250,11 +250,12 @@ class CompareProperties:
             return self._process_shape(shape["expression"], expression)
         if shape["type"] == "EachOf":
             print(shape)
-            print(shape["id"])
-            if shape["id"] != self._start_shape:
-                return self._process_each_of(shape["expressions"], expression)
-            else:
-                return ""
+            if "id" in shape:
+                print(shape["id"])
+                if shape["id"] != self._start_shape:
+                    return self._process_each_of(shape["expressions"], expression)
+                else:
+                    return ""
         if shape["type"] == "OneOf":
             print("one of")
             return ""
