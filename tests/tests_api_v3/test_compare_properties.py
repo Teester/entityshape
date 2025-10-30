@@ -24,17 +24,19 @@ class TestCompareProperties(unittest.TestCase):
                          },
                          'sitelinks': {}}}}
         entities = "Q1"
-        statement = { "type": "Shape",
-                      "id": "test",
-                      "expression": {
-                          "type": "EachOf",
-                          "expressions": [
-                              {
-                                  "type": "TripleConstraint",
-                                  "predicate": "http://www.wikidata.org/prop/direct/P31"
-                              }
-                          ]
-                      }}
+        statement = {"type": "Schema",
+                     "start": "test",
+                     "shapes": [{
+                         "type": "Shape",
+                         "id": "test",
+                         "expression": {
+                             "type": "EachOf",
+                             "expressions": [{
+                                 "type": "TripleConstraint",
+                                 "predicate": "http://www.wikidata.org/prop/direct/P31" }]
+                             }
+                         }]
+                     }
         props = ["P31"]
         self.compare_properties = CompareProperties(entities, entity, props, statement)
 
@@ -47,7 +49,7 @@ class TestCompareProperties(unittest.TestCase):
         self.assertEqual({}, test_method.compare_properties())
 
     def test_compare_properties_with_values(self):
-        result = {'P31': {'name': 'instance of',
+        result = {'P31': {'property': 'P31',
                           'necessity': 'required',
                           'response': 'present'}}
         self.assertEqual(result, self.compare_properties.compare_properties())
@@ -243,6 +245,217 @@ class TestCompareProperties(unittest.TestCase):
                        'valueExpr': {'type': 'NodeConstraint', 'values': ['http://www.wikidata.org/entity/Q1']}}
                       ]
         self.assertEqual("incorrect", self.compare_properties._process_each_of(expression, statement))
+
+    def test_complete_schema_against_process_shape(self):
+        schema = {'type': 'Schema',
+                  'start': 'TD',
+                  'shapes': [
+                      {'type': 'Shape',
+                       'id': 'TD',
+                       'extra': ['http://www.wikidata.org/prop/direct/P39',
+                                 'http://www.wikidata.org/prop/direct/P106',
+                                 'http://www.wikidata.org/prop/direct/P27'],
+                       'expression': {
+                           'type': 'EachOf',
+                           'expressions': [
+                               {'type': 'TripleConstraint',
+                                'predicate': 'http://www.wikidata.org/prop/direct/P31',
+                                'valueExpr': {'type': 'NodeConstraint', 'values': ['http://www.wikidata.org/entity/Q5']}},
+                               {'type': 'TripleConstraint', 'predicate': 'http://www.wikidata.org/prop/direct/P4690'},
+                               {'type': 'TripleConstraint',
+                                'predicate': 'http://www.wikidata.org/prop/direct/P39',
+                                'valueExpr': {'type': 'NodeConstraint',
+                                              'values': ['http://www.wikidata.org/entity/Q654291', 'http://www.wikidata.org/entity/Q18043391']},
+                                'min': 1,
+                                'max': -1},
+                               {'type': 'TripleConstraint',
+                                'predicate': 'http://www.wikidata.org/prop/direct/P106',
+                                'valueExpr': {'type': 'NodeConstraint',
+                                              'values': ['http://www.wikidata.org/entity/Q82955']}},
+                               {'type': 'TripleConstraint',
+                                'predicate': 'http://www.wikidata.org/prop/direct/P734', 'min': 1, 'max': -1},
+                               {'type': 'TripleConstraint', 'predicate': 'http://www.wikidata.org/prop/direct/P735', 'min': 1, 'max': -1},
+                               {'type': 'TripleConstraint', 'predicate': 'http://www.wikidata.org/prop/direct/P569'},
+                               {'type': 'TripleConstraint', 'predicate': 'http://www.wikidata.org/prop/direct/P102', 'min': 0, 'max': -1},
+                               {'type': 'TripleConstraint', 'predicate': 'http://www.wikidata.org/prop/direct/P21',
+                                'valueExpr': {'type': 'NodeConstraint',
+                                              'values': ['http://www.wikidata.org/entity/Q6581097', 'http://www.wikidata.org/entity/Q6581072', 'http://www.wikidata.org/entity/Q1097630', 'http://www.wikidata.org/entity/Q1052281', 'http://www.wikidata.org/entity/Q2449503', 'http://www.wikidata.org/entity/Q48270']}},
+                               {'type': 'TripleConstraint', 'predicate': 'http://www.wikidata.org/prop/direct/P27',
+                                'valueExpr': {'type': 'NodeConstraint', 'values': ['http://www.wikidata.org/entity/Q27', 'http://www.wikidata.org/entity/Q31747', 'http://www.wikidata.org/entity/Q1140152']},
+                                'min': 1, 'max': -1},
+                               {'type': 'TripleConstraint', 'predicate': 'http://www.wikidata.org/prop/direct/P18', 'min': 1, 'max': -1}]}}]}
+        entity = {'title': 'Q1',
+                  'type': 'item',
+                  'id': 'Q1',
+                  'claims': {'P31': [{'mainsnak':
+                                          {'snaktype': 'value',
+                                           'property': 'P31',
+                                           'hash': '1',
+                                           'datavalue': {'value':
+                                                             {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
+                                                         'type': 'wikibase-entityid'},
+                                           'datatype': 'wikibase-item'},
+                                      'type': 'statement',
+                                      'id': '1',
+                                      'rank': 'normal'}],
+                             },
+                  'sitelinks': {}}
+        self.assertEqual("incorrect", self.compare_properties._process_shape(schema, entity))
+
+    def test_shape_against_process_shape2(self):
+        schema = {"type": "Schema", "start": "TD", "shapes": [{'type': 'Shape',
+                'id': 'TD',
+                'extra': ['http://www.wikidata.org/prop/direct/P39',
+                          'http://www.wikidata.org/prop/direct/P106',
+                          'http://www.wikidata.org/prop/direct/P27'],
+                'expression': {
+                    'type': 'EachOf',
+                    'expressions': [
+                        {'type': 'TripleConstraint',
+                         'predicate': 'http://www.wikidata.org/prop/direct/P31',
+                         'valueExpr': {'type': 'NodeConstraint', 'values': ['http://www.wikidata.org/entity/Q5']}},
+                        {'type': 'TripleConstraint', 'predicate': 'http://www.wikidata.org/prop/direct/P4690'},
+                        {'type': 'TripleConstraint',
+                         'predicate': 'http://www.wikidata.org/prop/direct/P39',
+                         'valueExpr': {'type': 'NodeConstraint',
+                                       'values': ['http://www.wikidata.org/entity/Q654291', 'http://www.wikidata.org/entity/Q18043391']},
+                         'min': 1,
+                         'max': -1},
+                        {'type': 'TripleConstraint',
+                         'predicate': 'http://www.wikidata.org/prop/direct/P106',
+                         'valueExpr': {'type': 'NodeConstraint',
+                                       'values': ['http://www.wikidata.org/entity/Q82955']}},
+                        {'type': 'TripleConstraint',
+                         'predicate': 'http://www.wikidata.org/prop/direct/P734', 'min': 1, 'max': -1},
+                        {'type': 'TripleConstraint', 'predicate': 'http://www.wikidata.org/prop/direct/P735', 'min': 1, 'max': -1},
+                        {'type': 'TripleConstraint', 'predicate': 'http://www.wikidata.org/prop/direct/P569'},
+                        {'type': 'TripleConstraint', 'predicate': 'http://www.wikidata.org/prop/direct/P102', 'min': 0, 'max': -1},
+                        {'type': 'TripleConstraint', 'predicate': 'http://www.wikidata.org/prop/direct/P21',
+                         'valueExpr': {'type': 'NodeConstraint',
+                                       'values': ['http://www.wikidata.org/entity/Q6581097', 'http://www.wikidata.org/entity/Q6581072', 'http://www.wikidata.org/entity/Q1097630', 'http://www.wikidata.org/entity/Q1052281', 'http://www.wikidata.org/entity/Q2449503', 'http://www.wikidata.org/entity/Q48270']}},
+                        {'type': 'TripleConstraint', 'predicate': 'http://www.wikidata.org/prop/direct/P27',
+                         'valueExpr': {'type': 'NodeConstraint', 'values': ['http://www.wikidata.org/entity/Q27', 'http://www.wikidata.org/entity/Q31747', 'http://www.wikidata.org/entity/Q1140152']},
+                         'min': 1, 'max': -1},
+                        {'type': 'TripleConstraint', 'predicate': 'http://www.wikidata.org/prop/direct/P18', 'min': 1, 'max': -1}]}}]}
+        entity = {'title': 'Q1',
+                  'type': 'item',
+                  'id': 'Q1',
+                  'claims': {'P31': [{'mainsnak':
+                                          {'snaktype': 'value',
+                                           'property': 'P31',
+                                           'hash': '1',
+                                           'datavalue': {'value':
+                                                             {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
+                                                         'type': 'wikibase-entityid'},
+                                           'datatype': 'wikibase-item'},
+                                      'type': 'statement',
+                                      'id': '1',
+                                      'rank': 'normal'}],
+                             },
+                  'sitelinks': {}}
+        props = ["P31"]
+        compare_properties2 = CompareProperties(entity["id"], entity, props, schema)
+        self.assertEqual("incorrect", compare_properties2._process_shape(schema, entity))
+
+    def test_triple_constraint_against_process_shape2_which_fails(self):
+        schema = {'type': 'TripleConstraint',
+                 'predicate': 'http://www.wikidata.org/prop/direct/P31',
+                 'valueExpr': {'type': 'NodeConstraint', 'values': ['http://www.wikidata.org/entity/Q5']}}
+        entity = {'title': 'Q1',
+                  'type': 'item',
+                  'id': 'Q1',
+                  'claims': {'P31': [{'mainsnak':
+                                          {'snaktype': 'value',
+                                           'property': 'P31',
+                                           'hash': '1',
+                                           'datavalue': {'value':
+                                                             {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
+                                                         'type': 'wikibase-entityid'},
+                                           'datatype': 'wikibase-item'},
+                                      'type': 'statement',
+                                      'id': '1',
+                                      'rank': 'normal'}],
+                             },
+                  'sitelinks': {}}
+        self.assertEqual("not enough correct statements", self.compare_properties._process_shape(schema, entity))
+
+
+    def test_triple_constraint_against_process_shape2_which_passes(self):
+        schema = {'type': 'TripleConstraint',
+                 'predicate': 'http://www.wikidata.org/prop/direct/P31',
+                 'valueExpr': {'type': 'NodeConstraint', 'values': ['http://www.wikidata.org/entity/Q5']} }
+        entity = {'title': 'Q1',
+                  'type': 'item',
+                  'id': 'Q1',
+                  'claims': {'P31': [{'mainsnak':
+                                          {'snaktype': 'value',
+                                           'property': 'P31',
+                                           'hash': '1',
+                                           'datavalue': {'value':
+                                                             {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q5'},
+                                                         'type': 'wikibase-entityid'},
+                                           'datatype': 'wikibase-item'},
+                                      'type': 'statement',
+                                      'id': '1',
+                                      'rank': 'normal'}],
+                             },
+                  'sitelinks': {}}
+        self.assertEqual("correct", self.compare_properties._process_shape(schema, entity))
+
+    def test_triple_constraint_against_process_shape2_which_passes_cardinality(self):
+        schema = {'type': 'TripleConstraint',
+                 'predicate': 'http://www.wikidata.org/prop/direct/P31',
+                 'valueExpr': {'type': 'NodeConstraint', 'values': ['http://www.wikidata.org/entity/Q5']}, "min":2, "max":2 }
+        entity = {'title': 'Q1',
+                  'type': 'item',
+                  'id': 'Q1',
+                  'claims': {'P31': [{'mainsnak':
+                                          {'snaktype': 'value',
+                                           'property': 'P31',
+                                           'hash': '1',
+                                           'datavalue': {'value':
+                                                             {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q5'},
+                                                         'type': 'wikibase-entityid'},
+                                           'datatype': 'wikibase-item'},
+                                      'type': 'statement',
+                                      'id': '1',
+                                      'rank': 'normal'},
+                                     {'mainsnak':
+                                          {'snaktype': 'value',
+                                           'property': 'P31',
+                                           'hash': '1',
+                                           'datavalue': {'value':
+                                                             {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q5'},
+                                                         'type': 'wikibase-entityid'},
+                                           'datatype': 'wikibase-item'},
+                                      'type': 'statement',
+                                      'id': '1',
+                                      'rank': 'normal'}],
+                             },
+                  'sitelinks': {}}
+        self.assertEqual("correct", self.compare_properties._process_shape(schema, entity))
+
+    def test_triple_constraint_against_process_shape2_which_fails_cardinality(self):
+        schema = {'type': 'TripleConstraint',
+                 'predicate': 'http://www.wikidata.org/prop/direct/P31',
+                 'valueExpr': {'type': 'NodeConstraint', 'values': ['http://www.wikidata.org/entity/Q5']}, "min":2, "max":2 }
+        entity = {'title': 'Q1',
+                  'type': 'item',
+                  'id': 'Q1',
+                  'claims': {'P31': [{'mainsnak':
+                                          {'snaktype': 'value',
+                                           'property': 'P31',
+                                           'hash': '1',
+                                           'datavalue': {'value':
+                                                             {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q5'},
+                                                         'type': 'wikibase-entityid'},
+                                           'datatype': 'wikibase-item'},
+                                      'type': 'statement',
+                                      'id': '1',
+                                      'rank': 'normal'}],
+                             },
+                  'sitelinks': {}}
+        self.assertEqual("not enough correct statements", self.compare_properties._process_shape(schema, entity))
 
 
 if __name__ == '__main__':
