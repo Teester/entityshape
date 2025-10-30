@@ -226,13 +226,40 @@ class CompareProperties:
             return "correct"
         return ""
 
-    def _process_shape(self, shape: dict, expression: dict):
+    def _process_shape(self, shape: dict, expression: dict) -> str:
+        """
+        Processes the type of shape and sends it on to the relevant function
+
+        :param shape: The shape to be assessed
+        :param expression: The entity the shape is assessed against
+        :return: a response
+        """
+        if "type" not in shape:
+            return ""
+        print(self._start_shape)
+        if "id" in self._start_shape:
+            print(self._start_shape["id"])
+        if shape["type"] == "Schema":
+            for sub_shape in shape["shapes"]:
+                if sub_shape["id"] == shape["start"]:
+                    return self._process_shape(sub_shape, expression)
+        if shape["type"] == "Shape":
+            # If the shape is a start shape how do we process each of/one of as we'll want to ignore them to get a
+            # breakdown of what's allowed
+            return self._process_shape(shape["expression"], expression)
         if shape["type"] == "EachOf":
-            return self._process_each_of(shape["expressions"], expression)
+            print(shape)
+            print(shape["id"])
+            if shape["id"] != self._start_shape:
+                return self._process_each_of(shape["expressions"], expression)
+            else:
+                return ""
         if shape["type"] == "OneOf":
             print("one of")
             return ""
-        print("neither")
+        if shape["type"] == "TripleConstraint":
+            return self._process_triple_constraint_2(expression, shape, "")
+        print("none of the above")
         return ""
 
 
@@ -251,16 +278,18 @@ class CompareProperties:
 
         :return: allowed as it has been changed by the method
         """
+        print("in process")
+        print(expression)
         if "predicate" not in expression:
             return allowed
-
+        print("predicate")
         # determine the property to be checked
         property_name: str = expression["predicate"]
         property_name = property_name.rsplit('/', 1)[1]
 
         if property_name not in entity["claims"]:
-            return allowed
-
+            return "absent"
+        print("property")
         statements: dict = entity["claims"][property_name]
         if len(statements) > 0:
             allowed = "present"
