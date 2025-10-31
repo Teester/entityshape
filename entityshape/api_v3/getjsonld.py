@@ -14,7 +14,8 @@ class JSONLDShape:
     :return name: the name of the entityschema
     :return shape: a json representation of the entityschema
     """
-    def __init__(self, schema: str) -> None:
+    def __init__(self, schema: str, language: str) -> None:
+        self._language = language
         self._json_text: dict = {}
         self._get_schema_json(schema)
 
@@ -38,3 +39,15 @@ class JSONLDShape:
                                 headers={'User-Agent': 'Userscript Entityshape by User:Teester'})
         if response.status_code == 200:
             self._json_text = response.json()
+
+    def get_name(self) -> str:
+        """
+        Gets the name of the schema
+
+        :return: the name of the schema
+        """
+        if "labels" not in self._json_text:
+            return ""
+        if self._language in self._json_text["labels"]:
+            return self._json_text["labels"][self._language]
+        return ""

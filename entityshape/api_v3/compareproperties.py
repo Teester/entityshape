@@ -10,6 +10,7 @@ class CompareProperties:
         self._props: list = props
         self._names: dict = names
         self._start_shape: dict = self._utilities.get_start_shape(schema)
+        print(self._names)
 
     def compare_properties(self) -> dict:
         """
@@ -172,8 +173,7 @@ class CompareProperties:
             cardinality = "not enough correct statements"
         return cardinality
 
-    @staticmethod
-    def _process_triple_constraint(statement: dict, expression: dict, allowed: str) -> str:
+    def _process_triple_constraint(self, statement: dict, expression: dict, allowed: str) -> str:
         """
         Processes triple constraint expression types in the shape as follows:
          - if the property in the statement is in the expression then allowed is present
@@ -193,7 +193,7 @@ class CompareProperties:
             allowed = "present"
             try:
                 if expression["valueExpr"]["type"] == "NodeConstraint":
-                    allowed = Utilities.process_node_constraint(statement,
+                    allowed = self._utilities.process_node_constraint(statement,
                                                                 expression["valueExpr"],
                                                                 allowed)
             except (KeyError, TypeError):
@@ -265,7 +265,7 @@ class CompareProperties:
             return self._process_shape(shape["expression"], expression, current_shape=shape["id"])
         if shape["type"] == "EachOf":
             if current_shape is self._start_shape["id"]:
-                return self._process_each_of_for_start_shape(shape["expressions"], expression)
+                return str(self._process_each_of_for_start_shape(shape["expressions"], expression))
             else:
                 return self._process_each_of(shape["expressions"], expression)
         if shape["type"] == "OneOf":

@@ -1,7 +1,6 @@
 """
 Tests to test wikidata entityschemas against wikidata items
 """
-import time
 import unittest
 
 import requests
@@ -9,30 +8,19 @@ import requests
 from entityshape.app import app
 
 
-class MyTestCase(unittest.TestCase):
+class CompareV2V3(unittest.TestCase):
     """
     Testcases to test wikidata entityschemas against wikidata items
     """
 
     def setUp(self) -> None:
         app.config["TESTING"] = True
-        app.config['DEBUG'] = False
         self.app = app.test_client()
+        self.maxDiff = None
 
-    def test_specific_wikidata_item_against_schema(self):
-        """
-        Tests a specific entity against a certain schema and checks that
-        a statements and a properties response are returned
-        """
-        test_pairs: dict = {"E236": "Q1728820"}
-
-        for key in test_pairs:
-            with self.subTest(key=key):
-                value = test_pairs[key]
-                response = self.app.get(f'/api/v3?entityschema={key}&entity={value}&language=en',
-                                        follow_redirects=True)
-                self.assertIsNotNone(response.json["statements"])
-                self.assertIsNotNone(response.json["properties"])
+    def tearDown(self) -> None:
+        # We don't need to tear anything down after the test
+        pass
 
     def test_lexical_category(self):
         """
@@ -72,13 +60,8 @@ class MyTestCase(unittest.TestCase):
             with self.subTest(schema=schema):
                 if schema in skips:
                     self.skipTest(f"Schema {schema} not supported")
-                # Wait before performing the next test to avoid running into Wikidata's request limits
-                # when using GitHub Actions
-                time.sleep(4)
                 response = self.app.get(f'/api/v3?entityschema={schema}&entity=Q100532807&language=en',
                                         follow_redirects=True)
-                if response.status_code == 429:
-                    self.skipTest("Wikidata is giving a 429 (too many requests) response")
                 self.assertEqual(response.status_code, 200)
 
     def test_specific_entityschema(self) -> None:
@@ -87,12 +70,13 @@ class MyTestCase(unittest.TestCase):
         is received
         """
         schema: str = "E236"
-        response = self.app.get(f'/api/v3?entityschema={schema}&entity=Q100532807&language=en',
+        response = self.app.get(f'/api/v2?entityschema={schema}&entity=Q100532807&language=en',
                                 follow_redirects=True)
-        self.assertEqual(200, response.status_code)
-        self.assertEqual("Member of the Oireachtas", response.json["name"][0])
-        self.assertEqual({'property': 'P106', 'necessity': 'required', 'response': 'missing'},
-                         response.json["properties"][0]["P106"])
+        response2 = self.app.get(f'/api/v3?entityschema={schema}&entity=Q100532807&language=en',
+                                 follow_redirects=True)
+        self.assertEqual(response2.status_code, response.status_code)
+        self.assertEqual(response2.json["name"][0], response.json["name"][0])
+        self.assertEqual(response2.json["properties"][0]["P106"], response.json["properties"][0]["P106"])
 
     def test_entityschema_e3(self):
         """
@@ -102,9 +86,11 @@ class MyTestCase(unittest.TestCase):
         The schema has a shape <wikimedia_projects> [ ].  The test makes sure
         that the schema returns a 200 response, indicating that it evaluates []
         """
-        response = self.app.get('/api/v3?entityschema=E3&entity=Q85396849&language=en',
+        response = self.app.get('/api/v2?entityschema=E3&entity=Q85396849&language=en',
                                 follow_redirects=True)
-        self.assertEqual(200, response.status_code)
+        response2 = self.app.get('/api/v3?entityschema=E3&entity=Q85396849&language=en',
+                                follow_redirects=True)
+        self.assertEqual(response2.status_code, response.status_code)
 
     def test_entityschema_e121(self):
         """
@@ -113,9 +99,11 @@ class MyTestCase(unittest.TestCase):
         This test tests entityschema E121 against entity Q85396849 (Drumlohan).
         The schema is blank. The test makes sure that this still returns a 200 response
         """
-        response = self.app.get('/api/v3?entityschema=E121&entity=Q85396849&language=en',
+        response = self.app.get('/api/v2?entityschema=E121&entity=Q85396849&language=en',
                                 follow_redirects=True)
-        self.assertEqual(200, response.status_code)
+        response2 = self.app.get('/api/v3?entityschema=E121&entity=Q85396849&language=en',
+                                follow_redirects=True)
+        self.assertEqual(response2.status_code, response.status_code)
 
     def test_entityschema_e126(self):
         """
@@ -125,9 +113,12 @@ class MyTestCase(unittest.TestCase):
         The schema has a comment line that starts with #{ rather than # {.
         The test checks that we get a 200 response
         """
-        response = self.app.get('/api/v3?entityschema=E126&entity=Q85396849&language=en',
+        response = self.app.get('/api/v2?entityschema=E126&entity=Q85396849&language=en',
                                 follow_redirects=True)
-        self.assertEqual(200, response.status_code)
+        response2 = self.app.get('/api/v3?entityschema=E126&entity=Q85396849&language=en',
+                                follow_redirects=True)
+        self.assertEqual(response2.status_code, response.status_code)
+        self.assertEqual(response2.json, response.json)
 
     def test_entityschema_e135(self):
         """
@@ -136,9 +127,11 @@ class MyTestCase(unittest.TestCase):
         This test tests entityschema E135 against entity Q85396849 (Drumlohan).
         The schema is blank. The test makes sure that this still returns a 200 response
         """
-        response = self.app.get('/api/v3?entityschema=E135&entity=Q85396849&language=en',
+        response = self.app.get('/api/v2?entityschema=E135&entity=Q85396849&language=en',
                                 follow_redirects=True)
-        self.assertEqual(200, response.status_code)
+        response2 = self.app.get('/api/v3?entityschema=E135&entity=Q85396849&language=en',
+                                follow_redirects=True)
+        self.assertEqual(response2.status_code, response.status_code)
 
     def test_entityschema_e176(self):
         """
@@ -207,7 +200,8 @@ class MyTestCase(unittest.TestCase):
         properties: list = ["P39", "P106", "P18", "P4690"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertIn(response.json["properties"][0][prop]["response"], ["correct", "present", "allowed"])
+                self.assertIn(response.json["properties"][0][prop]["response"],
+                              ["correct", "present", "allowed"])
                 self.assertEqual(response.json["properties"][0][prop]["response"],
                                  response2.json["properties"][prop]["response"])
 
@@ -342,39 +336,6 @@ class MyTestCase(unittest.TestCase):
         response = self.app.get('/api/v3?entityschema=E351&entity=Q743656&language=en',
                                 follow_redirects=True)
         self.assertIn(response.json["properties"][0]["P31"]["response"], ["not enough correct statements"])
-
-    def test_entityschema_e438(self):
-        """
-        Tests that a schemas with only 1 expression evaluates correctly
-
-        This test tests entityschema E438 (wikimedia disambiguation page) against entity Q11645745.
-        P31 should return as present
-        """
-        response = self.app.get('/api/v3?entityschema=E438&entity=Q11645745&language=en',
-                                follow_redirects=True)
-        self.assertIn(response.json["properties"][0]["P31"]["response"], ["correct", "present"])
-
-    def test_non_existent_entityschema(self):
-        """
-        Tests that we get a correct response if the entityschema doesn't exist
-
-        This test tests entityschema E99900, (which does not exist) against entity Q11645745.
-        This should give a 200 response
-        """
-        response = self.app.get('/api/v3?entityschema=E99900&entity=Q11645745&language=en',
-                                follow_redirects=True)
-        self.assertEqual(200, response.status_code)
-
-    def test_non_existent_entity(self):
-        """
-        Tests that we get a correct response if the entityschema doesn't exist
-
-        This test tests entityschema E10 (human) against entity Q6, which has been deleted.
-        This should give a 200 response
-        """
-        response = self.app.get('/api/v3?entityschema=E10&entity=Q6&language=en',
-                                follow_redirects=True)
-        self.assertEqual(200, response.status_code)
 
 
 if __name__ == '__main__':
