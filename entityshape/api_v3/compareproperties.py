@@ -1,3 +1,5 @@
+import ast
+
 from entityshape.api_v3.utilities import Utilities
 
 
@@ -10,7 +12,6 @@ class CompareProperties:
         self._props: list = props
         self._names: dict = names
         self._start_shape: dict = self._utilities.get_start_shape(schema)
-        print(self._names)
 
     def compare_properties(self) -> dict:
         """
@@ -33,7 +34,15 @@ class CompareProperties:
         properties: dict = {}
         if self._start_shape is None:
             return properties
+        print(self._entities)
 
+        for entity in self._entities["entities"]:
+            print(f"process shape = {self._process_shape(self._start_shape, self._entities["entities"][entity], self._start_shape )}")
+            my_response = ast.literal_eval(self._process_shape(self._start_shape, self._entities["entities"][entity], self._start_shape ))
+            for claim in self._entities["entities"][entity]["claims"]:
+                if claim not in my_response:
+                    my_response["claim"] = {"name": self._names[claim], "necessity": "absent"}
+        print(my_response)
         for prop in self._props:
             child: dict = {"name": self._names[prop],
                            "necessity": self._utilities.calculate_necessity(prop, self._start_shape)}
@@ -47,6 +56,7 @@ class CompareProperties:
             elif response != "present":
                 child["response"] = response
             properties[prop] = child
+        print(f"properties = {properties}")
         return properties
 
     def check_claims_for_props(self, claims: dict, prop: str) -> str:
@@ -253,6 +263,8 @@ class CompareProperties:
         :param expression: The entity the shape is assessed against
         :return: a response
         """
+        print(shape)
+        print(expression)
         if "type" not in shape:
             return ""
         if shape["type"] == "Schema":
