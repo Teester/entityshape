@@ -19,7 +19,7 @@ class JSONLDCase(unittest.TestCase):
         schema: str = "E236"
         entity: str = "Q1728820"
         shape: Shape = Shape(schema, language)
-        shape2: JSONLDShape = JSONLDShape(schema)
+        shape2: JSONLDShape = JSONLDShape(schema, language)
         cls.comparison: CompareShape = CompareShape(shape.get_schema_shape(), entity, language)
         cls.comparison2: CompareJSONLD = CompareJSONLD(shape2.get_json_ld(), entity, language)
 

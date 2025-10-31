@@ -167,6 +167,8 @@ class TestCompareProperties(unittest.TestCase):
                       'valueExpr': {'type': 'NodeConstraint', 'values': ['http://www.wikidata.org/entity/Q2']}}
         allowed = "Q2"
         self.assertEqual("correct", self.compare_properties._process_triple_constraint(statement, expression, allowed))
+        self.assertEqual("correct", self.compare_properties._process_triple_constraint(statement, expression, allowed))
+        self.assertEqual("correct", self.compare_properties._process_triple_constraint(statement, expression, allowed))
 
 
 if __name__ == '__main__':
