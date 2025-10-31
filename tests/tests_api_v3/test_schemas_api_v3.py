@@ -91,7 +91,7 @@ class MyTestCase(unittest.TestCase):
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
         self.assertEqual("Member of the Oireachtas", response.json["name"][0])
-        self.assertEqual({'property': 'P106', 'necessity': 'required', 'response': 'missing'},
+        self.assertEqual({'name': 'occupation', 'necessity': 'required', 'response': 'missing'},
                          response.json["properties"][0]["P106"])
 
     def test_entityschema_e3(self):
