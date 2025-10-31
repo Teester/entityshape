@@ -200,11 +200,13 @@ class CompareProperties:
                 pass
         return allowed
 
+    def _process_each_of_for_start_shape(self, expression, statement):
+        return ""
+
     def _process_each_of(self, expression, statement) -> str:
         # expression["type"] will be EachOf
         # there will be expression[expressions], all of which must be satisfied to pass
         allowed_list = []
-
         for expr in expression:
             if "type" not in expr:
                 return ""
@@ -227,7 +229,7 @@ class CompareProperties:
             return "correct"
         return ""
 
-    def _process_shape(self, shape: dict, expression: dict) -> str:
+    def _process_shape(self, shape: dict, expression: dict, current_shape="") -> str:
         """
         Processes the type of shape and sends it on to the relevant function
 
@@ -237,29 +239,26 @@ class CompareProperties:
         """
         if "type" not in shape:
             return ""
-        print(self._start_shape)
-        if "id" in self._start_shape:
-            print(self._start_shape["id"])
-        if shape["type"] == "Schema":
+        #print(self._start_shape)
+        if shape["type"] is "Schema":
             for sub_shape in shape["shapes"]:
                 if sub_shape["id"] == shape["start"]:
                     return self._process_shape(sub_shape, expression)
-        if shape["type"] == "Shape":
+        if shape["type"] is "Shape":
             # If the shape is a start shape how do we process each of/one of as we'll want to ignore them to get a
             # breakdown of what's allowed
-            return self._process_shape(shape["expression"], expression)
-        if shape["type"] == "EachOf":
-            print(shape)
-            if "id" in shape:
-                print(shape["id"])
-                if shape["id"] != self._start_shape:
-                    return self._process_each_of(shape["expressions"], expression)
-                else:
-                    return ""
-        if shape["type"] == "OneOf":
+            return self._process_shape(shape["expression"], expression, current_shape=shape["id"])
+        if shape["type"] is "EachOf":
+            #print(f"start={self._start_shape['id']}")
+            #print(f"current={current_shape}")
+            if current_shape is self._start_shape["id"]:
+                return self._process_each_of_for_start_shape(shape["expressions"], expression)
+            else:
+                return self._process_each_of(shape["expressions"], expression)
+        if shape["type"] is "OneOf":
             print("one of")
             return ""
-        if shape["type"] == "TripleConstraint":
+        if shape["type"] is "TripleConstraint":
             return self._process_triple_constraint_2(expression, shape, "")
         print("none of the above")
         return ""
