@@ -201,7 +201,23 @@ class CompareProperties:
         return allowed
 
     def _process_each_of_for_start_shape(self, expression, statement):
-        return ""
+        response = {}
+        for expr in expression:
+            allowed = ""
+            if expr["type"]  == "TripleConstraint":
+                predicate = expr["predicate"].rsplit("/", 1)[1]
+                allowed = self._process_triple_constraint_2(statement, expr, allowed)
+                if predicate in self._names:
+                    name = self._names[predicate]
+                else:
+                    name = predicate
+                expression_response = {"name": name,
+                                       "necessity": self._utilities.calculate_necessity(predicate, self._start_shape),
+                                       "allowed": allowed}
+                response[predicate] = expression_response
+            else:
+                print(f"error: {expr['type']} not supported")
+        return response
 
     def _process_each_of(self, expression, statement) -> str:
         # expression["type"] will be EachOf
@@ -239,26 +255,23 @@ class CompareProperties:
         """
         if "type" not in shape:
             return ""
-        #print(self._start_shape)
-        if shape["type"] is "Schema":
+        if shape["type"] == "Schema":
             for sub_shape in shape["shapes"]:
                 if sub_shape["id"] == shape["start"]:
                     return self._process_shape(sub_shape, expression)
-        if shape["type"] is "Shape":
+        if shape["type"] == "Shape":
             # If the shape is a start shape how do we process each of/one of as we'll want to ignore them to get a
             # breakdown of what's allowed
             return self._process_shape(shape["expression"], expression, current_shape=shape["id"])
-        if shape["type"] is "EachOf":
-            #print(f"start={self._start_shape['id']}")
-            #print(f"current={current_shape}")
+        if shape["type"] == "EachOf":
             if current_shape is self._start_shape["id"]:
                 return self._process_each_of_for_start_shape(shape["expressions"], expression)
             else:
                 return self._process_each_of(shape["expressions"], expression)
-        if shape["type"] is "OneOf":
+        if shape["type"] == "OneOf":
             print("one of")
             return ""
-        if shape["type"] is "TripleConstraint":
+        if shape["type"] == "TripleConstraint":
             return self._process_triple_constraint_2(expression, shape, "")
         print("none of the above")
         return ""
@@ -279,18 +292,14 @@ class CompareProperties:
 
         :return: allowed as it has been changed by the method
         """
-        print("in process")
-        print(expression)
         if "predicate" not in expression:
             return allowed
-        print("predicate")
         # determine the property to be checked
         property_name: str = expression["predicate"]
         property_name = property_name.rsplit('/', 1)[1]
 
         if property_name not in entity["claims"]:
             return "absent"
-        print("property")
         statements: dict = entity["claims"][property_name]
         if len(statements) > 0:
             allowed = "present"
