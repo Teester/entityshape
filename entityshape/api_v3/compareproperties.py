@@ -9,6 +9,7 @@ class CompareProperties:
         self._utilities: Utilities = Utilities()
         self._entities: dict = entities
         self._entity: str = entity
+        self._schema: dict = schema
         self._props: list = props
         self._names: dict = names
         self._start_shape: dict = self._utilities.get_start_shape(schema)
@@ -32,17 +33,17 @@ class CompareProperties:
 
         claims: dict = self._entities["entities"][self._entity]["claims"]
         properties: dict = {}
+        my_response = {}
         if self._start_shape is None:
             return properties
         print(self._entities)
 
         for entity in self._entities["entities"]:
-            print(f"process shape = {self._process_shape(self._start_shape, self._entities["entities"][entity], self._start_shape )}")
-            my_response = ast.literal_eval(self._process_shape(self._start_shape, self._entities["entities"][entity], self._start_shape ))
-            for claim in self._entities["entities"][entity]["claims"]:
-                if claim not in my_response:
-                    my_response["claim"] = {"name": self._names[claim], "necessity": "absent"}
-        print(my_response)
+            my_response = ast.literal_eval(self._process_shape(self._start_shape, self._entities["entities"][entity], self._start_shape["id"] ))
+        for claim in claims:
+            if claim not in my_response:
+                my_response["claim"] = {"name": self._names[claim], "necessity": "absent"}
+        return my_response
         for prop in self._props:
             child: dict = {"name": self._names[prop],
                            "necessity": self._utilities.calculate_necessity(prop, self._start_shape)}
@@ -210,38 +211,38 @@ class CompareProperties:
                 pass
         return allowed
 
-    def _process_each_of_for_start_shape(self, expression, statement):
+    def _process_each_of_for_start_shape(self, shape, entity):
         response = {}
-        for expr in expression:
+        for expression in shape:
             allowed = ""
-            if expr["type"]  == "TripleConstraint":
-                predicate = expr["predicate"].rsplit("/", 1)[1]
-                allowed = self._process_triple_constraint_2(statement, expr, allowed)
+            if expression["type"]  == "TripleConstraint":
+                predicate = expression["predicate"].rsplit("/", 1)[1]
+                allowed = self._process_triple_constraint_2(expression, entity, allowed)
                 if predicate in self._names:
                     name = self._names[predicate]
                 else:
                     name = predicate
                 expression_response = {"name": name,
                                        "necessity": self._utilities.calculate_necessity(predicate, self._start_shape),
-                                       "allowed": allowed}
+                                       "response": allowed}
                 response[predicate] = expression_response
             else:
-                print(f"error: {expr['type']} not supported")
+                print(f"error: {expression['type']} not supported")
         return response
 
-    def _process_each_of(self, expression, statement) -> str:
+    def _process_each_of(self, shape, entity) -> str:
         # expression["type"] will be EachOf
         # there will be expression[expressions], all of which must be satisfied to pass
         allowed_list = []
-        for expr in expression:
-            if "type" not in expr:
+        for expression in shape:
+            if "type" not in expression:
                 return ""
-            if expr["type"]  == "TripleConstraint":
-                allowed_list.append(self._process_triple_constraint_2(statement, expr, ""))
-            elif expr["type"] == "NodeConstraint":
-                allowed_list.append(self._utilities.process_node_constraint(statement, expr, ""))
+            if expression["type"]  == "TripleConstraint":
+                allowed_list.append(self._process_triple_constraint_2(expression, entity, ""))
+            elif expression["type"] == "NodeConstraint":
+                allowed_list.append(self._utilities.process_node_constraint(entity, expression, ""))
             else:
-                print(f"error: {expr['type']} not supported")
+                print(f"error: {expression['type']} not supported")
                 allowed_list.append("")
 
         # return the lowest value
@@ -255,41 +256,39 @@ class CompareProperties:
             return "correct"
         return ""
 
-    def _process_shape(self, shape: dict, expression: dict, current_shape="") -> str:
+    def _process_shape(self, shape: dict, entity: dict, current_shape="") -> str:
         """
         Processes the type of shape and sends it on to the relevant function
 
         :param shape: The shape to be assessed
-        :param expression: The entity the shape is assessed against
+        :param entity: The entity the shape is assessed against
         :return: a response
         """
-        print(shape)
-        print(expression)
         if "type" not in shape:
             return ""
         if shape["type"] == "Schema":
             for sub_shape in shape["shapes"]:
                 if sub_shape["id"] == shape["start"]:
-                    return self._process_shape(sub_shape, expression)
+                    return self._process_shape(sub_shape, entity)
         if shape["type"] == "Shape":
             # If the shape is a start shape how do we process each of/one of as we'll want to ignore them to get a
             # breakdown of what's allowed
-            return self._process_shape(shape["expression"], expression, current_shape=shape["id"])
+            return self._process_shape(shape["expression"], entity, current_shape=shape["id"])
         if shape["type"] == "EachOf":
             if current_shape is self._start_shape["id"]:
-                return str(self._process_each_of_for_start_shape(shape["expressions"], expression))
+                return str(self._process_each_of_for_start_shape(shape["expressions"], entity))
             else:
-                return self._process_each_of(shape["expressions"], expression)
+                return self._process_each_of(shape["expressions"], entity)
         if shape["type"] == "OneOf":
             print("one of")
             return ""
         if shape["type"] == "TripleConstraint":
-            return self._process_triple_constraint_2(expression, shape, "")
+            return self._process_triple_constraint_2(shape, entity,"")
         print("none of the above")
         return ""
 
 
-    def _process_triple_constraint_2(self, entity: dict, expression: dict, allowed: str) -> str:
+    def _process_triple_constraint_2(self, shape: dict, entity: dict, allowed: str) -> str:
         """
         Processes a triple constraint
 
@@ -299,15 +298,15 @@ class CompareProperties:
                  Should we check the cardinality and necessity here too?
 
         :param entity: a wikidata entity json without the initial QXXX
-        :param expression: part of an entityschema with type TripleConstraint
+        :param shape: part of an entityschema with type TripleConstraint
         :param allowed: a text value indicating whether the statement contains statements allowed by the entityschema
 
         :return: allowed as it has been changed by the method
         """
-        if "predicate" not in expression:
+        if "predicate" not in shape:
             return allowed
         # determine the property to be checked
-        property_name: str = expression["predicate"]
+        property_name: str = shape["predicate"]
         property_name = property_name.rsplit('/', 1)[1]
 
         if property_name not in entity["claims"]:
@@ -316,20 +315,24 @@ class CompareProperties:
         if len(statements) > 0:
             allowed = "present"
 
-        if "valueExpr" not in expression:
+        if "valueExpr" not in shape:
             return allowed
         allowed_list: list = []
-        if expression["valueExpr"]["type"] == "NodeConstraint":
+        if "type" not in shape["valueExpr"]:
+            # this is another shape
+            new_shape: dict = self._get_shape(shape["valueExpr"])
+            allowed_list.append(self._process_shape(new_shape, entity, shape["valueExpr"]))
+        elif shape["valueExpr"]["type"] == "NodeConstraint":
             for statement in statements:
                 allowed_list.append(self._utilities.process_node_constraint(statement["mainsnak"],
-                                                                            expression["valueExpr"],
-                                                            ""))
+                                                                            shape["valueExpr"],
+                                                                    ""))
         if "correct" in allowed_list:
             allowed = "correct"
         utilities: Utilities = Utilities()
-        necessity: str = utilities.required_or_absent(expression)
+        necessity: str = utilities.required_or_absent(shape)
         occurrences: int = allowed_list.count("correct") + allowed_list.count("present")
-        cardinalities: str = self._get_cardinalities(occurrences, expression)
+        cardinalities: str = self._get_cardinalities(occurrences, shape)
         if cardinalities != "correct":
             allowed = cardinalities
 
@@ -338,3 +341,18 @@ class CompareProperties:
                        "response": allowed}
         print(f"response = {child}")
         return allowed
+
+    def _get_shape(self, required_shape: str) -> dict:
+        """
+        Gets a specified shape from the schema
+
+        :param required_shape: the name of the shape required
+        :return: the shape required
+        """
+        if "shapes" not in self._schema:
+            return {}
+
+        for shape in self._schema["shapes"]:
+            if shape["id"] == required_shape:
+                return shape
+        return {}
