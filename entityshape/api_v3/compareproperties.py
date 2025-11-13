@@ -30,35 +30,19 @@ class CompareProperties:
             return {}
         if "claims" not in self._entities["entities"][self._entity]:
             return {}
+        if self._start_shape is None:
+            return {}
+        if "id" not in self._start_shape:
+            return {}
 
         claims: dict = self._entities["entities"][self._entity]["claims"]
-        properties: dict = {}
-        my_response = {}
-        if self._start_shape is None:
-            return properties
-        print(self._entities)
-
+        my_response: dict = {}
         for entity in self._entities["entities"]:
-            my_response = ast.literal_eval(self._process_shape(self._start_shape, self._entities["entities"][entity], self._start_shape["id"] ))
+            my_response = self._process_shape(self._start_shape, self._entities["entities"][entity], self._start_shape["id"] )
         for claim in claims:
             if claim not in my_response:
-                my_response["claim"] = {"name": self._names[claim], "necessity": "absent"}
+                my_response[claim] = {"name": self._names[claim], "necessity": "absent"}
         return my_response
-        for prop in self._props:
-            child: dict = {"name": self._names[prop],
-                           "necessity": self._utilities.calculate_necessity(prop, self._start_shape)}
-            if prop in claims:
-                response: str = self.check_claims_for_props(claims, prop)
-            else:
-                response: str = "missing"
-            if child["necessity"] != "absent":
-                if response != "":
-                    child["response"] = response
-            elif response != "present":
-                child["response"] = response
-            properties[prop] = child
-        print(f"properties = {properties}")
-        return properties
 
     def check_claims_for_props(self, claims: dict, prop: str) -> str:
         """
@@ -211,7 +195,7 @@ class CompareProperties:
                 pass
         return allowed
 
-    def _process_each_of_for_start_shape(self, shape, entity):
+    def _process_each_of_for_start_shape(self, shape, entity) -> dict:
         response = {}
         for expression in shape:
             allowed = ""
@@ -256,7 +240,7 @@ class CompareProperties:
             return "correct"
         return ""
 
-    def _process_shape(self, shape: dict, entity: dict, current_shape="") -> str:
+    def _process_shape(self, shape: dict, entity: dict, current_shape="") -> dict:
         """
         Processes the type of shape and sends it on to the relevant function
 
@@ -265,7 +249,7 @@ class CompareProperties:
         :return: a response
         """
         if "type" not in shape:
-            return ""
+            return {}
         if shape["type"] == "Schema":
             for sub_shape in shape["shapes"]:
                 if sub_shape["id"] == shape["start"]:
@@ -273,19 +257,26 @@ class CompareProperties:
         if shape["type"] == "Shape":
             # If the shape is a start shape how do we process each of/one of as we'll want to ignore them to get a
             # breakdown of what's allowed
-            return self._process_shape(shape["expression"], entity, current_shape=shape["id"])
+            if "expression" in shape:
+                return self._process_shape(shape["expression"], entity, current_shape=shape["id"])
+            else:
+                print(shape)
         if shape["type"] == "EachOf":
             if current_shape is self._start_shape["id"]:
-                return str(self._process_each_of_for_start_shape(shape["expressions"], entity))
+                return self._process_each_of_for_start_shape(shape["expressions"], entity)
             else:
                 return self._process_each_of(shape["expressions"], entity)
         if shape["type"] == "OneOf":
             print("one of")
-            return ""
+            return {}
         if shape["type"] == "TripleConstraint":
-            return self._process_triple_constraint_2(shape, entity,"")
+            property_name: str = shape["predicate"]
+            property_name = property_name.rsplit('/', 1)[1]
+            return {"name": property_name,
+                    "necessity": self._utilities.required_or_absent(shape),
+                    "response": self._process_triple_constraint_2(shape, entity,"")}
         print("none of the above")
-        return ""
+        return {}
 
 
     def _process_triple_constraint_2(self, shape: dict, entity: dict, allowed: str) -> str:
@@ -308,9 +299,8 @@ class CompareProperties:
         # determine the property to be checked
         property_name: str = shape["predicate"]
         property_name = property_name.rsplit('/', 1)[1]
-
         if property_name not in entity["claims"]:
-            return "absent"
+            return "missing"
         statements: dict = entity["claims"][property_name]
         if len(statements) > 0:
             allowed = "present"
@@ -318,7 +308,7 @@ class CompareProperties:
         if "valueExpr" not in shape:
             return allowed
         allowed_list: list = []
-        if "type" not in shape["valueExpr"]:
+        if isinstance(shape["valueExpr"], str):
             # this is another shape
             new_shape: dict = self._get_shape(shape["valueExpr"])
             allowed_list.append(self._process_shape(new_shape, entity, shape["valueExpr"]))
@@ -329,8 +319,7 @@ class CompareProperties:
                                                                     ""))
         if "correct" in allowed_list:
             allowed = "correct"
-        utilities: Utilities = Utilities()
-        necessity: str = utilities.required_or_absent(shape)
+        necessity: str = self._utilities.required_or_absent(shape)
         occurrences: int = allowed_list.count("correct") + allowed_list.count("present")
         cardinalities: str = self._get_cardinalities(occurrences, shape)
         if cardinalities != "correct":
