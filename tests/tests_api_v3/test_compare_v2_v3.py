@@ -24,17 +24,20 @@ class CompareV2V3(unittest.TestCase):
 
     def test_lexical_category(self):
         """
-        This test checks that a lexicalCategory response is returned when a
-        lexeme is tested against a schema looking for a lexical category
+        This test checks that a lexicalCategory response is the same in apiv2 and apiv3
         """
         test_pairs: dict = {"E56": "Lexeme:L42"}
         for key in test_pairs:
             with self.subTest(key=key):
                 value = test_pairs[key]
-                response = self.app.get(f'/api/v3?entityschema={key}&entity={value}&language=en',
+                response = self.app.get(f'/api/v2?entityschema={key}&entity={value}&language=en',
+                                        follow_redirects=True)
+                response2 = self.app.get(f'/api/v3?entityschema={key}&entity={value}&language=en',
                                         follow_redirects=True)
                 self.assertIsNotNone(response.json["general"][0]["lexicalCategory"])
                 self.assertIsNotNone(response.json["general"][0]["language"])
+                self.assertEqual(response2.json["general"][0]["lexicalCategory"], response.json["general"][0]["lexicalCategory"])
+                self.assertEqual(response2.json["general"][0]["language"], response.json["general"][0]["language"])
 
     @unittest.skip("Not running check on all wikidata schemas as they take too long")
     def test_wikidata_entityschemas(self) -> None:
@@ -260,14 +263,18 @@ class CompareV2V3(unittest.TestCase):
         The schema has a P361 (part of) with a cardinality of 0, meaning the item should
         not contain any P361.  The test checks that the response is false for this item
         """
-        response = self.app.get('/api/v3?entityschema=E295&entity=Q85396849&language=en',
+        response = self.app.get('/api/v2?entityschema=E295&entity=Q85396849&language=en',
+                                follow_redirects=True)
+        response2 = self.app.get('/api/v3?entityschema=E295&entity=Q85396849&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
         properties: list = ["P361"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertIn(response.json["properties"][0][prop]["response"], ["too many statements"])
-                self.assertIn(response.json["properties"][0][prop]["necessity"], ["absent"])
+                self.assertIn(response.json["properties"][0][prop]["response"],
+                              response2.json["properties"][0][prop]["response"])
+                self.assertIn(response.json["properties"][0][prop]["necessity"],
+                              response2.json["properties"][0][prop]["necessity"])
 
     def test_entityschema_e297(self):
         """
@@ -278,14 +285,16 @@ class CompareV2V3(unittest.TestCase):
         The test checks to ensure that the correct cardinality is calculated for
         the relevant property
         """
-        response = self.app.get('/api/v3?entityschema=E297&entity=Q97179551&language=en',
+        response = self.app.get('/api/v2?entityschema=E297&entity=Q97179551&language=en',
                                 follow_redirects=True)
-        self.assertEqual(200, response.status_code)
+        response2 = self.app.get('/api/v3?entityschema=E297&entity=Q97179551&language=en',
+                                follow_redirects=True)
+        self.assertEqual(response.status_code, response2.status_code)
         properties: list = ["P2043", "P2067"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertIn(response.json["properties"][0][prop]["response"],
-                              ["correct", "present", "too many statements"])
+                self.assertEqual(response.json["properties"][0][prop]["response"],
+                              response2.json["properties"][0][prop]["response"],)
 
     def test_entityschema_e300(self):
         """

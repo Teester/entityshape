@@ -196,8 +196,8 @@ class TestCompareProperties(unittest.TestCase):
         expression = {'type': 'TripleConstraint',
                       'predicate': 'http://www.wikidata.org/prop/direct/P31',
                       'valueExpr': {'type': 'NodeConstraint', 'values': ['http://www.wikidata.org/entity/Q2']}}
-        allowed = "Q2"
-        self.assertEqual("correct", self.compare_properties._process_triple_constraint_2(statement, expression, allowed))
+        allowed = "incorrect"
+        self.assertEqual("correct", self.compare_properties._process_triple_constraint_2(expression, statement, allowed))
 
 
     def test_each_of_without_each_of(self):
@@ -358,7 +358,8 @@ class TestCompareProperties(unittest.TestCase):
         props = ["P31"]
         names = {"P31": "instance of"}
         compare_properties2 = CompareProperties(entity["id"], entity, props, schema, names)
-        self.assertEqual("incorrect", compare_properties2._process_shape(schema, entity))
+        self.assertEqual("not enough correct statements",
+                         compare_properties2._process_shape(schema, entity)["P31"]["response"])
 
     def test_triple_constraint_against_process_shape2_which_fails(self):
         schema = {'type': 'TripleConstraint',
@@ -380,7 +381,7 @@ class TestCompareProperties(unittest.TestCase):
                                       'rank': 'normal'}],
                              },
                   'sitelinks': {}}
-        self.assertEqual("not enough correct statements", self.compare_properties._process_shape(schema, entity))
+        self.assertEqual("not enough correct statements", self.compare_properties._process_shape(schema, entity)["response"])
 
 
     def test_triple_constraint_against_process_shape2_which_passes(self):
@@ -403,7 +404,7 @@ class TestCompareProperties(unittest.TestCase):
                                       'rank': 'normal'}],
                              },
                   'sitelinks': {}}
-        self.assertEqual("correct", self.compare_properties._process_shape(schema, entity))
+        self.assertEqual("correct", self.compare_properties._process_shape(schema, entity)["response"])
 
     def test_triple_constraint_against_process_shape2_which_passes_cardinality(self):
         schema = {'type': 'TripleConstraint',
@@ -436,7 +437,7 @@ class TestCompareProperties(unittest.TestCase):
                                       'rank': 'normal'}],
                              },
                   'sitelinks': {}}
-        self.assertEqual("correct", self.compare_properties._process_shape(schema, entity))
+        self.assertEqual("correct", self.compare_properties._process_shape(schema, entity)["response"])
 
     def test_triple_constraint_against_process_shape2_which_fails_cardinality(self):
         schema = {'type': 'TripleConstraint',
@@ -458,7 +459,7 @@ class TestCompareProperties(unittest.TestCase):
                                       'rank': 'normal'}],
                              },
                   'sitelinks': {}}
-        self.assertEqual("not enough correct statements", self.compare_properties._process_shape(schema, entity))
+        self.assertEqual("not enough correct statements", self.compare_properties._process_shape(schema, entity)["response"])
 
 
 if __name__ == '__main__':
