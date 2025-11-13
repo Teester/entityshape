@@ -271,9 +271,9 @@ class CompareV2V3(unittest.TestCase):
         properties: list = ["P361"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertIn(response.json["properties"][0][prop]["response"],
+                self.assertEqual(response.json["properties"][0][prop]["response"],
                               response2.json["properties"][0][prop]["response"])
-                self.assertIn(response.json["properties"][0][prop]["necessity"],
+                self.assertEqual(response.json["properties"][0][prop]["necessity"],
                               response2.json["properties"][0][prop]["necessity"])
 
     def test_entityschema_e297(self):
@@ -304,14 +304,16 @@ class CompareV2V3(unittest.TestCase):
         (2022 FIA Formula One Season).  The schema has a P3450 (Sports league of competition)
         with optional qualifiers.  The test checks that the response is correct for this item
         """
-        response = self.app.get('/api/v3?entityschema=E300&entity=Q92821370&language=en',
+        response = self.app.get('/api/v2?entityschema=E300&entity=Q92821370&language=en',
+                                follow_redirects=True)
+        response2 = self.app.get('/api/v3?entityschema=E300&entity=Q92821370&language=en',
                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
         properties: list = ["P3450"]
         for prop in properties:
             with self.subTest(prop=prop):
-                self.assertIn(response.json["properties"][0][prop]["response"], ["present"])
-                self.assertIn(response.json["properties"][0][prop]["necessity"], ["required"])
+                self.assertEqual(response.json["properties"][0][prop]["response"], response2.json["properties"][0][prop]["response"])
+                self.assertEqual(response.json["properties"][0][prop]["necessity"], response2.json["properties"][0][prop]["response"])
 
     def test_entityschema_e340(self):
         """
