@@ -1,5 +1,5 @@
 flask~=3.1.2
-flask_cors~=6.0.1
+flask_cors~=6.0.2
 requests==2.32.5
 PyShExC~=0.9.1
 chardet~=5.2.0
