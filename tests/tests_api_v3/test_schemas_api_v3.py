@@ -352,6 +352,7 @@ class MyTestCase(unittest.TestCase):
         """
         response = self.app.get('/api/v3?entityschema=E438&entity=Q11645745&language=en',
                                 follow_redirects=True)
+        print(response.json)
         self.assertIn(response.json["properties"][0]["P31"]["response"], ["correct", "present"])
 
     def test_non_existent_entityschema(self):

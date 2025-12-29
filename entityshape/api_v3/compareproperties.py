@@ -32,15 +32,19 @@ class CompareProperties:
             return {}
         if "id" not in self._start_shape:
             return {}
-
         claims: dict = self._entities["entities"][self._entity]["claims"]
         my_response: dict = {}
         for entity in self._entities["entities"]:
-            my_response = self._process_shape(self._start_shape, self._entities["entities"][entity], self._start_shape["id"] )
+            my_response = self._process_shape(self._schema, self._entities["entities"][entity], self._start_shape["id"] )
+        response: dict = {}
+        if "name" not in my_response:
+            response = my_response
         for claim in claims:
-            if claim not in my_response:
-                my_response[claim] = {"name": self._names[claim], "necessity": "absent"}
-        return my_response
+            if "name" in my_response:
+                response[claim] = my_response
+            if claim not in response:
+                response[claim] = {"name": self._names[claim], "necessity": "absent"}
+        return response
 
     @staticmethod
     def _get_cardinalities(occurrences: int, expression: dict) -> str:
@@ -157,17 +161,27 @@ class CompareProperties:
         """
         if "type" not in shape:
             return {}
-
+        print("in process")
         if shape["type"] == "Schema":
+            print(f"schema = {shape}")
             return self._process_schema(shape, entity)
         if shape["type"] == "Shape":
-            return self._process_shape_2(shape, entity)
+            print(f"shape = {shape}")
+            result = self._process_shape_2(shape, entity)
+            print(f"shape result = {result}")
+            return result
         if shape["type"] == "EachOf":
+
+            print(f"eachof = {shape}")
             return self._process_each_of(shape, entity, current_shape)
         if shape["type"] == "OneOf":
             return self._process_one_of()
         if shape["type"] == "TripleConstraint":
-            return self._process_triple_constraint(shape, entity)
+
+            print(f"triple = {shape}")
+            result = self._process_triple_constraint(shape, entity)
+            print(f"triple result = {result}")
+            return result
         print("none of the above")
         return {}
 
@@ -241,6 +255,8 @@ class CompareProperties:
         allowed_list: list = []
         if isinstance(shape["valueExpr"], str):
             # this is another shape
+            # we need to get the result back for that shape and process it
+            # if the shape fails then the triple constraint fails
             new_shape: dict = self._get_shape(shape["valueExpr"])
             allowed_list.append(self._process_shape(new_shape, entity, shape["valueExpr"]))
         elif shape["valueExpr"]["type"] == "NodeConstraint":
