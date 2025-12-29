@@ -9,7 +9,7 @@ from entityshape.api_v1.shape import Shape
 from entityshape.api_v2.getjsonld import JSONLDShape
 
 
-class JSONLDCase(unittest.TestCase):
+class JSONLDTests(unittest.TestCase):
     """
     Testcases to test results from comparejsonld.py match those from comparejson.py
     """

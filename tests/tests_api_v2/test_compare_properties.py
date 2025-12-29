@@ -3,7 +3,7 @@ import unittest
 from entityshape.api_v2.comparejsonld import CompareProperties
 
 
-class TestCompareProperties(unittest.TestCase):
+class ComparePropertiesTests(unittest.TestCase):
     def setUp(self):
         entity = {'entities':
                       {'Q1':
