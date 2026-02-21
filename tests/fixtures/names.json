@@ -1,7 +1,21 @@
 {
     "entities": {
+        "P17": {"type": "property", "datatype": "wikibase-item", "id": "P17", "labels": {"en": {"language": "en", "value": "country"}}},
+        "P18": {"type": "property", "datatype": "wikibase-item", "id": "P18", "labels": {"en": {"language": "en", "value": "image"}}}, 
+        "P21": {"type": "property", "datatype": "wikibase-item", "id": "P21", "labels": {"en": {"language": "en", "value": "gender"}}}, 
+        "P27": {"type": "property", "datatype": "wikibase-item", "id": "P27", "labels": {"en": {"language": "en", "value": "country of citizenship"}}},
         "P31": {"type": "property", "datatype": "wikibase-item", "id": "P31", "labels": {"en": {"language": "en", "value": "instance of"}}}, 
-        "P106": {"type": "property", "datatype": "wikibase-item", "id": "P106", "labels": {"en": {"language": "en", "value": "occupation"}}}
+        "P39": {"type": "property", "datatype": "wikibase-item", "id": "P39", "labels": {"en": {"language": "en", "value": "position held"}}},
+        "P102": {"type": "property", "datatype": "wikibase-item", "id": "P102", "labels": {"en": {"language": "en", "value": "member of political party"}}}, 
+        "P106": {"type": "property", "datatype": "wikibase-item", "id": "P106", "labels": {"en": {"language": "en", "value": "occupation"}}}, 
+        "P279": {"type": "property", "datatype": "wikibase-item", "id": "P279", "labels": {"en": {"language": "en", "value": "subclass of"}}}, 
+        "P361": {"type": "property", "datatype": "wikibase-item", "id": "P361", "labels": {"en": {"language": "en", "value": "part of"}}}, 
+        "P569": {"type": "property", "datatype": "wikibase-item", "id": "P569", "labels": {"en": {"language": "en", "value": "date of birth"}}}, 
+        "P734": {"type": "property", "datatype": "wikibase-item", "id": "P734", "labels": {"en": {"language": "en", "value": "family name"}}}, 
+        "P735": {"type": "property", "datatype": "wikibase-item", "id": "P735", "labels": {"en": {"language": "en", "value": "given name"}}}, 
+        "P1001": {"type": "property", "datatype": "wikibase-item", "id": "P1001", "labels": {"en": {"language": "en", "value": "applies to juristiction"}}},
+        "P4690": {"type": "property", "datatype": "wikibase-item", "id": "P4690", "labels": {"en": {"language": "en", "value": "Oireachtas Member ID"}}},
+        "P12861": {"type": "property", "datatype": "wikibase-item", "id": "P12861", "labels": {"en": {"language": "en", "value": "Entityschema foe this class"}}}
     }, 
     "success": 1
 }

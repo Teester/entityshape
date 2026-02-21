@@ -2,8 +2,13 @@
     "id": "E236",
     "serializationVersion": "3.0",
     "labels": {
-        "en": "Member of the Oireachtas"
+        "en": "Member of the Oireachtas",
+        "fr": "membre du Parlement Irlandais"
     },
-    "schemaText": "PREFIX wdt: \u003Chttp://www.wikidata.org/prop/direct/\u003E\nPREFIX wd: \u003Chttp://www.wikidata.org/entity/\u003E\nstart = @\u003CTD\u003E\n\n\u003CTD\u003E { wdt:P31 [wd:Q5]; wdt:P106 [wd:Q82955] ; }",
+    "descriptions": {
+        "en": "member of the Irish parliament"
+    },
+    "aliases": [],
+    "schemaText": "PREFIX wdt: \u003Chttp://www.wikidata.org/prop/direct/\u003E\nPREFIX wd: \u003Chttp://www.wikidata.org/entity/\u003E\nstart = @\u003CTD\u003E\n\n\u003CTD\u003E EXTRA wdt:P39 wdt:P106 wdt:P27 { # TD can have other position helds or occupations than those mentioned below\n  wdt:P31 [wd:Q5]; # 1 instance of with value human\n  wdt:P4690 .; # 1 oireachtas member id with any value\n  wdt:P39 [wd:Q654291 wd:Q18043391] +; # 1 or more position held with teachta dala or senator of ireland\n  wdt:P106 [wd:Q82955] ; # 1 occupation with value politician\n  wdt:P734 . +; # 1 or more given name with any value\n  wdt:P735 .+; # 1 or more surname with any value\n  wdt:P569 .; # 1 date of birth with any value\n  wdt:P102 .*; # 0 or more member of political party with any value\n  wdt:P21 [wd:Q6581097 wd:Q6581072 wd:Q1097630 wd:Q1052281 wd:Q2449503 wd:Q48270]; # 1 gender with these values\n  wdt:P27 [wd:Q27 wd:Q31747 wd:Q1140152] +;\n  wdt:P18 . +; # 1 or more images with any value\n}",
     "type": "ShExC"
 }
