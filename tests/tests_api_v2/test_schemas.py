@@ -1,6 +1,8 @@
 """
 Tests to test wikidata entityschemas against wikidata items
 """
+import os
+import json
 import time
 import unittest
 from unittest.mock import patch, MagicMock
@@ -20,7 +22,13 @@ class SchemasTests(unittest.TestCase):
         app.config["TESTING"] = True
         app.config['DEBUG'] = True
         self.app = app.test_client()
+        parent_dir = os.path.dirname(os.path.dirname(__file__))
+        self.fixture_path = os.path.join(parent_dir, 'fixtures')
 
+    def load_fixture(self, filename):
+        with open(os.path.join(self.fixture_path, filename), 'r') as f:
+            return json.load(f)
+        
     def test_specific_wikidata_item_against_schema(self):
         """
         Tests a specific entity against a certain schema and checks that
@@ -104,14 +112,9 @@ class SchemasTests(unittest.TestCase):
         """
         # 3. Create a side_effect function to switch responses based on URL
         def side_effect_logic(url, *args, **kwargs):
-            mock_q_data = {'entities': {'Q100532807': {'pageid': 98171160, 'ns': 0, 'title': 'Q100532807', 'lastrevid': 2383848532, 'modified': '2025-07-24T21:26:42Z', 'type': 'item', 'id': 'Q100532807', 'labels': {'en': {'language': 'en', 'value': 'Irish Statutory Instrument'}, }, 'descriptions': {'en': {'language': 'en', 'value': 'type of secondary legislation in the Republic of Ireland'}, }, 'aliases': {'en': [{'language': 'en', 'value': 'Statutory Instrument of Ireland'}, {'language': 'en', 'value': 'Statutory Instrument of the Republic of Ireland'}], }, 'claims': {'P31': [{'mainsnak': {'snaktype': 'value', 'property': 'P31', 'hash': '851b1c24539bd7aa725376baba4bcf0928099a66','datavalue': {'value': {'entity-type': 'item', 'numeric-id': 110430875, 'id': 'Q110430875'}, 'type': 'wikibase-entityid'}, 'datatype': 'wikibase-item'}, 'type': 'statement', 'id': 'Q100532807$741a91e9-4a2c-34e5-9f6c-481b10be0e76', 'rank': 'normal'}]}, 'sitelinks': {}}}}
-            mock_e_data = {
-                "id": "E236",
-                "serializationVersion": "3.0",
-                "labels": {"en": "Member of the Oireachtas"},
-                "schemaText": "PREFIX wdt: \u003Chttp://www.wikidata.org/prop/direct/\u003E\nPREFIX wd: \u003Chttp://www.wikidata.org/entity/\u003E\nstart = @\u003CTD\u003E\n\n\u003CTD\u003E {   wdt:P31 [wd:Q5]; wdt:P106 [wd:Q82955] ;  }",
-                "type": "ShExC"
-            }
+            mock_q_data = self.load_fixture('Q100532807.json')
+            mock_e_data = self.load_fixture('E236.json')
+            mock_names = self.load_fixture('names.json') 
             mock_resp = MagicMock()
             mock_resp.status_code = 200
             if "E236" in url:
@@ -119,7 +122,7 @@ class SchemasTests(unittest.TestCase):
             elif "Q100532807" in url:
                 mock_resp.json.return_value = mock_q_data
             else:
-                mock_resp.json.return_value = {'entities': {'P31': {'type': 'property', 'datatype': 'wikibase-item', 'id': 'P31', 'labels': {'en': {'language': 'en', 'value': 'instance of'}}}, 'P106': {'type': 'property', 'datatype': 'wikibase-item', 'id': 'P106', 'labels': {'en': {'language': 'en', 'value': 'occupation'}}}}, 'success': 1}
+                mock_resp.json.return_value = mock_names
             return mock_resp
 
         # Apply the same logic to both mocks

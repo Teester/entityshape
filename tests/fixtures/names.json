@@ -1,7 +1,7 @@
 {
-    'entities': {
-        'P31': {'type': 'property', 'datatype': 'wikibase-item', 'id': 'P31', 'labels': {'en': {'language': 'en', 'value': 'instance of'}}}, 
-        'P106': {'type': 'property', 'datatype': 'wikibase-item', 'id': 'P106', 'labels': {'en': {'language': 'en', 'value': 'occupation'}}}
+    "entities": {
+        "P31": {"type": "property", "datatype": "wikibase-item", "id": "P31", "labels": {"en": {"language": "en", "value": "instance of"}}}, 
+        "P106": {"type": "property", "datatype": "wikibase-item", "id": "P106", "labels": {"en": {"language": "en", "value": "occupation"}}}
     }, 
-    'success': 1
+    "success": 1
 }
