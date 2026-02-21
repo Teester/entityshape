@@ -1,0 +1,58 @@
+{
+    'entities': {
+        'Q100532807': {
+            'pageid': 98171160, 
+            'ns': 0, 
+            'title': 'Q100532807', 
+            'lastrevid': 2383848532, 
+            'modified': '2025-07-24T21:26:42Z', 
+            'type': 'item', 
+            'id': 'Q100532807', 
+            'labels': {
+                'en': {
+                    language': 'en', 
+                    'value': 'Irish Statutory Instrument'
+                }, 
+            }, 
+            'descriptions': {
+                'en': {
+                    'language': 'en', 
+                    'value': 'type of secondary legislation in the Republic of Ireland'
+                }, 
+            }, 
+            'aliases': {
+                'en': [
+                    {
+                        'language': 'en', 
+                        'value': 'Statutory Instrument of Ireland'
+                    }, {
+                        'language': 'en', 
+                        'value': 'Statutory Instrument of the Republic of Ireland'
+                    }
+                ], 
+            }, 
+            'claims': {
+                'P31': [{
+                    'mainsnak': {
+                        'snaktype': 'value', 
+                        'property': 'P31', 
+                        'hash': '851b1c24539bd7aa725376baba4bcf0928099a66',
+                        'datavalue': {
+                            'value': {
+                                'entity-type': 'item', 
+                                'numeric-id': 110430875, 
+                                'id': 'Q110430875'
+                            }, 
+                            'type': 'wikibase-entityid'
+                        }, 
+                        'datatype': 'wikibase-item'
+                    }, 
+                    'type': 'statement', 
+                    'id': 'Q100532807$741a91e9-4a2c-34e5-9f6c-481b10be0e76', 
+                    'rank': 'normal'}
+                ]
+            }, 
+            'sitelinks': {}
+        }
+    }
+}

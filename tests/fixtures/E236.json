@@ -1,0 +1,9 @@
+{
+    "id": "E236",
+    "serializationVersion": "3.0",
+    "labels": {
+        "en": "Member of the Oireachtas"
+    },
+    "schemaText": "PREFIX wdt: \u003Chttp://www.wikidata.org/prop/direct/\u003E\nPREFIX wd: \u003Chttp://www.wikidata.org/entity/\u003E\nstart = @\u003CTD\u003E\n\n\u003CTD\u003E { wdt:P31 [wd:Q5]; wdt:P106 [wd:Q82955] ; }",
+    "type": "ShExC"
+}
