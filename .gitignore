@@ -2,3 +2,10 @@
 /coverage.xml
 /.coverage
 /.idea/*
+.vscode/settings.json
+entityshape/__pycache__/
+entityshape/api_v1/__pycache__/
+entityshape/api_v2/__pycache__/
+tests/__pycache__/
+tests/tests_api_v1/__pycache__/
+tests/tests_api_v2/__pycache__/

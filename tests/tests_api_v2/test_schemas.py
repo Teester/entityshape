@@ -3,8 +3,10 @@ Tests to test wikidata entityschemas against wikidata items
 """
 import time
 import unittest
-
+from unittest.mock import patch, MagicMock
 import requests
+from werkzeug.test import TestResponse
+
 
 from entityshape.app import app
 
@@ -16,7 +18,7 @@ class SchemasTests(unittest.TestCase):
 
     def setUp(self) -> None:
         app.config["TESTING"] = True
-        app.config['DEBUG'] = False
+        app.config['DEBUG'] = True
         self.app = app.test_client()
 
     def test_specific_wikidata_item_against_schema(self):
@@ -28,7 +30,7 @@ class SchemasTests(unittest.TestCase):
 
         for key in test_pairs:
             with self.subTest(key=key):
-                value = test_pairs[key]
+                value: str = test_pairs[key]
                 response = self.app.get(f'/api/v2?entityschema={key}&entity={value}&language=en',
                                         follow_redirects=True)
                 self.assertIsNotNone(response.json["statements"])
@@ -93,6 +95,44 @@ class SchemasTests(unittest.TestCase):
         self.assertEqual("Member of the Oireachtas", response.json["name"][0])
         self.assertEqual({'name': 'occupation', 'necessity': 'required', 'response': 'missing'},
                          response.json["properties"][0]["P106"])
+
+    @patch('entityshape.api_v2.getjsonld.requests.get')
+    @patch('entityshape.api_v2.comparejsonld.requests.get')
+    def test_mocked_specific_entityschema(self, mock_item_get, mock_schema_get) -> None:
+        """
+        Tests the app by mocking both the Entity and the EntitySchema data.
+        """
+        # 3. Create a side_effect function to switch responses based on URL
+        def side_effect_logic(url, *args, **kwargs):
+            mock_q_data = {'entities': {'Q100532807': {'pageid': 98171160, 'ns': 0, 'title': 'Q100532807', 'lastrevid': 2383848532, 'modified': '2025-07-24T21:26:42Z', 'type': 'item', 'id': 'Q100532807', 'labels': {'en': {'language': 'en', 'value': 'Irish Statutory Instrument'}, }, 'descriptions': {'en': {'language': 'en', 'value': 'type of secondary legislation in the Republic of Ireland'}, }, 'aliases': {'en': [{'language': 'en', 'value': 'Statutory Instrument of Ireland'}, {'language': 'en', 'value': 'Statutory Instrument of the Republic of Ireland'}], }, 'claims': {'P31': [{'mainsnak': {'snaktype': 'value', 'property': 'P31', 'hash': '851b1c24539bd7aa725376baba4bcf0928099a66','datavalue': {'value': {'entity-type': 'item', 'numeric-id': 110430875, 'id': 'Q110430875'}, 'type': 'wikibase-entityid'}, 'datatype': 'wikibase-item'}, 'type': 'statement', 'id': 'Q100532807$741a91e9-4a2c-34e5-9f6c-481b10be0e76', 'rank': 'normal'}]}, 'sitelinks': {}}}}
+            mock_e_data = {
+                "id": "E236",
+                "serializationVersion": "3.0",
+                "labels": {"en": "Member of the Oireachtas"},
+                "schemaText": "PREFIX wdt: \u003Chttp://www.wikidata.org/prop/direct/\u003E\nPREFIX wd: \u003Chttp://www.wikidata.org/entity/\u003E\nstart = @\u003CTD\u003E\n\n\u003CTD\u003E {   wdt:P31 [wd:Q5]; wdt:P106 [wd:Q82955] ;  }",
+                "type": "ShExC"
+            }
+            mock_resp = MagicMock()
+            mock_resp.status_code = 200
+            if "E236" in url:
+                mock_resp.json.return_value = mock_e_data
+            elif "Q100532807" in url:
+                mock_resp.json.return_value = mock_q_data
+            else:
+                mock_resp.json.return_value = {'entities': {'P31': {'type': 'property', 'datatype': 'wikibase-item', 'id': 'P31', 'labels': {'en': {'language': 'en', 'value': 'instance of'}}}, 'P106': {'type': 'property', 'datatype': 'wikibase-item', 'id': 'P106', 'labels': {'en': {'language': 'en', 'value': 'occupation'}}}}, 'success': 1}
+            return mock_resp
+
+        # Apply the same logic to both mocks
+        mock_item_get.side_effect = side_effect_logic
+        mock_schema_get.side_effect = side_effect_logic
+
+        # 4. RUN THE TEST
+        response = self.app.get('/api/v2/?entityschema=E236&entity=Q100532807&language=en')
+
+        # 5. ASSERTIONS
+        self.assertEqual(200, response.status_code)
+        self.assertEqual("Member of the Oireachtas", response.json["name"][0])
+        self.assertEqual('missing', response.json["properties"][0]["P106"]["response"])
 
     def test_entityschema_e3(self):
         """
