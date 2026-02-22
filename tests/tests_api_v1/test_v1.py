@@ -40,7 +40,6 @@ class V1Tests(unittest.TestCase):
 
         params = kwargs.get('params', {})
         action = params.get('action')
-        print(action)
         if url == "https://www.wikidata.org/w/api.php":
             if action == "wbgetentities":
                 target_id = "names"
