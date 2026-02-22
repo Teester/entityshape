@@ -1,7 +1,10 @@
 """
 Tests to test wikidata entityschemas against wikidata items
 """
+import json
+import os
 import unittest
+from unittest.mock import MagicMock, patch
 
 import requests
 
@@ -16,11 +19,43 @@ class CompareV1V2Tests(unittest.TestCase):
     def setUp(self) -> None:
         app.config["TESTING"] = True
         self.app = app.test_client()
+        parent_dir = os.path.dirname(os.path.dirname(__file__))
+        self.fixture_path = os.path.join(parent_dir, 'fixtures')
+
+        self.schema_patcher = patch('entityshape.api_v2.getjsonld.requests.get')
+        self.entity_patcher = patch('entityshape.api_v2.comparejsonld.requests.get')
+
+        self.mock_schema_get = self.schema_patcher.start()
+        self.mock_entity_get = self.entity_patcher.start()
+
+        self.mock_schema_get.side_effect = self.dynamic_mock_response
+        self.mock_entity_get.side_effect = self.dynamic_mock_response
 
     def tearDown(self) -> None:
-        # We don't need to tear anything down after the test
-        pass
+        self.schema_patcher.stop()
+        self.entity_patcher.stop()
 
+    def dynamic_mock_response(self, url, *args, **kwargs):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        if url == "https://www.wikidata.org/w/api.php":
+            target_id = "names"
+        else:
+            import re
+            match = re.search(r'([EQL]\d+)', url)
+            if match:
+                target_id = match.group(1)
+
+        if target_id:
+            fixture_file = os.path.join(self.fixture_path, f"{target_id}.json")
+            if os.path.exists(fixture_file):
+                with open(fixture_file, 'r') as f:
+                    mock_resp.json.return_value = json.load(f)
+                return mock_resp
+        # Final fallback
+        mock_resp.status_code = 404
+        return mock_resp
+    
     def test_lexical_category(self):
         """
         This test checks that a lexicalCategory response is returned when a
