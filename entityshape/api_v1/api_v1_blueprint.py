@@ -11,7 +11,6 @@ def v1():
     Compares an entityschema with a wikidata item
     :return: a response to the query
     """
-    print("\nV1")
     schema: str = request.args.get("entityschema", type=str)
     entity: str = request.args.get("entity", type=str)
     if "Lexeme" in entity:
@@ -20,9 +19,7 @@ def v1():
     try:
         valid: dict = {}
         entity_shape: Shape = Shape(schema, language)
-        print(entity_shape.get_name())
         comparison: CompareShape = CompareShape(entity_shape.get_schema_shape(), entity, language)
-        print(comparison)
         payload: dict = {'schema': schema,
                          'name': entity_shape.get_name(),
                          'validity': valid,
