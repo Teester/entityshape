@@ -1,0 +1,13 @@
+{
+	"id": "E295",
+	"serializationVersion": "3.0",
+	"labels": {
+		"en": "townland"
+	},
+	"descriptions": {
+		"en": "schema to describe a townland (small geographic division of Ireland)"
+	},
+	"aliases": [],
+	"schemaText": "PREFIX wd: \u003Chttp://www.wikidata.org/entity/\u003E\nPREFIX wdt: \u003Chttp://www.wikidata.org/prop/direct/\u003E\nstart = @\u003Ctownland\u003E\n\n\u003Ctownland\u003E {\n  wdt:P31 [wd:Q2151232];\n  wdt:P17 [wd:Q27 wd:Q145];\n  wdt:P625 .;\n  wdt:P131 .*;\n  wdt:P7959 @\u003Ccounty\u003E;\n  wdt:P5097 .;\n  wdt:P402 . ;\n  wdt:P361 . {0};\n}\n\n\u003Ccounty\u003E EXTRA wdt:P31 {\n  wdt:P31 [wd:Q179872 wd:Q1317848];\n}",
+	"type": "ShExC"
+}

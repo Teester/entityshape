@@ -1,0 +1,14 @@
+{
+	"id": "E438",
+	"serializationVersion": "3.0",
+	"labels": {
+		"en": "Wikimedia Disambiguation Page",
+		"ja": "ウィキメディアの曖昧さ回避ページ"
+	},
+	"descriptions": {
+		"en": "Entity schema of Wikimedia Disambiguation Page"
+	},
+	"aliases": [],
+	"schemaText": "PREFIX wdt: \u003Chttp://www.wikidata.org/prop/direct/\u003E\nPREFIX wd:  \u003Chttp://www.wikidata.org/entity/\u003E\n\nstart = @\u003Cwikimedia-disambiguation-page\u003E\n\n\u003Cwikimedia-disambiguation-page\u003E  {\n\twdt:P31 [ wd:Q4167410] ;\n}",
+	"type": "ShExC"
+}
