@@ -1,0 +1,32 @@
+{
+	"id": "E56",
+	"serializationVersion": "3.0",
+	"labels": {
+		"da": "dansk udsagnsord",
+		"en": "Danish verb",
+		"eo": "dana verbo",
+		"fr": "verbe danois",
+		"ja": "デンマーク語の動詞",
+		"nl": "Deens werkwoord",
+		"pl": "czasownik duński",
+		"pt": "verbo (danês)",
+		"szl": "czasownik duński",
+		"vec": "verbo danezo"
+	},
+	"descriptions": {
+		"en": "basic schema for Danish verbs",
+		"fr": "lexème danois",
+		"ja": "デンマーク語の動詞を記述するための基本的なスキーマ",
+		"nl": "basisschema voor een Deens werkwoord",
+		"pl": "podstawowy schemat czasowników duńskich",
+		"szl": "bazowy schymat czasowników duńskich"
+	},
+	"aliases": {
+		"da": [
+			"dansk verbum",
+			"danske verber"
+		]
+	},
+	"schemaText": "IMPORT \u003Chttps://www.wikidata.org/wiki/Special:EntitySchemaText/E15\u003E\nPREFIX E15: \u003Chttps://www.wikidata.org/wiki/Special:EntitySchemaText/E15#\u003E\n\nPREFIX dct: \u003Chttp://purl.org/dc/terms/\u003E\nPREFIX ontolex: \u003Chttp://www.w3.org/ns/lemon/ontolex#\u003E\nPREFIX p: \u003Chttp://www.wikidata.org/prop/\u003E\nPREFIX ps: \u003Chttp://www.wikidata.org/prop/statement/\u003E\nPREFIX rdf: \u003Chttp://www.w3.org/1999/02/22-rdf-syntax-ns#\u003E\nPREFIX wd: \u003Chttp://www.wikidata.org/entity/\u003E\nPREFIX wdno: \u003Chttp://www.wikidata.org/prop/novalue/\u003E\nPREFIX wdt: \u003Chttp://www.wikidata.org/prop/direct/\u003E\nPREFIX wikibase: \u003Chttp://wikiba.se/ontology#\u003E\nPREFIX xsd: \u003Chttp://www.w3.org/2001/XMLSchema#\u003E\n\n# SELECT ?lexeme { ?lexeme dct:language wd:Q9035 ; wikibase:lexicalCategory wd:Q24905 }\n\nstart = @\u003Cdanish-verb\u003E\n\n\u003Cdanish-verb\u003E {\n\n  dct:language [ wd:Q9035 ]\n    // rdf:label  \"Danish language\"\n    // rdf:comment \"must be Danish language\" ;\n\n  wikibase:lexicalCategory [ wd:Q24905 ]\n    // rdf:label \"verb\"\n    // rdf:comment \"lexeme must have verb as the lexical category\" ;  \n\n\n  wdt:P31 IRI +\n   # [\n   #   wd:Q245423  # compound\n   #   wd:Q493000  # unadapted loanword\n   #   wd:Q560570  # modal verb\n   #   wd:Q55773200  # monovalent verb\n   #   wd:Q112653827  # prefixed-derived word\n   #   wd:Q1340504  # lexical verb\n   # ] *\n    // rdf:label \"instance of\"\n    // rdf:comment \"zero or more instance of\" ;\n\n  wdt:P1343 IRI *\n    // rdf:label \"described in\"\n    // rdf:comment \"zero or more described in\" ;\n\n  wdt:P5323 IRI *\n    // rdf:label \"attested in\"\n    // rdf:comment \"zero or more attested in\" ;\n\n  wdt:P5186 IRI {0,3}\n    // rdf:label \"conjugation class\"\n    // rdf:comment \"zero or up to three conjugation classes\" ;\n\n  wdt:P9295 [ wd:Q116946936 wd:Q116946937 ] {1,2}\n    // rdf:label \"transitivity\"\n    // rdf:comment \"either transitive or intransitive or both\" ;\n\n  wdt:P5187 [ @da ] + \n    // rdf:label \"word stem\"\n    // rdf:comment \"the word stem must be Danish\" ;\n\n  wdt:P5831 [ @da ] + \n    // rdf:label \"usage example\"\n    // rdf:comment \"one or more usage examples\" ;\n\n  wdt:P5401 [ wd:L3828 wd:L5025 ] {1,2}\n    // rdf:label \"auxilliary verb\"\n    // rdf:comment \"Danish verb must have one or two auxilliary verbs\" ;\n\n  wdt:P5238 IRI {0,4}\n    // rdf:label \"compound parts\"\n    // rdf:comment \"zero or up to four compound parts\" ;\n\n  wdt:P5402 IRI *\n    // rdf:label \"homograph lexeme\"\n    // rdf:comment \"zero or more homograph lexemes\" ;\n\n  p:P6140 @E15:dannet-statement \n    // rdf:label \"DanNet\"\n    // rdf:comment \"DanNet, either a value or novalue\" ; \n\n  p:P5912 @E15:oqaasileriffik-statement + \n    // rdf:label \"Oqaasileriffik ID\"\n    // rdf:comment \"Must have novalue or one or more\" ;\n  \n  wdt:P12828 xsd:string ?\n    // rdf:label \"ID for DAKA\"\n    // rdf:comment \"Either one or none ID for DAKA\" ;\n\n  wdt:P9529 xsd:string ?\n    // rdf:label \"ID for Den Danske Ordbog\"\n    // rdf:comment \"Either one or none ID for Den Danske Ordbog\" ;\n\n\n  ontolex:lexicalForm @\u003Cdanish-form\u003E + ;\n\n}\nAND {\n  # Some verbs might have two conjugation classes as they alternate between them\n  wdt:P5186 [\n    wd:Q54397142  # First Danish conjugation class\n    wd:Q54553380  # Second Danish conjugation class\n    wd:Q62494135  # Third Danish conjugation class\n    wd:Q62497713  # Fourth a-o-a series\n    wd:Q64541795  # Fourth e-a-e series\n    wd:Q64541813  # Fourth e-o-e series\n    wd:Q64541838  # Fourth e-å-e series\n    wd:Q64578156  # Fourth i-a-i series\n    wd:Q64347075  # Fourth i-a-u series\n    wd:Q64578111  # Fourth i-e-e series\n    wd:Q64578756  # Fourth i-e-i series\n    wd:Q64580566  # Fourth i-å-i series\n    wd:Q64580876  # Fourth y-a-u-series\n    wd:Q64580346  # Fourth y-ø-o series\n    wd:Q64578184  # Fourth y-ø-y series\n    wd:Q64541975  # Fourth y-ø-ø series\n    wd:Q64354480  # Fourth æ-a-u series\n    wd:Q63860153  # Fourth æ-a-å series\n    wd:Q64362028  # Fourth å-i-å series\n    wd:Q63860277  # Fourth å-o-å series\n    wd:Q64578636  # Fourty same stem vowel\n  ] {1,3}\n    // rdf:label \"Danish conjugation class\"\n    // rdf:comment \"The conjugation class should belong to a restricted set of Danish conjugation classes and some verbs might have two conjugation classes as they alternate between them.\" ; \n  }\n  OR EXTRA wdt:P31 {\n\n    wdt:P31 [ wd:Q465800 wd:Q560570 wd:Q262501 wd:Q49102827 ] + \n      // rdf:label \"conjugation class exception\"\n      // rdf:comment \"Conjugation class exceptions for auxillary, modal, deponent and reciprocal.\" ; \n\n  }\n\n\n\u003Cdanish-form\u003E {\n  wikibase:grammaticalFeature IRI+\n}",
+	"type": "ShExC"
+}

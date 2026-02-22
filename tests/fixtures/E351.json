@@ -1,0 +1,13 @@
+{
+	"id": "E351",
+	"serializationVersion": "3.0",
+	"labels": {
+		"en": "pharmaceutical product"
+	},
+	"descriptions": {
+		"en": "A therapeutical product, usually containing one or more types of compounds as active ingredients."
+	},
+	"aliases": [],
+	"schemaText": "PREFIX wd: \u003Chttp://www.wikidata.org/entity/\u003E\nPREFIX wdt: \u003Chttp://www.wikidata.org/prop/direct/\u003E\n\n#Query for validation: SELECT ?id WHERE {?id wdt:P31 wd:Q28885102 . }  LIMIT 10 \n\nstart = @\u003Cpharmaceutical_product\u003E\n\n\u003Cpharmaceutical_product\u003E EXTRA wdt:P31 {\n\twdt:P31 [ wd:Q28885102] ;\n\twdt:P3781 @\u003Cpharmaceutical_product-P3781\u003E + ;\n\twdt:P4044 @\u003Cpharmaceutical_product-P4044\u003E * ;\n\twdt:P3345 . ? ;\n\twdt:P7048 . ? ;\n\twdt:P18 . * ;\n\twdt:P3637 . ? ;\n}\n\n\u003Cpharmaceutical_product-P3781\u003E EXTRA wdt:P31 {\n\twdt:P31 [ wd:Q59199015 wd:Q113145171 wd:Q467717 wd:Q79529] ;\n}\n\n\u003Cpharmaceutical_product-P4044\u003E EXTRA wdt:P31 {\n\twdt:P31 [ wd:Q112193867] ;\n}",
+	"type": "ShExC"
+}

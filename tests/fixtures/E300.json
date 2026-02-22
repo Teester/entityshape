@@ -1,0 +1,11 @@
+{
+	"id": "E300",
+	"serializationVersion": "3.0",
+	"labels": {
+		"en": "motor racing season"
+	},
+	"descriptions": [],
+	"aliases": [],
+	"schemaText": "PREFIX rdf: \u003Chttp://www.w3.org/1999/02/22-rdf-syntax-ns#\u003E\nPREFIX rdfs: \u003Chttp://www.w3.org/2000/01/rdf-schema#\u003E\nPREFIX pq: \u003Chttp://www.wikidata.org/prop/qualifier/\u003E\nPREFIX ps: \u003Chttp://www.wikidata.org/prop/statement/\u003E\nPREFIX p: \u003Chttp://www.wikidata.org/prop/\u003E\nPREFIX wd: \u003Chttp://www.wikidata.org/entity/\u003E\nPREFIX wdt: \u003Chttp://www.wikidata.org/prop/direct/\u003E\n\nstart = @\u003Cauto-racing-season\u003E\n\n\u003Cauto-racing-season\u003E {\n  wdt:P31 [ wd:Q27020041 ]; # 1 instance of with value sports season\n  p:P3450 @\u003Cseason\u003E; # 1 property sports season of league or competition with shape season\n  wdt:P641 @\u003Csport\u003E; # 1 sport with any value\n  wdt:P585 .; # 1 point in time with any value\n  wdt:P1346 .*; # 0 or more winner with any value\n  wdt:P1132 .?; # 0 or 1 value no of participants with any value\n  wdt:P1350 .?; # 0 or 1 value number of matches played/races/starts with any value\n  # Labels\n  rdfs:label [@en] + ; # 1 or more labels with a langstring\n}\n\n\u003Cseason\u003E {\n  ps:P3450 @\u003Cseason_type\u003E; # 1 statement sports season of league or competition with any value\n  pq:P155 .?; # 1 qualifier follows with any value\n  pq:P156 .?; # 1 qualifier followed by with any value\n}\n\n\u003Cseason_type\u003E EXTRA wdt:P31 {\n  wdt:P31 [ wd:Q60147807 ]; # 1 instance of with value value automobile racing series\n} \n\n\u003Csport\u003E {\n  wdt:P279 [ wd:Q5386 ] ; # 1 subclass of with value auto racing\n}",
+	"type": "ShExC"
+}

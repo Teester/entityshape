@@ -44,21 +44,19 @@ class SchemasTests(unittest.TestCase):
             return json.load(f)
 
     def dynamic_mock_response(self, url, *args, **kwargs):
-        print(f"DEBUG: url = {url}")
         mock_resp = MagicMock()
         mock_resp.status_code = 200
         if url == "https://www.wikidata.org/w/api.php":
             target_id = "names"
         else:
             import re
-            match = re.search(r'([EQ]\d+)', url)
+            match = re.search(r'([EQL]\d+)', url)
             if match:
                 target_id = match.group(1)
 
         if target_id:
             fixture_file = os.path.join(self.fixture_path, f"{target_id}.json")
             if os.path.exists(fixture_file):
-                print("exists")
                 with open(fixture_file, 'r') as f:
                     mock_resp.json.return_value = json.load(f)
                 return mock_resp

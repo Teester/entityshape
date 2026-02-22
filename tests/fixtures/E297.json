@@ -1,0 +1,13 @@
+{
+    "id": "E297",
+    "serializationVersion": "3.0",
+    "labels": {
+        "en": "sailboat class"
+    },
+    "descriptions": {
+        "en": "schema to describe a sailboat class"
+    },
+    "aliases": [],
+    "schemaText": "PREFIX pq: \u003Chttp://www.wikidata.org/prop/qualifier/\u003E\nPREFIX ps: \u003Chttp://www.wikidata.org/prop/statement/\u003E\nPREFIX p: \u003Chttp://www.wikidata.org/prop/\u003E\nPREFIX wd: \u003Chttp://www.wikidata.org/entity/\u003E\nPREFIX wdt: \u003Chttp://www.wikidata.org/prop/direct/\u003E\n\nstart = @\u003Csailboatclass\u003E\n\n\u003Csailboatclass\u003E {\n  # Defining properties\n  wdt:P31 [wd:Q106179098];\n  wdt:P279 @\u003Csubclass\u003E +;\n  # Required properties\n  wdt:P18 .+;\n  wdt:P176 .;\n  wdt:P287 .;\n  p:P2048 @\u003Cheight\u003E;\n  p:P2049 @\u003Cwidth\u003E;\n  p:P2043 @\u003Clength1\u003E;\n  p:P2043 @\u003Clength2\u003E;\n  p:P2067 @\u003Cmass1\u003E;\n  p:P2067 @\u003Cmass2\u003E;\n  # Optional properties\n  wdt:P5962 .*;\n  wdt:P2079 .*;\n  wdt:P516 .*;\n  wdt:P5869 .*;\n}\n  \n\u003Csubclass\u003E EXTRA wdt:P31 {\n  wdt:P31 [wd:Q16103215];\n}\n\n\u003Clength1\u003E {\n  pq:P642 [wd:Q2358152];\n}\n\n\u003Clength2\u003E {\n  pq:P642 [wd:Q1817392];\n}\n\n\u003Cwidth\u003E {\n  pq:P642 [wd:Q2376482];\n}\n\n\u003Cheight\u003E {\n  pq:P642 [wd:Q244777 wd:Q2446632]\n}\n\n\u003Cmass1\u003E {\n  pq:P642 [wd:Q5636358]\n}\n\n\u003Cmass2\u003E {\n  pq:P642 [wd:Q5461048]\n}",
+    "type": "ShExC"
+}
