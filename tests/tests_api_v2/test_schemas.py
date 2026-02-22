@@ -5,10 +5,11 @@ import os
 import json
 import time
 import unittest
-from unittest.mock import patch, MagicMock
 import requests
 
 
+from unittest.mock import patch, MagicMock
+from urllib.parse import urlparse, parse_qs
 from entityshape.app import app
 
 
@@ -24,10 +25,47 @@ class SchemasTests(unittest.TestCase):
         parent_dir = os.path.dirname(os.path.dirname(__file__))
         self.fixture_path = os.path.join(parent_dir, 'fixtures')
 
+        self.schema_patcher = patch('entityshape.api_v2.getjsonld.requests.get')
+        self.entity_patcher = patch('entityshape.api_v2.comparejsonld.requests.get')
+
+        self.mock_schema_get = self.schema_patcher.start()
+        self.mock_entity_get = self.entity_patcher.start()
+
+        self.mock_schema_get.side_effect = self.dynamic_mock_response
+        self.mock_entity_get.side_effect = self.dynamic_mock_response
+
+
+    def tearDown(self) -> None:
+        self.schema_patcher.stop()
+        self.entity_patcher.stop()
+
     def load_fixture(self, filename):
         with open(os.path.join(self.fixture_path, filename), 'r') as f:
             return json.load(f)
-        
+
+    def dynamic_mock_response(self, url, *args, **kwargs):
+        print(f"DEBUG: url = {url}")
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        if url == "https://www.wikidata.org/w/api.php":
+            target_id = "names"
+        else:
+            import re
+            match = re.search(r'([EQ]\d+)', url)
+            if match:
+                target_id = match.group(1)
+
+        if target_id:
+            fixture_file = os.path.join(self.fixture_path, f"{target_id}.json")
+            if os.path.exists(fixture_file):
+                print("exists")
+                with open(fixture_file, 'r') as f:
+                    mock_resp.json.return_value = json.load(f)
+                return mock_resp
+        # Final fallback
+        mock_resp.status_code = 404
+        return mock_resp
+
     def test_specific_wikidata_item_against_schema(self):
         """
         Tests a specific entity against a certain schema and checks that
@@ -103,32 +141,13 @@ class SchemasTests(unittest.TestCase):
         self.assertEqual({'name': 'occupation', 'necessity': 'required', 'response': 'missing'},
                          response.json["properties"][0]["P106"])
 
-    @patch('entityshape.api_v2.getjsonld.requests.get')
-    @patch('entityshape.api_v2.comparejsonld.requests.get')
-    def test_mocked_specific_entityschema(self, mock_item_get, mock_schema_get) -> None:
+    #@patch('entityshape.api_v2.getjsonld.requests.get')
+    #@patch('entityshape.api_v2.comparejsonld.requests.get')
+    def test_mocked_specific_entityschema(self) -> None:
         """
         Tests the app by mocking both the Entity and the EntitySchema data.
         """
-        # 3. Create a side_effect function to switch responses based on URL
-        def side_effect_logic(url, *args, **kwargs):
-            mock_q_data = self.load_fixture('Q100532807.json')
-            mock_e_data = self.load_fixture('E236.json')
-            mock_names = self.load_fixture('names.json') 
-            mock_resp = MagicMock()
-            mock_resp.status_code = 200
-            if "E236" in url:
-                mock_resp.json.return_value = mock_e_data
-            elif "Q100532807" in url:
-                mock_resp.json.return_value = mock_q_data
-            else:
-                mock_resp.json.return_value = mock_names
-            return mock_resp
-
-        # Apply the same logic to both mocks
-        mock_item_get.side_effect = side_effect_logic
-        mock_schema_get.side_effect = side_effect_logic
-
-        # 4. RUN THE TEST
+        
         response = self.app.get('/api/v2/?entityschema=E236&entity=Q100532807&language=en')
 
         # 5. ASSERTIONS
