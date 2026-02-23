@@ -2,7 +2,7 @@ import json
 
 import requests
 from jsonasobj import as_json
-from pyshexc.parser_impl.generate_shexj import parse
+from pyshexc.parser_impl.generate_shexj import Schema, parse
 
 
 class JSONLDShape:
@@ -25,7 +25,14 @@ class JSONLDShape:
         Gets the JSON_LD form of the Schema
         """
         try:
-            return json.loads(as_json(parse(self._json_text["schemaText"])))
+            schema_text: (str | None) = self._json_text.get("schemaText")
+            if not schema_text:
+                return {}
+            parsed_schema: (Schema | None) = parse(schema_text)
+            if parsed_schema is None:
+                return {}
+            
+            return json.loads(as_json(parsed_schema))
         except (KeyError, IndexError, AttributeError, ValueError):
             return {}
 
