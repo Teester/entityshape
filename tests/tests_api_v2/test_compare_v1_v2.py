@@ -67,6 +67,7 @@ class CompareV1V2Tests(unittest.TestCase):
                 value = test_pairs[key]
                 response = self.app.get(f'/api/v2?entityschema={key}&entity={value}&language=en',
                                         follow_redirects=True)
+                assert response.json is not None
                 self.assertIsNotNone(response.json["general"][0]["lexicalCategory"])
                 self.assertIsNotNone(response.json["general"][0]["language"])
 
@@ -106,6 +107,7 @@ class CompareV1V2Tests(unittest.TestCase):
         schema: str = "E236"
         response = self.app.get(f'/api/v2?entityschema={schema}&entity=Q100532807&language=en',
                                 follow_redirects=True)
+        assert response.json is not None
         self.assertEqual(200, response.status_code)
         self.assertEqual("Member of the Oireachtas", response.json["name"][0])
         self.assertEqual({'name': 'occupation', 'necessity': 'required', 'response': 'missing'},
@@ -206,6 +208,7 @@ class CompareV1V2Tests(unittest.TestCase):
         properties: list = ["P102", "P18", "P31", "P734", "P735", "P39", "P21",
                             "P27", "P106", "P569", "P4690"]
         for prop in properties:
+            assert response.json is not None
             with self.subTest(prop=prop):
                 self.assertIn(response.json["properties"][0][prop]["response"], ["correct", "present"])
 
@@ -223,6 +226,8 @@ class CompareV1V2Tests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         properties: list = ["P39", "P106", "P18", "P4690"]
         for prop in properties:
+            assert response.json is not None
+            assert response2.json is not None
             with self.subTest(prop=prop):
                 self.assertIn(response.json["properties"][0][prop]["response"],
                               ["correct", "present", "allowed"])
@@ -289,6 +294,7 @@ class CompareV1V2Tests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         properties: list = ["P361"]
         for prop in properties:
+            assert response.json is not None
             with self.subTest(prop=prop):
                 self.assertIn(response.json["properties"][0][prop]["response"], ["too many statements"])
                 self.assertIn(response.json["properties"][0][prop]["necessity"], ["absent"])
@@ -307,6 +313,7 @@ class CompareV1V2Tests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         properties: list = ["P2043", "P2067"]
         for prop in properties:
+            assert response.json is not None
             with self.subTest(prop=prop):
                 self.assertIn(response.json["properties"][0][prop]["response"],
                               ["correct", "present", "too many statements"])
@@ -324,6 +331,7 @@ class CompareV1V2Tests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         properties: list = ["P3450"]
         for prop in properties:
+            assert response.json is not None
             with self.subTest(prop=prop):
                 self.assertIn(response.json["properties"][0][prop]["response"], ["present"])
                 self.assertIn(response.json["properties"][0][prop]["necessity"], ["required"])
@@ -359,6 +367,7 @@ class CompareV1V2Tests(unittest.TestCase):
         """
         response = self.app.get('/api/v2?entityschema=E351&entity=Q743656&language=en',
                                 follow_redirects=True)
+        assert response.json is not None
         self.assertIn(response.json["properties"][0]["P31"]["response"], ["not enough correct statements"])
 
 

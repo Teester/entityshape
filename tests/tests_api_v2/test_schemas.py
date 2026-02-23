@@ -76,6 +76,7 @@ class SchemasTests(unittest.TestCase):
                 value: str = test_pairs[key]
                 response = self.app.get(f'/api/v2?entityschema={key}&entity={value}&language=en',
                                         follow_redirects=True)
+                assert response.json is not None
                 self.assertIsNotNone(response.json["statements"])
                 self.assertIsNotNone(response.json["properties"])
 
@@ -90,6 +91,7 @@ class SchemasTests(unittest.TestCase):
                 value = test_pairs[key]
                 response = self.app.get(f'/api/v2?entityschema={key}&entity={value}&language=en',
                                         follow_redirects=True)
+                assert response.json is not None
                 self.assertIsNotNone(response.json["general"][0]["lexicalCategory"])
                 self.assertIsNotNone(response.json["general"][0]["language"])
 
@@ -134,6 +136,7 @@ class SchemasTests(unittest.TestCase):
         schema: str = "E236"
         response = self.app.get(f'/api/v2?entityschema={schema}&entity=Q100532807&language=en',
                                 follow_redirects=True)
+        assert response.json is not None
         self.assertEqual(200, response.status_code)
         self.assertEqual("Member of the Oireachtas", response.json["name"][0])
         self.assertEqual({'name': 'occupation', 'necessity': 'required', 'response': 'missing'},
@@ -150,6 +153,7 @@ class SchemasTests(unittest.TestCase):
 
         # 5. ASSERTIONS
         self.assertEqual(200, response.status_code)
+        assert response.json is not None
         self.assertEqual("Member of the Oireachtas", response.json["name"][0])
         self.assertEqual('missing', response.json["properties"][0]["P106"]["response"])
 
@@ -248,6 +252,7 @@ class SchemasTests(unittest.TestCase):
         properties: list = ["P102", "P18", "P31", "P734", "P735", "P39", "P21",
                             "P27", "P106", "P569", "P4690"]
         for prop in properties:
+            assert response.json is not None
             with self.subTest(prop=prop):
                 self.assertIn(response.json["properties"][0][prop]["response"], ["correct", "present"])
 
@@ -265,6 +270,8 @@ class SchemasTests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         properties: list = ["P39", "P106", "P18", "P4690"]
         for prop in properties:
+            assert response.json is not None
+            assert response2.json is not None
             with self.subTest(prop=prop):
                 self.assertIn(response.json["properties"][0][prop]["response"], ["correct", "present", "allowed"])
                 self.assertEqual(response.json["properties"][0][prop]["response"],
@@ -330,6 +337,7 @@ class SchemasTests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         properties: list = ["P361"]
         for prop in properties:
+            assert response.json is not None
             with self.subTest(prop=prop):
                 self.assertIn(response.json["properties"][0][prop]["response"], ["too many statements"])
                 self.assertIn(response.json["properties"][0][prop]["necessity"], ["absent"])
@@ -348,6 +356,7 @@ class SchemasTests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         properties: list = ["P2043", "P2067"]
         for prop in properties:
+            assert response.json is not None
             with self.subTest(prop=prop):
                 self.assertIn(response.json["properties"][0][prop]["response"],
                               ["correct", "present", "too many statements"])
@@ -365,6 +374,7 @@ class SchemasTests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         properties: list = ["P3450"]
         for prop in properties:
+            assert response.json is not None
             with self.subTest(prop=prop):
                 self.assertIn(response.json["properties"][0][prop]["response"], ["present"])
                 self.assertIn(response.json["properties"][0][prop]["necessity"], ["required"])
@@ -400,6 +410,7 @@ class SchemasTests(unittest.TestCase):
         """
         response = self.app.get('/api/v2?entityschema=E351&entity=Q743656&language=en',
                                 follow_redirects=True)
+        assert response.json is not None
         self.assertIn(response.json["properties"][0]["P31"]["response"], ["not enough correct statements"])
 
     def test_entityschema_e438(self):
@@ -411,6 +422,7 @@ class SchemasTests(unittest.TestCase):
         """
         response = self.app.get('/api/v2?entityschema=E438&entity=Q11645745&language=en',
                                 follow_redirects=True)
+        assert response.json is not None
         self.assertIn(response.json["properties"][0]["P31"]["response"], ["correct", "present"])
 
     def test_non_existent_entityschema(self):

@@ -11,11 +11,11 @@ def v1():
     Compares an entityschema with a wikidata item
     :return: a response to the query
     """
-    schema: str = request.args.get("entityschema", type=str)
-    entity: str = request.args.get("entity", type=str)
+    schema: str = request.args.get("entityschema", default="", type=str)
+    entity: str = request.args.get("entity", default="", type=str)
     if "Lexeme" in entity:
         entity = entity[7:]
-    language: str = request.args.get("language", type=str)
+    language: str = request.args.get("language", default="", type=str)
     try:
         valid: dict = {}
         entity_shape: Shape = Shape(schema, language)
