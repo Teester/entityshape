@@ -13,8 +13,9 @@ def v2():
     :return: a response to the query
     """
     schema: (str | None) = request.args.get("entityschema", type=str)
+    schema_list: list[str] = []
     if schema:
-        schema_list: list[str] = schema.split(', ')
+        schema_list = schema.split(', ')
     entity: (str | None) = request.args.get("entity", type=str)
     if entity is None: entity = ""
     if "Lexeme" in entity:

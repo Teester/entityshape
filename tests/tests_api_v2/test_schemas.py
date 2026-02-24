@@ -46,6 +46,7 @@ class SchemasTests(unittest.TestCase):
     def dynamic_mock_response(self, url, *args, **kwargs):
         mock_resp = MagicMock()
         mock_resp.status_code = 200
+        target_id: str = ""
         if url == "https://www.wikidata.org/w/api.php":
             target_id = "names"
         else:
