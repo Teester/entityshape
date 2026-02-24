@@ -6,7 +6,6 @@
 		"en": "Danish verb",
 		"eo": "dana verbo",
 		"fr": "verbe danois",
-		"ja": "デンマーク語の動詞",
 		"nl": "Deens werkwoord",
 		"pl": "czasownik duński",
 		"pt": "verbo (danês)",
@@ -16,7 +15,6 @@
 	"descriptions": {
 		"en": "basic schema for Danish verbs",
 		"fr": "lexème danois",
-		"ja": "デンマーク語の動詞を記述するための基本的なスキーマ",
 		"nl": "basisschema voor een Deens werkwoord",
 		"pl": "podstawowy schemat czasowników duńskich",
 		"szl": "bazowy schymat czasowników duńskich"

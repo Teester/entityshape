@@ -5,28 +5,36 @@ from entityshape.api_v2.comparejsonld import CompareProperties
 
 class ComparePropertiesTests(unittest.TestCase):
     def setUp(self):
-        entity = {'entities':
-                      {'Q1':
-                        {'title': 'Q1',
-                         'type': 'item',
-                         'id': 'Q1',
-                         'claims': {'P31': [{'mainsnak':
-                                                {'snaktype': 'value',
-                                                 'property': 'P31',
-                                                 'hash': '1',
-                                                 'datavalue': {'value':
-                                                                   {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
-                                                               'type': 'wikibase-entityid'},
-                                                 'datatype': 'wikibase-item'},
-                                            'type': 'statement',
-                                            'id': '1',
-                                            'rank': 'normal'}],
-                         },
-                         'sitelinks': {}}}}
+        entity = {'entities': {
+                    'Q1': {
+                        'title': 'Q1',
+                        'type': 'item',
+                        'id': 'Q1',
+                        'claims': {
+                            'P31': [{
+                                'mainsnak': {
+                                    'snaktype': 'value',
+                                    'property': 'P31',
+                                    'hash': '1',
+                                    'datavalue': {
+                                        'value': {
+                                            'entity-type': 'item',
+                                            'numeric-id': 2,
+                                            'id': 'Q2'},
+                                        'type': 'wikibase-entityid'},
+                                    'datatype': 'wikibase-item'
+                                },
+                                'type': 'statement',
+                                'id': '1',
+                                'rank': 'normal'
+                                }
+                                ],
+                            },
+                        'sitelinks': {}}}}
         entities = "Q1"
-        statement = { "type": "Shape",
-                      "id": "test",
-                      "expression": {
+        statement = {"type": "Shape",
+                     "id": "test",
+                     "expression": {
                           "type": "EachOf",
                           "expressions": [
                               {
@@ -60,23 +68,27 @@ class ComparePropertiesTests(unittest.TestCase):
         self.assertEqual('not enough correct statements', self.compare_properties.check_claims_for_props(claims, prop))
 
     def test_check_claims_for_prop_with_values(self):
-        claims = {'Q1':
-                     {'title': 'Q1',
-                      'type': 'item',
-                      'id': 'Q1',
-                      'claims': {'P31': [{'mainsnak':
-                                              {'snaktype': 'value',
-                                               'property': 'P31',
-                                               'hash': '1',
-                                               'datavalue': {'value':
-                                                                 {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
-                                                             'type': 'wikibase-entityid'},
-                                               'datatype': 'wikibase-item'},
-                                          'type': 'statement',
-                                          'id': '1',
-                                          'rank': 'normal'}],
-                      },
-                      'sitelinks': {}}}
+        claims = {'Q1': {
+                    'title': 'Q1',
+                    'type': 'item',
+                    'id': 'Q1',
+                    'claims': {'P31': [{
+                        'mainsnak': {
+                            'snaktype': 'value',
+                            'property': 'P31',
+                            'hash': '1',
+                            'datavalue': {
+                                'value': {
+                                    'entity-type': 'item',
+                                    'numeric-id': 2,
+                                    'id': 'Q2'},
+                                'type': 'wikibase-entityid'},
+                            'datatype': 'wikibase-item'},
+                        'type': 'statement',
+                        'id': '1',
+                        'rank': 'normal'}],
+                    },
+                    'sitelinks': {}}}
         prop = "P31"
         self.assertEqual('not enough correct statements', self.compare_properties.check_claims_for_props(claims, prop))
 
@@ -87,23 +99,28 @@ class ComparePropertiesTests(unittest.TestCase):
         self.assertEqual([], self.compare_properties._get_allowed_list(claims, prop, expression))
 
     def test_get_allowed_list_with_values(self):
-        claims = {'Q1':
-                      {'title': 'Q1',
-                       'type': 'item',
-                       'id': 'Q1',
-                       'claims': {'P31': [{'mainsnak':
-                                               {'snaktype': 'value',
-                                                'property': 'P31',
-                                                'hash': '1',
-                                                'datavalue': {'value':
-                                                                  {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
-                                                              'type': 'wikibase-entityid'},
-                                                'datatype': 'wikibase-item'},
-                                           'type': 'statement',
-                                           'id': '1',
-                                           'rank': 'normal'}],
+        claims = {'Q1': {
+                    'title': 'Q1',
+                    'type': 'item',
+                    'id': 'Q1',
+                    'claims': {
+                        'P31': [{
+                            'mainsnak': {
+                                'snaktype': 'value',
+                                'property': 'P31',
+                                'hash': '1',
+                                'datavalue': {
+                                    'value': {
+                                        'entity-type': 'item',
+                                        'numeric-id': 2,
+                                        'id': 'Q2'},
+                                    'type': 'wikibase-entityid'},
+                                'datatype': 'wikibase-item'},
+                            'type': 'statement',
+                            'id': '1',
+                            'rank': 'normal'}],
                        },
-                       'sitelinks': {}}}
+                    'sitelinks': {}}}
         prop = "P31"
         expression = {'type': 'TripleConstraint',
                       'predicate': 'http://www.wikidata.org/prop/direct/P31',
@@ -121,9 +138,12 @@ class ComparePropertiesTests(unittest.TestCase):
         expression = {'snaktype': 'value',
                       'property': 'P31',
                       'hash': '1',
-                      'datavalue': {'value':
-                                       {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
-                                    'type': 'wikibase-entityid'},
+                      'datavalue': {
+                            'value': {
+                              'entity-type': 'item',
+                              'numeric-id': 2,
+                              'id': 'Q2'},
+                            'type': 'wikibase-entityid'},
                       'datatype': 'wikibase-item'}
         shape = {'type': 'TripleConstraint',
                  'predicate': 'http://www.wikidata.org/prop/direct/P31',
@@ -142,9 +162,12 @@ class ComparePropertiesTests(unittest.TestCase):
         expression = {'snaktype': 'value',
                       'property': 'P31',
                       'hash': '1',
-                      'datavalue': {'value':
-                                       {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
-                                    'type': 'wikibase-entityid'},
+                      'datavalue': {
+                            'value': {
+                                'entity-type': 'item',
+                                'numeric-id': 2,
+                                'id': 'Q2'},
+                            'type': 'wikibase-entityid'},
                       'datatype': 'wikibase-item'}
         self.assertEqual("correct", self.compare_properties._get_cardinalities(occurrences, expression))
 
@@ -158,9 +181,12 @@ class ComparePropertiesTests(unittest.TestCase):
         statement = {'snaktype': 'value',
                      'property': 'P31',
                      'hash': '1',
-                     'datavalue': {'value':
-                                      {'entity-type': 'item', 'numeric-id': 2, 'id': 'Q2'},
-                                   'type': 'wikibase-entityid'},
+                     'datavalue': {
+                        'value': {
+                            'entity-type': 'item',
+                            'numeric-id': 2,
+                            'id': 'Q2'},
+                        'type': 'wikibase-entityid'},
                      'datatype': 'wikibase-item'}
         expression = {'type': 'TripleConstraint',
                       'predicate': 'http://www.wikidata.org/prop/direct/P31',

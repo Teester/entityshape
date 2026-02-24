@@ -89,7 +89,10 @@ class Shape:
         for line in shape_array:
             if re.match(r".+:P\d", line):
                 child: dict = {}
-                selected_property: str = re.search(r"P\d+", line).group(0)
+                selected_property: str = ""
+                match = re.search(r"P\d+", line)
+                if match:
+                    selected_property = match.group(0)
                 if shape_json.get(selected_property):
                     child = shape_json[selected_property]
                 shape_json[selected_property] = self._assess_property(line, child)
@@ -109,10 +112,16 @@ class Shape:
         """
         snak: str = self._get_snak_type(line)
         if "@<" in line:
-            sub_shape_name: str = re.search(r"<.*>", line).group(0)
+            sub_shape_name: str = ""
+            match = re.search(r"<.*>", line)
+            if match:
+                sub_shape_name = match.group(0)
             child["shape"] = sub_shape_name[1:-1]
         if re.search(r"\[.*]", line):
-            required_parameters_string: str = re.search(r"\[.*]", line).group(0)
+            required_parameters_string: str = ""
+            match = re.search(r"\[.*]", line)
+            if match:
+                required_parameters_string = match.group(0)
             required_parameters_string = required_parameters_string.replace("wd:", "")
             if "^" in line:
                 child["not_allowed"] = required_parameters_string[1:-1].split()
@@ -208,9 +217,15 @@ class Shape:
                                                                       % shape_name)
         parentheses = self._find_parentheses(self._schema_text)
         try:
-            shape_index: int = re.search(search, self._schema_text).start()
+            shape_index: int = 0
+            match = re.search(search, self._schema_text)
+            if match:
+                shape_index = match.start()
         except AttributeError:
-            shape_index = re.search("<%s>" % shape_name, self._schema_text).start()
+            shape_index: int = 0
+            match = re.search("<%s>" % shape_name, self._schema_text)
+            if match:
+                shape_index = match.start()
         closest = None
         for character in parentheses:
             if (character >= shape_index) and (closest is None or character < closest):
@@ -285,7 +300,7 @@ class Shape:
             cardinality["min"] = 0
         elif re.search(r"{.+}", schema_line):
             match = re.search(r"{((\d+)|(\d+,\d+))}", schema_line)
-            if hasattr(match, "group"):
+            if match is not None and hasattr(match, "group"):
                 match = match.group()
                 cardinalities = match[1:-1].split(",")
                 cardinality["min"] = int(cardinalities[0])
@@ -339,7 +354,7 @@ class Shape:
                 schema_json["required"] = sub_shape_json
         if sub_shape[key]["status"] == "statement" and "allowed" in sub_shape[key]:
             value = sub_shape[key]["allowed"]
-            schema_json["required"] = {key: value}
+            schema_json["required"] = {str(key): value}
         if sub_shape[key]["status"] == "qualifier":
             qualifier_child[key] = sub_shape[key]
         if sub_shape[key]["status"] == "reference":

@@ -2,8 +2,7 @@
 	"id": "E438",
 	"serializationVersion": "3.0",
 	"labels": {
-		"en": "Wikimedia Disambiguation Page",
-		"ja": "ウィキメディアの曖昧さ回避ページ"
+		"en": "Wikimedia Disambiguation Page"
 	},
 	"descriptions": {
 		"en": "Entity schema of Wikimedia Disambiguation Page"

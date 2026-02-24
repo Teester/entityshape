@@ -40,6 +40,7 @@ class V1Tests(unittest.TestCase):
 
         params = kwargs.get('params', {})
         action = params.get('action')
+        target_id: str = ""
         if url == "https://www.wikidata.org/w/api.php":
             if action == "wbgetentities":
                 target_id = "names"
@@ -60,7 +61,7 @@ class V1Tests(unittest.TestCase):
         # Final fallback
         mock_resp.status_code = 404
         return mock_resp
-    
+
     def test_specific_wikidata_item_against_schema(self):
         """
         Tests a specific entity against a certain schema and checks that
@@ -73,6 +74,7 @@ class V1Tests(unittest.TestCase):
                 value = test_pairs[key]
                 response = self.app.get(f'/api?entityschema={key}&entity={value}&language=en',
                                         follow_redirects=True)
+                assert response.json is not None
                 self.assertIsNotNone(response.json["statements"])
                 self.assertIsNotNone(response.json["properties"])
 
@@ -87,6 +89,7 @@ class V1Tests(unittest.TestCase):
                 value = test_pairs[key]
                 response = self.app.get(f'/api?entityschema={key}&entity={value}&language=en',
                                         follow_redirects=True)
+                assert response.json is not None
                 self.assertIsNotNone(response.json["general"]["lexicalCategory"])
                 self.assertIsNotNone(response.json["general"]["language"])
 
@@ -128,6 +131,7 @@ class V1Tests(unittest.TestCase):
         schema: str = "E236"
         response = self.app.get(f'/api?entityschema={schema}&entity=Q100532807&language=en',
                                 follow_redirects=True)
+        assert response.json is not None
         self.assertEqual(200, response.status_code)
         self.assertEqual("Member of the Oireachtas", response.json["name"])
         self.assertEqual({'name': 'occupation', 'necessity': 'required', 'response': 'missing'},
@@ -146,6 +150,7 @@ class V1Tests(unittest.TestCase):
         properties: list = ["P102", "P18", "P31", "P734", "P735", "P39", "P21",
                             "P27", "P106", "P569", "P4690"]
         for prop in properties:
+            assert response.json is not None
             with self.subTest(prop=prop):
                 self.assertIn(response.json["properties"][prop]["response"], ["correct", "present"])
 
@@ -163,6 +168,7 @@ class V1Tests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         properties: list = ["P2043", "P2067"]
         for prop in properties:
+            assert response.json is not None
             with self.subTest(prop=prop):
                 self.assertIn(response.json["properties"][prop]["response"], ["correct", "present"])
 
@@ -179,6 +185,7 @@ class V1Tests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         properties: list = ["P361"]
         for prop in properties:
+            assert response.json is not None
             with self.subTest(prop=prop):
                 self.assertIn(response.json["properties"][prop]["response"], ["too many statements"])
                 self.assertIn(response.json["properties"][prop]["necessity"], ["absent"])
@@ -196,6 +203,7 @@ class V1Tests(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         properties: list = ["P3450"]
         for prop in properties:
+            assert response.json is not None
             with self.subTest(prop=prop):
                 self.assertIn(response.json["properties"][prop]["response"], ["present"])
                 self.assertIn(response.json["properties"][prop]["necessity"], ["required"])

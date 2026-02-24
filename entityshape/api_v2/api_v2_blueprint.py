@@ -6,18 +6,25 @@ from entityshape.api_v2.comparejsonld import CompareJSONLD
 
 api_v2 = Blueprint('api_v2', __name__,)
 
+
 @api_v2.route('/')
 def v2():
     """
     Compares an entityschema with a wikidata item
     :return: a response to the query
     """
-    schema: str = request.args.get("entityschema", type=str)
-    schema_list: list = schema.split(', ')
-    entity: str = request.args.get("entity", type=str)
+    schema: (str | None) = request.args.get("entityschema", type=str)
+    schema_list: list[str] = []
+    if schema:
+        schema_list = schema.split(', ')
+    entity: (str | None) = request.args.get("entity", type=str)
+    if entity is None:
+        entity = ""
     if "Lexeme" in entity:
         entity = entity[7:]
-    language: str = request.args.get("language", type=str)
+    language: (str | None) = request.args.get("language", type=str)
+    if language is None:
+        language = ""
     try:
         valid: dict = {}
         names: list = []
