@@ -40,6 +40,7 @@ class V1Tests(unittest.TestCase):
 
         params = kwargs.get('params', {})
         action = params.get('action')
+        target_id: str = ""
         if url == "https://www.wikidata.org/w/api.php":
             if action == "wbgetentities":
                 target_id = "names"
@@ -60,7 +61,7 @@ class V1Tests(unittest.TestCase):
         # Final fallback
         mock_resp.status_code = 404
         return mock_resp
-    
+
     def test_specific_wikidata_item_against_schema(self):
         """
         Tests a specific entity against a certain schema and checks that

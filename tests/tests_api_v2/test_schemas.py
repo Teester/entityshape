@@ -9,7 +9,6 @@ import requests
 
 
 from unittest.mock import patch, MagicMock
-from urllib.parse import urlparse, parse_qs
 from entityshape.app import app
 
 
@@ -33,7 +32,6 @@ class SchemasTests(unittest.TestCase):
 
         self.mock_schema_get.side_effect = self.dynamic_mock_response
         self.mock_entity_get.side_effect = self.dynamic_mock_response
-
 
     def tearDown(self) -> None:
         self.schema_patcher.stop()
@@ -143,13 +141,11 @@ class SchemasTests(unittest.TestCase):
         self.assertEqual({'name': 'occupation', 'necessity': 'required', 'response': 'missing'},
                          response.json["properties"][0]["P106"])
 
-    #@patch('entityshape.api_v2.getjsonld.requests.get')
-    #@patch('entityshape.api_v2.comparejsonld.requests.get')
     def test_mocked_specific_entityschema(self) -> None:
         """
         Tests the app by mocking both the Entity and the EntitySchema data.
         """
-        
+
         response = self.app.get('/api/v2/?entityschema=E236&entity=Q100532807&language=en')
 
         # 5. ASSERTIONS

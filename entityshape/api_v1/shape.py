@@ -92,7 +92,7 @@ class Shape:
                 selected_property: str = ""
                 match = re.search(r"P\d+", line)
                 if match:
-                   selected_property = match.group(0)
+                    selected_property = match.group(0)
                 if shape_json.get(selected_property):
                     child = shape_json[selected_property]
                 shape_json[selected_property] = self._assess_property(line, child)
@@ -220,7 +220,7 @@ class Shape:
             shape_index: int = 0
             match = re.search(search, self._schema_text)
             if match:
-                shape_index= match.start()
+                shape_index = match.start()
         except AttributeError:
             shape_index: int = 0
             match = re.search("<%s>" % shape_name, self._schema_text)

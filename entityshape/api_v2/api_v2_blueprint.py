@@ -6,6 +6,7 @@ from entityshape.api_v2.comparejsonld import CompareJSONLD
 
 api_v2 = Blueprint('api_v2', __name__,)
 
+
 @api_v2.route('/')
 def v2():
     """
@@ -17,11 +18,13 @@ def v2():
     if schema:
         schema_list = schema.split(', ')
     entity: (str | None) = request.args.get("entity", type=str)
-    if entity is None: entity = ""
+    if entity is None:
+        entity = ""
     if "Lexeme" in entity:
         entity = entity[7:]
     language: (str | None) = request.args.get("language", type=str)
-    if language is None: language = ""
+    if language is None:
+        language = ""
     try:
         valid: dict = {}
         names: list = []

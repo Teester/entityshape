@@ -31,7 +31,7 @@ class JSONLDShape:
             parsed_schema: (Schema | None) = parse(schema_text)
             if parsed_schema is None:
                 return {}
-            
+
             return json.loads(as_json(parsed_schema))
         except (KeyError, IndexError, AttributeError, ValueError):
             return {}

@@ -38,6 +38,7 @@ class CompareV1V2Tests(unittest.TestCase):
     def dynamic_mock_response(self, url, *args, **kwargs):
         mock_resp = MagicMock()
         mock_resp.status_code = 200
+        target_id: str = ""
         if url == "https://www.wikidata.org/w/api.php":
             target_id = "names"
         else:
@@ -55,7 +56,7 @@ class CompareV1V2Tests(unittest.TestCase):
         # Final fallback
         mock_resp.status_code = 404
         return mock_resp
-    
+
     def test_lexical_category(self):
         """
         This test checks that a lexicalCategory response is returned when a

@@ -108,8 +108,8 @@ class UtilitiesTests(unittest.TestCase):
                       'predicate': 'http://www.wikidata.org/prop/direct/P31',
                       'max': 0,
                       }
-        claim = {'mainsnak':
-                    {'snaktype': 'value',
+        claim = {'mainsnak': {
+                     'snaktype': 'value',
                      'property': 'P31',
                      'hash': '851b1c24539bd7aa725376baba4bcf0928099a66',
                      'datatype': 'wikibase-item'
@@ -124,8 +124,8 @@ class UtilitiesTests(unittest.TestCase):
                       'predicate': 'http://www.wikidata.org/prop/direct/P31',
                       'min': 0,
                       }
-        claim = {'mainsnak':
-                    {'snaktype': 'value',
+        claim = {'mainsnak': {
+                     'snaktype': 'value',
                      'property': 'P31',
                      'hash': '851b1c24539bd7aa725376baba4bcf0928099a66',
                      'datatype': 'wikibase-item'
@@ -140,8 +140,8 @@ class UtilitiesTests(unittest.TestCase):
                       'min': 0,
                       'max': 0
                       }
-        claim = {'mainsnak':
-                    {'snaktype': 'value',
+        claim = {'mainsnak': {
+                     'snaktype': 'value',
                      'property': 'P31',
                      'hash': '851b1c24539bd7aa725376baba4bcf0928099a66',
                      'datatype': 'wikibase-item'
