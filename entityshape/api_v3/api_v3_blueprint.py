@@ -1,3 +1,5 @@
+from textwrap import indent
+
 from flask import Blueprint, request, Response, json
 
 from entityshape.api_v3.comparejsonld import CompareJSONLD
@@ -35,7 +37,7 @@ def v3():
                          'properties': comparison.get_properties(),
                          'statements': comparison.get_statements(),
                          'error': ""}
-        print(f"payload = {payload}")
+        print(f"payload = {json.dumps(payload, indent=2)}")
         status: int = 200
     except (AttributeError, TypeError, KeyError, IndexError) as exception:
         payload: dict = {'schema': "",

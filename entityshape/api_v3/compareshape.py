@@ -8,6 +8,8 @@ class WikidataShExValidator:
         self.graph: Dict[str, Dict[str, List[Dict[str, Any]]]] = {}
 
     def load_ntriples(self, nt_content: str):
+        if not nt_content:
+            return
         self.graph = {}
         lines = nt_content.splitlines()
         nt_regex = re.compile(r'^<([^>]+)>\s+<([^>]+)>\s+(.+)\s+\.$')
@@ -173,4 +175,5 @@ class WikidataShExValidator:
             report["property_evaluations"].append(prop_report)
 
         report["status"] = "PASS" if overall_pass else "FAIL"
+        print(json.dumps(report, indent=2))
         return report

@@ -8,8 +8,6 @@ from typing import Dict, Any, List
 import requests
 from requests import Response
 
-from entityshape.api_v2.compareproperties import CompareProperties
-from entityshape.api_v2.comparestatements import CompareStatements
 from entityshape.api_v3.compareshape import WikidataShExValidator
 
 
@@ -35,8 +33,8 @@ class CompareJSONLD:
         self._get_entity_json()
         if "entities" in self._entities and self._entities["entities"][self._entity]:
             self._get_props(self._entities["entities"][self._entity]['claims'])
-        self._get_property_names(language)
-        self.start_shape: dict = self._get_start_shape()
+        # self._get_property_names(language)
+        # self.start_shape: dict = self._get_start_shape()
 
         entity_node = f"http://www.wikidata.org/entity/{self._entity}"
         comparison: WikidataShExValidator = WikidataShExValidator(json.dumps(shape))
@@ -136,6 +134,7 @@ class CompareJSONLD:
                                                       "languages": language,
                                                       "format": "json"},
                                               headers={'User-Agent': 'Entityshape API by User:Teester'})
+            print(required_properties)
             json_text: dict = response.json()
             for item in element:
                 try:
@@ -160,16 +159,17 @@ class CompareJSONLD:
                 return shape
         return {}
 
-    def format_validation_report(self, detailed_report: Dict[str, Any]) -> Dict[str, List[Dict[str, str]]]:
+    def format_validation_report(self, detailed_report: Dict[str, Any]) -> Dict[str, Any]:
         """
         Transforms the custom validator's output into a flat report
         tracking explicit property necessity and statement responses.
+        Combines all properties into a single dictionary within the properties list.
         """
-        formatted_properties = []
+        properties_dict = {}
         formatted_statements = []
 
-        # Extract evaluations safely (handles cases where a subshape might not have them)
         evaluations = detailed_report.get("property_evaluations", [])
+
         for prop_eval in evaluations:
             predicate_iri = prop_eval["predicate"]
             # Extract the short property ID (e.g., 'P31' from '.../direct/P31')
@@ -201,19 +201,18 @@ class CompareJSONLD:
                     else:
                         prop_response = "not enough statements"
                 else:
-                    prop_response = "incorrect" # Structural failure fallback
+                    prop_response = "incorrect"
             else:
                 if len(prop_eval["statements_evaluated"]) > 0:
                     prop_response = "present"
                 else:
                     prop_response = "missing" if necessity == "required" else "correct"
 
-            # Append to properties list
-            formatted_properties.append({
-                "property": prop_id,
+            # Add directly to our single dictionary mapping
+            properties_dict[prop_id] = {
                 "necessity": necessity,
                 "response": prop_response
-            })
+            }
 
             # 3. Process Individual Statements
             for stmt in prop_eval.get("statements_evaluated", []):
@@ -221,14 +220,8 @@ class CompareJSONLD:
                 raw_statement = stmt["raw_triple"]
 
                 if stmt_status == "PASS":
-                    # If a statement passed but it's part of an EXTRA setup,
-                    # check if it was actually "allowed" because it matched or just an outlier.
-                    # In our engine layout, anything passing the constraint check is 'correct'.
-                    # Outliers get marked as 'FAIL' on the statement, but 'allowed' at the macro level.
                     stmt_response = "correct"
                 else:
-                    # If the statement failed constraint check but the property is marked EXTRA,
-                    # then this specific statement is an "allowed" outlier.
                     if is_extra:
                         stmt_response = "allowed"
                     else:
@@ -239,13 +232,15 @@ class CompareJSONLD:
                     "response": stmt_response
                 })
 
-            # Recursively parse nested subshape errors if they exist to bubble up those statements
+            # Recursively parse nested subshape errors if they exist
             if "nested_subshape_error" in prop_eval:
                 nested_results = self.format_validation_report(prop_eval["nested_subshape_error"])
-                formatted_properties.extend(nested_results["properties"])
+                # Merge the nested properties into our main dictionary
+                if nested_results["properties"]:
+                    properties_dict.update(nested_results["properties"][0])
                 formatted_statements.extend(nested_results["statements"])
 
         return {
-            "properties": formatted_properties,
+            "properties": [properties_dict],  # Wrapped as a single-element list
             "statements": formatted_statements
         }
