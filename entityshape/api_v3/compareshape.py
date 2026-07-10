@@ -48,8 +48,7 @@ class WikidataShExValidator:
 
         return True, "Valid"
 
-    def validate_node(self, focus_node: str, start_shape_id: str, visited: Set[Tuple[str, str]] = None) -> Dict[str, Any]:
-        focus_node_iri = f"http://www.wikidata.org/entity/{focus_node}"
+    def validate_node(self, focus_node_iri: str, start_shape_id: str, visited: Set[Tuple[str, str]] = None) -> Dict[str, Any]:
         if visited is None:
             visited = set()
 

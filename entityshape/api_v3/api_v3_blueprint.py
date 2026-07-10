@@ -1,8 +1,7 @@
 from flask import Blueprint, request, Response, json
 
-from api_v3 import comparejsonld
-from api_v3.comparejsonld import CompareJSONLD
-from api_v3.compareshape import WikidataShExValidator
+from entityshape.api_v3.comparejsonld import CompareJSONLD
+from entityshape.api_v3.compareshape import WikidataShExValidator
 from entityshape.api_v2.getjsonld import JSONLDShape
 
 api_v3 = Blueprint('api_v3', __name__,)
@@ -25,22 +24,16 @@ def v3():
         general: list = []
         properties: list = []
         statements: list = []
-        compare = CompareJSONLD(schema, entity, "en")
-        nt = compare.get_properties()
         for schema in schema_list:
             shape: JSONLDShape = JSONLDShape(schema, language)
-            print(shape.get_json_ld())
-            comparison: WikidataShExValidator = WikidataShExValidator(json.dumps(shape.get_json_ld()))
-            comparison.load_ntriples(nt)
-            result = comparison.validate_node(focus_node= entity,
-                                               start_shape_id= comparison.schema["start"])
-            print(json.dumps(result, indent=2))
+            comparison: CompareJSONLD = CompareJSONLD(shape.get_json_ld(), entity, language)
+
         payload: dict = {'schema': schema_list,
                          'name': '',
-                         'validity': result["status"],
+                         'validity': comparison.get_validity(),
                          'general': [],
-                         'properties': [],
-                         'statements': [],
+                         'properties': comparison.get_properties(),
+                         'statements': comparison.get_statements(),
                          'error': ""}
         print(f"payload = {payload}")
         status: int = 200
