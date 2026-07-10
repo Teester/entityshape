@@ -203,7 +203,10 @@ class CompareJSONLD:
                 else:
                     prop_response = "incorrect"
             else:
-                if len(prop_eval["statements_evaluated"]) > 0:
+                # FIX: If it passes and is marked EXTRA, it's evaluated as 'correct'
+                if is_extra:
+                    prop_response = "correct"
+                elif len(prop_eval["statements_evaluated"]) > 0:
                     prop_response = "present"
                 else:
                     prop_response = "missing" if necessity == "required" else "correct"
@@ -235,12 +238,11 @@ class CompareJSONLD:
             # Recursively parse nested subshape errors if they exist
             if "nested_subshape_error" in prop_eval:
                 nested_results = self.format_validation_report(prop_eval["nested_subshape_error"])
-                # Merge the nested properties into our main dictionary
                 if nested_results["properties"]:
                     properties_dict.update(nested_results["properties"][0])
                 formatted_statements.extend(nested_results["statements"])
 
         return {
-            "properties": [properties_dict],  # Wrapped as a single-element list
+            "properties": [properties_dict],
             "statements": formatted_statements
         }
