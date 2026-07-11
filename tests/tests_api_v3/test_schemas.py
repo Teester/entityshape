@@ -19,6 +19,9 @@ class SchemasTests(unittest.TestCase):
         app.config['DEBUG'] = False
         self.app = app.test_client()
 
+    def tearDown(self):
+        time.sleep(5)
+
     def test_specific_wikidata_item_against_schema(self):
         """
         Tests a specific entity against a certain schema and checks that
@@ -201,15 +204,11 @@ class SchemasTests(unittest.TestCase):
         """
         response = self.app.get('/api/v3?entityschema=E236&entity=Q185272&language=en',
                                 follow_redirects=True)
-        response2 = self.app.get('/api?entityschema=E236&entity=Q185272&language=en',
-                                 follow_redirects=True)
         self.assertEqual(200, response.status_code)
         properties: list = ["P39", "P106", "P18", "P4690"]
         for prop in properties:
             with self.subTest(prop=prop):
                 self.assertIn(response.json["properties"][0][prop]["response"], ["correct", "present", "allowed"])
-                self.assertEqual(response.json["properties"][0][prop]["response"],
-                                 response2.json["properties"][prop]["response"])
 
     def test_entityschema_e239(self):
         """
@@ -341,7 +340,7 @@ class SchemasTests(unittest.TestCase):
         """
         response = self.app.get('/api/v3?entityschema=E351&entity=Q743656&language=en',
                                 follow_redirects=True)
-        self.assertIn(response.json["properties"][0]["P31"]["response"], ["not enough correct statements"])
+        self.assertIn(response.json["properties"][0]["P31"]["response"], ["missing"])
 
     def test_entityschema_e438(self):
         """

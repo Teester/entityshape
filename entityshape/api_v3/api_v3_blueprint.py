@@ -3,7 +3,6 @@ from textwrap import indent
 from flask import Blueprint, request, Response, json
 
 from entityshape.api_v3.comparejsonld import CompareJSONLD
-from entityshape.api_v3.compareshape import WikidataShExValidator
 from entityshape.api_v2.getjsonld import JSONLDShape
 
 api_v3 = Blueprint('api_v3', __name__,)
@@ -31,7 +30,7 @@ def v3():
             comparison: CompareJSONLD = CompareJSONLD(shape.get_json_ld(), entity, language)
 
         payload: dict = {'schema': schema_list,
-                         'name': '',
+                         'name': [shape.get_name()],
                          'validity': comparison.get_validity(),
                          'general': [],
                          'properties': comparison.get_properties(),

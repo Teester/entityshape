@@ -6,11 +6,22 @@ class WikidataShExValidator:
     def __init__(self, shexj_content: str):
         self.schema = json.loads(shexj_content)
         self.graph: Dict[str, Dict[str, List[Dict[str, Any]]]] = {}
+        # New dictionary mapping a property ID (e.g., "P279") to its English string label
+        self.property_labels: Dict[str, str] = {}
+
+    def _extract_statement_id(self, uri: str) -> str:
+        """Helper to extract and normalize a statement ID string (e.g., Q123$UUID)."""
+        match = re.search(r'/statement/(Q\d+)[-\$]([A-Fa-f0-9-]+)', uri)
+        if match:
+            entity, uuid = match.groups()
+            return f"{entity}${uuid}"
+        return None
 
     def load_ntriples(self, nt_content: str):
         if not nt_content:
             return
         self.graph = {}
+        self.property_labels = {}
         lines = nt_content.splitlines()
         nt_regex = re.compile(r'^<([^>]+)>\s+<([^>]+)>\s+(.+)\s+\.$')
 
@@ -21,7 +32,22 @@ class WikidataShExValidator:
             match = nt_regex.match(clean_line)
             if match:
                 s, p, o = match.groups()
-                triple_data = {"value": o, "line_number": idx, "raw": clean_line}
+
+                # NATIVE ADDITION: If it's a property label statement, store the text label name
+                if "/entity/P" in s and "rdf-schema#label" in p and '"@en' in o:
+                    prop_id = s.split("/")[-1]
+                    clean_label = o.split('"')[1] # Extract text inside quotes
+                    self.property_labels[prop_id] = clean_label
+                    continue # No need to keep label triples inside the evaluation graph
+
+                stmt_id = self._extract_statement_id(s) or self._extract_statement_id(o)
+
+                triple_data = {
+                    "value": o,
+                    "line_number": idx,
+                    "raw": clean_line,
+                    "statement_id": stmt_id or clean_line
+                }
                 self.graph.setdefault(s, {}).setdefault(p, []).append(triple_data)
 
     def _get_shape_by_id(self, shape_id: str) -> Dict[str, Any]:
@@ -31,7 +57,6 @@ class WikidataShExValidator:
         raise ValueError(f"Shape ID '{shape_id}' not found.")
 
     def _evaluate_node_constraint(self, stmt_value: str, value_expr: Dict[str, Any]) -> Tuple[bool, str]:
-        """Evaluates standard primitive constraints (datatypes, nodeKinds, lists)."""
         if value_expr.get("type") != "NodeConstraint":
             return True, "Valid"
 
@@ -65,17 +90,20 @@ class WikidataShExValidator:
 
         visited.add(current_execution_pair)
 
-        # Handle a potential string-based start_shape_id variant mapping
         shape = self._get_shape_by_id(start_shape_id)
         node_data = self.graph.get(focus_node_iri, {})
         extra_properties = shape.get("extra", [])
 
+        # PASS ALONG: Include current property labels dictionary inside the report context
         report = {
             "focus_node": focus_node_iri,
             "target_shape": start_shape_id,
             "status": "PASS",
+            "property_labels": self.property_labels,
             "property_evaluations": []
         }
+        if not node_data:
+            return report
 
         expression = shape.get("expression", {})
         constraints = []
@@ -111,8 +139,6 @@ class WikidataShExValidator:
                 stmt_reason = "Valid"
 
                 if value_expr:
-                    # FIX: Handle shorthand string-style shape reference
-                    # e.g., valueExpr: "county"
                     if isinstance(value_expr, str):
                         target_shape_ref = value_expr
                         sub_node_iri = stmt["value"].strip("<>")
@@ -125,7 +151,6 @@ class WikidataShExValidator:
                         else:
                             stmt_reason = f"Linked node '{sub_node_iri}' successfully validated against shorthand subshape."
 
-                    # Handle normal dictionary-style expressions
                     elif isinstance(value_expr, dict):
                         expr_type = value_expr.get("type")
 
@@ -151,6 +176,7 @@ class WikidataShExValidator:
                         stmt_reason = f"[EXTRA Outlier ignored] {stmt_reason}"
 
                 stmt_report = {
+                    "statement_id": stmt["statement_id"],
                     "line": stmt["line_number"],
                     "raw_triple": stmt["raw"],
                     "status": "PASS" if matches_constraint else "FAIL",
@@ -175,5 +201,4 @@ class WikidataShExValidator:
             report["property_evaluations"].append(prop_report)
 
         report["status"] = "PASS" if overall_pass else "FAIL"
-        print(json.dumps(report, indent=2))
         return report

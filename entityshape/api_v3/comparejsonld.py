@@ -31,14 +31,17 @@ class CompareJSONLD:
         self._property_responses: dict = {}
 
         self._get_entity_json()
+        self._get_entity_nt()
+        print(self._entities)
+        print(self._nt)
         if "entities" in self._entities and self._entities["entities"][self._entity]:
             self._get_props(self._entities["entities"][self._entity]['claims'])
-        # self._get_property_names(language)
+        self._get_property_names(language)
         # self.start_shape: dict = self._get_start_shape()
 
         entity_node = f"http://www.wikidata.org/entity/{self._entity}"
         comparison: WikidataShExValidator = WikidataShExValidator(json.dumps(shape))
-        comparison.load_ntriples(self._entities)
+        comparison.load_ntriples(self._nt)
         self._result = {"status": ""}
         self.response = {"properties": [], "statements": []}
         if "start" in comparison.schema:
@@ -90,11 +93,23 @@ class CompareJSONLD:
         """
         Downloads the entity from wikidata and assigns the json to self._entities
         """
+        url: str = f"https://www.wikidata.org/wiki/Special:EntityData/{self._entity}.json"
+        response: Response = requests.get(url=url,
+                                          headers={'User-Agent': 'Userscript Entityshape by User:Teester'})
+        if response.status_code == 200:
+            self._entities = response.json()
+
+    def _get_entity_nt(self) -> None:
+        """
+        Downloads the entity from wikidata and assigns the json to self._entities
+        """
+        triples: str = ""
         url: str = f"https://www.wikidata.org/wiki/Special:EntityData/{self._entity}.nt"
         response: Response = requests.get(url=url,
                                           headers={'User-Agent': 'Userscript Entityshape by User:Teester'})
         if response.status_code == 200:
-            self._entities = response.text
+            triples = response.text
+        self._nt = triples
 
     def _get_props(self, claims: dict) -> None:
         """
@@ -134,8 +149,9 @@ class CompareJSONLD:
                                                       "languages": language,
                                                       "format": "json"},
                                               headers={'User-Agent': 'Entityshape API by User:Teester'})
-            print(required_properties)
+            print(response.status_code)
             json_text: dict = response.json()
+            print(json_text)
             for item in element:
                 try:
                     self._names[json_text["entities"][item]["id"]] = \
@@ -160,19 +176,16 @@ class CompareJSONLD:
         return {}
 
     def format_validation_report(self, detailed_report: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Transforms the custom validator's output into a flat report
-        tracking explicit property necessity and statement responses.
-        Combines all properties into a single dictionary within the properties list.
-        """
         properties_dict = {}
-        formatted_statements = []
+        statements_dict = {}
+
+        # Grab the pre-parsed property labels map from the validator's output structure
+        labels_lookup = detailed_report.get("property_labels", {})
 
         evaluations = detailed_report.get("property_evaluations", [])
 
         for prop_eval in evaluations:
             predicate_iri = prop_eval["predicate"]
-            # Extract the short property ID (e.g., 'P31' from '.../direct/P31')
             prop_id = predicate_iri.split("/")[-1]
 
             card = prop_eval["cardinality"]
@@ -183,7 +196,7 @@ class CompareJSONLD:
             is_extra = prop_eval.get("is_marked_extra", False)
             prop_status = prop_eval["status"]
 
-            # 1. Determine Property Necessity
+            # 1. Necessity
             if min_card == 0 and max_card == 0:
                 necessity = "absent"
             elif min_card > 0:
@@ -191,7 +204,7 @@ class CompareJSONLD:
             else:
                 necessity = "optional"
 
-            # 2. Determine Property Response
+            # 2. Property Response
             if prop_status == "FAIL":
                 if max_card != -1 and actual_count > max_card:
                     prop_response = "too many statements"
@@ -199,11 +212,10 @@ class CompareJSONLD:
                     if actual_count == 0:
                         prop_response = "missing"
                     else:
-                        prop_response = "not enough statements"
+                        prop_response = "not enough correct statements"
                 else:
                     prop_response = "incorrect"
             else:
-                # FIX: If it passes and is marked EXTRA, it's evaluated as 'correct'
                 if is_extra:
                     prop_response = "correct"
                 elif len(prop_eval["statements_evaluated"]) > 0:
@@ -211,38 +223,44 @@ class CompareJSONLD:
                 else:
                     prop_response = "missing" if necessity == "required" else "correct"
 
-            # Add directly to our single dictionary mapping
+            # INJECTED: Look up the plain-text property label name string, fallback to ID if missing
+            prop_name = self._names[prop_id]
+
             properties_dict[prop_id] = {
+                "name": prop_name,  # <--- WE INJECT THIS HERE
                 "necessity": necessity,
                 "response": prop_response
             }
 
             # 3. Process Individual Statements
-            for stmt in prop_eval.get("statements_evaluated", []):
+            statements_evaluated = prop_eval.get("statements_evaluated", [])
+            for stmt in statements_evaluated:
                 stmt_status = stmt["status"]
-                raw_statement = stmt["raw_triple"]
+                stmt_id = stmt["statement_id"]
 
                 if stmt_status == "PASS":
                     stmt_response = "correct"
                 else:
-                    if is_extra:
+                    if prop_response == "missing" or prop_response == "not enough correct statements":
+                        stmt_response = "not enough correct statements"
+                    elif is_extra:
                         stmt_response = "allowed"
                     else:
                         stmt_response = "incorrect"
 
-                formatted_statements.append({
-                    "statement": raw_statement,
+                statements_dict[stmt_id] = {
+                    "property": prop_id,
                     "response": stmt_response
-                })
+                }
 
-            # Recursively parse nested subshape errors if they exist
             if "nested_subshape_error" in prop_eval:
                 nested_results = self.format_validation_report(prop_eval["nested_subshape_error"])
                 if nested_results["properties"]:
                     properties_dict.update(nested_results["properties"][0])
-                formatted_statements.extend(nested_results["statements"])
+                if nested_results["statements"]:
+                    statements_dict.update(nested_results["statements"][0])
 
         return {
             "properties": [properties_dict],
-            "statements": formatted_statements
+            "statements": [statements_dict]
         }
