@@ -32,8 +32,7 @@ class CompareJSONLD:
 
         self._get_entity_json()
         self._get_entity_nt()
-        print(self._entities)
-        print(self._nt)
+
         if "entities" in self._entities and self._entities["entities"][self._entity]:
             self._get_props(self._entities["entities"][self._entity]['claims'])
         self._get_property_names(language)
@@ -149,9 +148,7 @@ class CompareJSONLD:
                                                       "languages": language,
                                                       "format": "json"},
                                               headers={'User-Agent': 'Entityshape API by User:Teester'})
-            print(response.status_code)
             json_text: dict = response.json()
-            print(json_text)
             for item in element:
                 try:
                     self._names[json_text["entities"][item]["id"]] = \
@@ -176,6 +173,7 @@ class CompareJSONLD:
         return {}
 
     def format_validation_report(self, detailed_report: Dict[str, Any]) -> Dict[str, Any]:
+        print(f"detailed report = {json.dumps(detailed_report, indent=2)}")
         properties_dict = {}
         statements_dict = {}
 
@@ -224,13 +222,12 @@ class CompareJSONLD:
                     prop_response = "missing" if necessity == "required" else "correct"
 
             # INJECTED: Look up the plain-text property label name string, fallback to ID if missing
-            prop_name = self._names[prop_id]
-
             properties_dict[prop_id] = {
-                "name": prop_name,  # <--- WE INJECT THIS HERE
                 "necessity": necessity,
                 "response": prop_response
             }
+            if prop_id.startswith("P"):
+                properties_dict[prop_id]["name"] = self._names[prop_id]
 
             # 3. Process Individual Statements
             statements_evaluated = prop_eval.get("statements_evaluated", [])

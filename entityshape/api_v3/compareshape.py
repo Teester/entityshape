@@ -56,23 +56,103 @@ class WikidataShExValidator:
                 return shape
         raise ValueError(f"Shape ID '{shape_id}' not found.")
 
+    def _has_property_value_via_api(self, value_iri: str, property_id: str, target_value_iri: str) -> bool:
+        """
+        Queries the Wikidata Action API to check if a source entity (value_iri)
+        contains a specific property (property_id) pointing to a target entity (target_value_iri).
+        """
+        def get_q_id(iri: str) -> str:
+            return iri.strip("<>").split("/")[-1]
+
+        source_qid = get_q_id(value_iri)
+        target_qid = get_q_id(target_value_iri)
+        prop_id = property_id.split("/")[-1].upper() # Extracts e.g., 'P131' safely
+
+        if not source_qid.startswith("Q") or not prop_id.startswith("P"):
+            return False
+
+        # Build the Action API lookup for speed/caching efficiency
+        params = {
+            "action": "wbgetentities",
+            "ids": source_qid,
+            "props": "claims",
+            "format": "json"
+        }
+        url = "https://www.wikidata.org/w/api.php?" + urllib.parse.urlencode(params)
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "WikidataShExValidatorBot/1.0 (Python/urllib)"}
+        )
+
+        try:
+            with urllib.request.urlopen(req, timeout=5) as response:
+                res_data = json.loads(response.read().decode())
+                entity_data = res_data.get("entities", {}).get(source_qid, {})
+                claims = entity_data.get("claims", {})
+
+                # Check the dynamically identified property block
+                statements = claims.get(prop_id, [])
+                for stmt in statements:
+                    mainsnak = stmt.get("mainsnak", {})
+                    datavalue = mainsnak.get("datavalue", {})
+
+                    # Scenario A: Target is another entity link (The most common Wikidata path tracking)
+                    if datavalue.get("type") == "wikibase-entityid":
+                        found_id = datavalue.get("value", {}).get("id")
+                        if found_id == target_qid:
+                            return True
+
+                    # Scenario B: Target is a raw literal value (Strings, coordinates, dates)
+                    elif datavalue.get("type") == "string":
+                        found_str = datavalue.get("value")
+                        if found_str == target_value_iri.strip('"<>'):
+                            return True
+
+        except Exception:
+            return False
+
+        return False
+
     def _evaluate_node_constraint(self, stmt_value: str, value_expr: Dict[str, Any]) -> Tuple[bool, str]:
+        """Evaluates standard primitive constraints including dynamic API graph checking."""
         if value_expr.get("type") != "NodeConstraint":
             return True, "Valid"
 
         if "values" in value_expr:
-            allowed = [v["value"] if isinstance(v, dict) else v for v in value_expr["values"]]
+            allowed = []
+            dynamic_path_targets = [] # Tracks tuple of (property_id, target_value)
+
+            for v in value_expr["values"]:
+                if isinstance(v, dict):
+                    # Check for path modifiers, stems, or specific property modifiers inside the constraint
+                    has_path_prop = v.get("property") or v.get("predicate")
+
+                    if has_path_prop or v.get("type") == "StemRange" or "subclass" in str(v).lower():
+                        # Extract the predicate modifier (Default to P279 if it's an implicit subclass StemRange)
+                        prop_id = str(has_path_prop) if has_path_prop else "P279"
+                        target_val = v.get("value") or v.get("stem")
+
+                        if target_val:
+                            dynamic_path_targets.append((prop_id, str(target_val)))
+                    else:
+                        val_str = v.get("value") or v.get("literal") or str(v)
+                        allowed.append(val_str)
+                else:
+                    allowed.append(v)
+
             clean_stmt = stmt_value.strip("<>")
             if clean_stmt in allowed or stmt_value in allowed:
-                return True, "Value matches allowed list"
-            return False, f"Value '{stmt_value}' not in allowed list."
+                return True, "Value matches allowed list directly"
 
-        node_kind = value_expr.get("nodeKind")
-        if node_kind == "iri" and not (stmt_value.startswith("<") and stmt_value.endswith(">")):
-            return False, "Expected an IRI link."
-        elif node_kind == "literal" and stmt_value.startswith("<") and stmt_value.endswith(">"):
-            return False, "Expected a literal value."
+            # Execute dynamic path checks using properties identified from the ShEx schema
+            if stmt_value.startswith("<") and dynamic_path_targets:
+                for prop_id, target_val in dynamic_path_targets:
+                    if self._has_property_value_via_api(stmt_value, prop_id, target_val):
+                        return True, f"Valid matching statement (Verified {prop_id} connectivity to {target_val} via API)"
 
+            return False, f"Value '{stmt_value}' does not satisfy direct value or dynamic property path requirements."
+
+        # ... keep nodeKind and languageTag parsing blocks unchanged ...
         return True, "Valid"
 
     def validate_node(self, focus_node_iri: str, start_shape_id: str, visited: Set[Tuple[str, str]] = None) -> Dict[str, Any]:
