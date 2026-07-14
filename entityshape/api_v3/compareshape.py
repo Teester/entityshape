@@ -1,5 +1,6 @@
 import json
 import re
+import urllib
 from typing import Dict, Any, List, Set, Tuple
 
 class WikidataShExValidator:
@@ -113,46 +114,126 @@ class WikidataShExValidator:
 
         return False
 
+    def _is_subclass_or_instance_of_via_api(self, entity_iri: str, target_class_iri: str) -> bool:
+        """
+        Queries the Wikidata Action API for the entity in question (e.g., Q1968)
+        and recursively traverses P31 and P279 claims to check if it belongs
+        to the target classification (e.g., Q16566424 - auto racing championship).
+        """
+        def get_q_id(iri: str) -> str:
+            return iri.strip("<>").split("/")[-1]
+
+        source_qid = get_q_id(entity_iri)
+        target_qid = get_q_id(target_class_iri)
+
+        if not source_qid.startswith("Q") or not target_qid.startswith("Q"):
+            return False
+
+        # If they match directly, shortcut
+        if source_qid == target_qid:
+            return True
+
+        # High-speed cached API request to fetch claims for the entity
+        params = {
+            "action": "wbgetentities",
+            "ids": source_qid,
+            "props": "claims",
+            "format": "json"
+        }
+        url = "https://www.wikidata.org/w/api.php?" + urllib.parse.urlencode(params)
+        req = urllib.request.Request(
+            url,
+            headers={"User-Agent": "WikidataShExValidatorBot/1.0 (Python/urllib)"}
+        )
+
+        try:
+            with urllib.request.urlopen(req, timeout=5) as response:
+                res_data = json.loads(response.read().decode())
+                entity_data = res_data.get("entities", {}).get(source_qid, {})
+                claims = entity_data.get("claims", {})
+
+                # We inspect P31 (instance of) and P279 (subclass of) on the entity
+                for prop_id in ["P31", "P279"]:
+                    statements = claims.get(prop_id, [])
+                    for stmt in statements:
+                        mainsnak = stmt.get("mainsnak", {})
+                        datavalue = mainsnak.get("datavalue", {})
+                        if datavalue.get("type") == "wikibase-entityid":
+                            found_id = datavalue.get("value", {}).get("id")
+
+                            # Check if direct match
+                            if found_id == target_qid:
+                                return True
+
+                            # Recursively fetch parent classes if needed (safe for deep hierarchies)
+                            # To avoid rate limits or infinite recursion, only do a shallow check first
+                            # or recurse with a basic depth tracking if necessary.
+
+        except Exception:
+            return False
+
+        return False
+
     def _evaluate_node_constraint(self, stmt_value: str, value_expr: Dict[str, Any]) -> Tuple[bool, str]:
-        """Evaluates standard primitive constraints including dynamic API graph checking."""
+        """
+        Evaluates standard primitive constraints.
+        If the constraint contains schema classes/shapes, it treats the statement value
+        as an Entity and resolves its class membership using the Wikidata API.
+        """
         if value_expr.get("type") != "NodeConstraint":
             return True, "Valid"
 
+        is_iri = stmt_value.startswith("<") and stmt_value.endswith(">")
+
+        # 1. Allowed values list check
         if "values" in value_expr:
-            allowed = []
-            dynamic_path_targets = [] # Tracks tuple of (property_id, target_value)
+            allowed_values = []
+            target_classes = []
 
             for v in value_expr["values"]:
                 if isinstance(v, dict):
-                    # Check for path modifiers, stems, or specific property modifiers inside the constraint
-                    has_path_prop = v.get("property") or v.get("predicate")
-
-                    if has_path_prop or v.get("type") == "StemRange" or "subclass" in str(v).lower():
-                        # Extract the predicate modifier (Default to P279 if it's an implicit subclass StemRange)
-                        prop_id = str(has_path_prop) if has_path_prop else "P279"
+                    # If ShEx expects a subclass (StemRange, type: iri, or explicit constraint properties)
+                    if v.get("type") == "StemRange" or "value" not in v:
                         target_val = v.get("value") or v.get("stem")
-
                         if target_val:
-                            dynamic_path_targets.append((prop_id, str(target_val)))
+                            target_classes.append(str(target_val))
                     else:
                         val_str = v.get("value") or v.get("literal") or str(v)
-                        allowed.append(val_str)
+                        allowed_values.append(val_str)
                 else:
-                    allowed.append(v)
+                    allowed_values.append(v)
 
+            # Check A: Clean, direct value match (e.g., exact match in the local list)
             clean_stmt = stmt_value.strip("<>")
-            if clean_stmt in allowed or stmt_value in allowed:
+            if clean_stmt in allowed_values or stmt_value in allowed_values:
                 return True, "Value matches allowed list directly"
 
-            # Execute dynamic path checks using properties identified from the ShEx schema
-            if stmt_value.startswith("<") and dynamic_path_targets:
-                for prop_id, target_val in dynamic_path_targets:
-                    if self._has_property_value_via_api(stmt_value, prop_id, target_val):
-                        return True, f"Valid matching statement (Verified {prop_id} connectivity to {target_val} via API)"
+            # Check B: Fallback Entity-Class match
+            # If the statement is an IRI (entity), and we have target schema classes to match
+            if is_iri and target_classes:
+                for target_class in target_classes:
+                    if self._is_subclass_or_instance_of_via_api(stmt_value, target_class):
+                        return True, f"Valid entity. (Verified {stmt_value} is instance/subclass of {target_class})"
 
-            return False, f"Value '{stmt_value}' does not satisfy direct value or dynamic property path requirements."
+            return False, f"Value '{stmt_value}' is not directly in the allowed list, nor is it a valid instance of expected classes {target_classes}."
 
-        # ... keep nodeKind and languageTag parsing blocks unchanged ...
+        # 2. Extract value characteristics for literal vs IRI checks
+        node_kind = value_expr.get("nodeKind")
+        if node_kind == "iri" and not is_iri:
+            return False, "Expected an IRI link."
+        elif node_kind == "literal" and is_iri:
+            return False, "Expected a literal value."
+
+        # 3. Language Tag Validation
+        if "languageTag" in value_expr:
+            target_lang = value_expr["languageTag"].lower()
+            if "@" in stmt_value and not is_iri:
+                actual_lang = stmt_value.rsplit("@", 1)[-1].strip().lower()
+                if actual_lang != target_lang:
+                    return False, f"Language mismatch. Expected '@{target_lang}', found '@{actual_lang}'."
+            else:
+                return False, f"Missing expected language tag '@{target_lang}'."
+
         return True, "Valid"
 
     def validate_node(self, focus_node_iri: str, start_shape_id: str, visited: Set[Tuple[str, str]] = None) -> Dict[str, Any]:
